@@ -1,0 +1,48 @@
+# Environment
+.env
+
+# Logs
+*.log
+
+# Possible debugs
+**/__debug*
+
+# PID files
+**/server.pid
+
+deploy/app/bin/*
+
+# Logs
+**/logs/*
+
+# Plans
+plan/
+
+plugins/*
+
+# Upload
+**/uploads/*
+
+# Database files
+**/data/db/*
+
+.idea/
+.vscode/
+
+# OS/Editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Go build cache
+api/bin/
+api/pkg/
+
+# Dependency directories
+vendor/
+
+# Test output
+*.out
+
+# Config (if you want to ignore local config)
+# api/config.json

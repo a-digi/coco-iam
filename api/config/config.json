@@ -1,0 +1,10 @@
+{
+  "port": 2026,
+  "pid_file": "./server.pid",
+  "auth": {
+    "issuer": "https://issuer",
+    "audience": "coco-iam",
+    "hs256_secret": "dev-secret",
+    "jwks_url": ""
+  }
+}

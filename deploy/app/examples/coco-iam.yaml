@@ -1,0 +1,102 @@
+# Example deploy configuration for shipping a coco-iam build
+# (backend binary + frontend bundle) to a single VM over SSH.
+# Copy and adapt — every field is documented below.
+
+# ---- Engine discriminator ----------------------------------------
+# Picks which engine.Factory runs this deploy. Known values are
+# whatever the binary has imported; today: "ssh". Add AWS / K8s /
+# Cloud Run later without touching this field's schema.
+engine: ssh
+
+# ---- SSH engine config -------------------------------------------
+# Named after the engine above; the engine package decodes this
+# block into its own typed config.
+ssh:
+  host: iam.example.com
+  port: 22
+  user: deploy
+  # Leave key_file empty to use SSH_AUTH_SOCK (ssh-agent).
+  key_file: ~/.ssh/id_ed25519
+  # Path to the deploy user's known_hosts. Use "insecure" to
+  # bypass verification (lab only).
+  known_hosts_file: ~/.ssh/known_hosts
+  # Absolute base dir on the target. The engine manages
+  # releases/, current, and shared/ under it.
+  target_dir: /opt/coco-iam
+  # Prepend sudo to systemctl / filesystem commands when the
+  # deploy user doesn't own target_dir outright.
+  sudo: false
+  keep_releases: 5
+  connect_timeout: 15s
+
+# ---- Release metadata --------------------------------------------
+# Surfaces in logs + the versioned release directory name.
+release:
+  name: coco-iam
+  version: 0.0.1
+
+# ---- Artifacts ---------------------------------------------------
+# type: binary | directory | archive | image  (required)
+# source: local path (relative to this YAML's directory)
+# target: remote path (relative to the release dir, or absolute)
+artifacts:
+  - name: backend-binary
+    type: binary
+    source: ./bin/coco-iam
+    target: bin/coco-iam
+    mode: "0755"
+
+  - name: frontend-bundle
+    type: directory
+    source: ./web
+    target: web
+
+  # Example of an absolute target — writes the systemd unit into
+  # /etc regardless of the release dir.
+  # - name: systemd-unit
+  #   type: binary
+  #   source: ./deploy/systemd/coco-iam.service
+  #   target: /etc/systemd/system/coco-iam.service
+  #   mode: "0644"
+
+# ---- Processes ---------------------------------------------------
+# The SSH engine maps each name to a systemd unit it restarts
+# after artifacts land. Strategies: stop-start (default),
+# reload (SIGHUP), rolling (multi-instance — SSH engine rejects).
+processes:
+  - name: coco-iam
+    restart: stop-start
+
+# ---- Env ---------------------------------------------------------
+# Values support secret schemes:
+#   literal:<value>   force literal interpretation
+#   env:<NAME>        read operator's env var at deploy time
+#   file:<path>       read a local file (relative to this YAML)
+# A bare value with no scheme prefix is passed through verbatim.
+env:
+  COCO_IAM_PUBLIC_BASE_URL: https://iam.example.com
+  COCO_IAM_LOG_LEVEL: info
+  COCO_IAM_ADMIN_EMAIL: env:COCO_IAM_ADMIN_EMAIL
+  COCO_IAM_ADMIN_PASSWORD: file:./secrets/admin-password
+
+# ---- Health check ------------------------------------------------
+# URL polled from the operator's machine AFTER StartProcesses.
+# Polls every `interval` until `timeout`. Failure triggers
+# Engine.Rollback unless --no-rollback is passed.
+health_check:
+  url: https://iam.example.com/healthz
+  expect_status: 200
+  timeout: 60s
+  interval: 2s
+
+# ---- Hooks -------------------------------------------------------
+# Shell commands run LOCALLY via /bin/sh -c. pre_deploy runs
+# before the engine's Preflight; post_deploy runs after a
+# successful HealthCheck.
+hooks:
+  pre_deploy:
+    - echo "Building frontend..."
+    # - make build
+  post_deploy:
+    - echo "Deployed!"
+    # - ./scripts/notify-slack.sh "${COCO_IAM_PUBLIC_BASE_URL} is live"

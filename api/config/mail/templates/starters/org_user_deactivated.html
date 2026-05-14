@@ -1,0 +1,13 @@
+Subject: Your account has been deactivated
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; color: #111; max-width: 560px; margin: 0 auto; padding: 24px;">
+  <h2 style="color: #4f46e5; margin-top: 0;">{{ .WebsiteTitle }}</h2>
+  <p>Hello <strong>{{ .Username }}</strong>,</p>
+  <p>Your account on <strong>{{ .WebsiteTitle }}</strong> has been deactivated.</p>
+  <p>If you believe this was a mistake, please contact your administrator.</p>
+  <p style="color: #6b7280; font-size: 12px; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+    — {{ .WebsiteTitle }}
+  </p>
+</body>
+</html>

@@ -1,0 +1,7 @@
+Subject: coco-iam — SMTP wiring test
+
+Hello {{ .Name }},
+
+This is a wiring test. If you can read this, outbound SMTP is configured correctly.
+
+Sent at {{ .Time }}.

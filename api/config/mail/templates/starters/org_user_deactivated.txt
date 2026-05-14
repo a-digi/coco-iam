@@ -1,0 +1,9 @@
+Subject: Your account has been deactivated
+
+Hello {{ .Username }},
+
+Your account on {{ .WebsiteTitle }} has been deactivated.
+
+If you believe this was a mistake, please contact your administrator.
+
+— {{ .WebsiteTitle }}

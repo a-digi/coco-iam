@@ -1,0 +1,19 @@
+routes:
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: public
+        content_type: application/json
+        security: public
+        children:
+          - path: /general
+            method: GET
+            executor: PublicGeneralSettingsHandler
+            security: public
+
+  - path: /
+    method: GET
+    executor: RootHandler
+    content_type: text/plain
+    security: public

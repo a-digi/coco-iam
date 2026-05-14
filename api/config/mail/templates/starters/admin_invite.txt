@@ -1,0 +1,19 @@
+Subject: You're invited to {{ .WebsiteTitle }}
+
+Hello {{ .Username }},
+
+You have been invited to administer {{ .WebsiteTitle }}.
+Activate your account and set a password by opening the link below:
+
+{{ .ActivationLink }}
+
+Prefer to sign in manually? Use the temporary password below and you'll
+be asked to change it on first login:
+
+    {{ .TempPassword }}
+
+The activation link expires in {{ .ExpiresIn }}.
+
+If you did not expect this invitation you can safely ignore this email.
+
+— {{ .WebsiteTitle }}

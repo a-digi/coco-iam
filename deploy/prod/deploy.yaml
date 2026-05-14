@@ -1,0 +1,57 @@
+engine: ssh
+
+ssh:
+  host: 91.99.88.180
+  user: root
+  password: file:../secrets/ssh-password
+  layout: flat
+  target_dir: /app
+
+release:
+  name: coco-iam
+  version: 0.0.1
+
+artifacts:
+  - name: backend-binary
+    type: binary
+    source: ../../versions/coco-iam-deploy
+    target: /app/coco-iam-api/coco-iam-api
+    mode: "0755"
+    pre_deploy: systemctl stop coco-iam
+    post_deploy: systemctl start coco-iam
+
+  - name: frontend-bundle
+    type: directory
+    source: ../../app/dist
+    target: /app/coco-iam-front
+
+  - name: config
+    type: directory
+    source: ../../api/config
+    target: /app/coco-iam-api/config
+
+processes:
+  - name: coco-iam
+    restart: stop-start
+
+env:
+  COCO_IAM_PUBLIC_BASE_URL: https://coco-iam.t-digi.com
+  COCO_IAM_CONFIG_DIR: /app/coco-iam-api/config
+  COCO_IAM_LOG_LEVEL: info
+  OBSERVE_AGGREGATOR_URL: https://coco-iam-api.t-digi.com/api/v1/admin/observe/push
+
+health_check:
+  url: https://coco-iam.t-digi.com
+  expect_status: 200
+  timeout: 60s
+  interval: 2s
+
+hooks:
+  pre_deploy:
+  post_deploy:
+    - echo "coco-iam deployed to $COCO_IAM_PUBLIC_BASE_URL"
+
+remote_hooks:
+  pre_deploy:
+  post_deploy:
+    - systemctl restart caddy

@@ -1,0 +1,124 @@
+[
+    {
+        "id": "organizations",
+        "description": "Allows creating or modifying organizations.",
+        "scopes": [
+            {
+                "id": "organizations:read",
+                "description": "Allows reading organizations."
+            },
+            {
+                "id": "organizations:write",
+                "description": "Allows creating or modifying organizations."
+            },
+            {
+                "id": "organizations:delete",
+                "description": "Allows deleting organizations."
+            },
+            {
+                "id": "organizations:users",
+                "description": "Allows creating or modifying users within organizations.",
+                "scopes": [
+                    {
+                        "id": "organizations:users:read",
+                        "description": "Allows reading users within organizations."
+                    },
+                    {
+                        "id": "organizations:users:write",
+                        "description": "Allows creating or modifying users within organizations."
+                    },
+                    {
+                        "id": "organizations:users:delete",
+                        "description": "Allows deleting users within organizations."
+                    },
+                    {
+                        "id": "organizations:users:acl",
+                        "description": "Allows managing scope assignments on organization users.",
+                        "scopes": [
+                            {
+                                "id": "organizations:users:acl:read",
+                                "description": "Allows reading organization-user ACLs."
+                            },
+                            {
+                                "id": "organizations:users:acl:write",
+                                "description": "Allows creating or modifying organization-user ACLs."
+                            },
+                            {
+                                "id": "organizations:users:acl:delete",
+                                "description": "Allows deleting organization-user ACLs."
+                            }
+                        ]
+                    },
+                    {
+                        "id": "organizations:users:profile",
+                        "description": "Allows reading or modifying the profile values of organization users.",
+                        "scopes": [
+                            {
+                                "id": "organizations:users:profile:read",
+                                "description": "Allows reading any organization user's profile values."
+                            },
+                            {
+                                "id": "organizations:users:profile:write",
+                                "description": "Allows editing any organization user's profile values."
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "organizations:profile_fields",
+                "description": "Manage the organization's profile-field schema (custom fields users fill in).",
+                "scopes": [
+                    {
+                        "id": "organizations:profile_fields:read",
+                        "description": "Allows reading the profile-field schema."
+                    },
+                    {
+                        "id": "organizations:profile_fields:write",
+                        "description": "Allows creating, editing, or reordering profile fields."
+                    },
+                    {
+                        "id": "organizations:profile_fields:delete",
+                        "description": "Allows soft-deleting profile fields."
+                    }
+                ]
+            },
+            {
+                "id": "organizations:groups",
+                "description": "Allows creating or modifying user groups within organizations.",
+                "scopes": [
+                    {
+                        "id": "organizations:groups:read",
+                        "description": "Allows reading user groups within organizations."
+                    },
+                    {
+                        "id": "organizations:groups:write",
+                        "description": "Allows creating or modifying user groups within organizations."
+                    },
+                    {
+                        "id": "organizations:groups:delete",
+                        "description": "Allows deleting user groups within organizations."
+                    },
+                    {
+                        "id": "organizations:groups:acl",
+                        "description": "Allows managing scope assignments on organization groups.",
+                        "scopes": [
+                            {
+                                "id": "organizations:groups:acl:read",
+                                "description": "Allows reading organization-group ACLs."
+                            },
+                            {
+                                "id": "organizations:groups:acl:write",
+                                "description": "Allows creating or modifying organization-group ACLs."
+                            },
+                            {
+                                "id": "organizations:groups:acl:delete",
+                                "description": "Allows deleting organization-group ACLs."
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

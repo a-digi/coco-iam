@@ -1,0 +1,342 @@
+routes:
+  # Authenticated — admin editor endpoints.
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: applications
+        security: authenticated
+        children:
+          - path: /{res:applications}/{id}/login-template/assets
+            method: GET
+            executor: AppLoginTemplateListAssetsHandler
+            security: authenticated
+            scopes:
+              - applications:login_templates:read
+              - applications:login_templates
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/login-template/assets
+            method: POST
+            executor: AppLoginTemplateUploadAssetHandler
+            security: authenticated
+            content_type: ""
+            scopes:
+              - applications:login_templates:write
+              - applications:login_templates
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/login-template/assets/{assetId}
+            method: DELETE
+            executor: AppLoginTemplateDeleteAssetHandler
+            security: authenticated
+            scopes:
+              - applications:login_templates:write
+              - applications:login_templates
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/login-settings
+            method: GET
+            executor: AppLoginSettingsGetHandler
+            security: authenticated
+            scopes:
+              - applications:login_templates:read
+              - applications:login_templates
+              - applications
+              - super:admin
+          # Returns the admin-chosen identifier trio (organization_id,
+          # workspace_id, client_id) for the application. Admin UIs use
+          # it to build slug-based public URLs (e.g. hot-linkable logo
+          # URLs, login-page URL) without ever surfacing the UUIDs.
+          - path: /{res:applications}/{id}/slugs
+            method: GET
+            executor: AppSlugsHandler
+            security: authenticated
+            scopes:
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/login-settings
+            method: PATCH
+            executor: AppLoginSettingsUpdateHandler
+            security: authenticated
+            scopes:
+              - applications:login_templates:write
+              - applications:login_templates
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/keys
+            method: GET
+            executor: AppKeysListHandler
+            security: authenticated
+            scopes:
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/keys/regenerate
+            method: POST
+            executor: AppKeysRegenerateHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/keys/activate-pending
+            method: POST
+            executor: AppKeysActivatePendingHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/keys/discard-pending
+            method: POST
+            executor: AppKeysDiscardPendingHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/keys/{keyId}/deactivate
+            method: POST
+            executor: AppKeysDeactivateHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          # Per-application machine-auth credentials — lets the admin
+          # issue api_id + api_secret pairs used by the public /a/...
+          # endpoints. See plan/application-api-credentials/plan.md.
+          - path: /{res:applications}/{id}/api-credentials
+            method: GET
+            executor: AppApiCredentialsListHandler
+            security: authenticated
+            scopes:
+              - applications:api_credentials:read
+              - applications:api_credentials
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/api-credentials
+            method: POST
+            executor: AppApiCredentialsCreateHandler
+            security: authenticated
+            scopes:
+              - applications:api_credentials
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/api-credentials/{credId}/revoke
+            method: POST
+            executor: AppApiCredentialsRevokeHandler
+            security: authenticated
+            scopes:
+              - applications:api_credentials
+              - applications:write
+              - applications
+              - super:admin
+          # Per-application external-IdP OAuth providers — Google,
+          # GitHub, Microsoft config used by the user-facing login
+          # page's "Continue with …" buttons. Secrets are encrypted
+          # at rest. See plan/workspace-app-oauth/plan.md.
+          - path: /{res:applications}/{id}/oauth-providers
+            method: GET
+            executor: AppOAuthProvidersListHandler
+            security: authenticated
+            scopes:
+              - applications:oauth:read
+              - applications:oauth
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/oauth-providers
+            method: POST
+            executor: AppOAuthProvidersCreateHandler
+            security: authenticated
+            scopes:
+              - applications:oauth
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/oauth-providers/{providerId}
+            method: PATCH
+            executor: AppOAuthProvidersUpdateHandler
+            security: authenticated
+            scopes:
+              - applications:oauth
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/oauth-providers/{providerId}
+            method: DELETE
+            executor: AppOAuthProvidersDeleteHandler
+            security: authenticated
+            scopes:
+              - applications:oauth
+              - applications:write
+              - applications
+              - super:admin
+          # Per-application OAuth CLIENTS — third-party apps that
+          # use coco-iam as their OIDC provider. Inverse of the
+          # oauth-providers rows above. See
+          # plan/oauth-provider/plan.md.
+          - path: /{res:applications}/{id}/oauth-clients
+            method: GET
+            executor: AppOAuthClientsListHandler
+            security: authenticated
+            scopes:
+              - applications:oauth:read
+              - applications:oauth
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/oauth-clients
+            method: POST
+            executor: AppOAuthClientsCreateHandler
+            security: authenticated
+            scopes:
+              - applications:oauth
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/oauth-clients/{clientRowId}
+            method: PATCH
+            executor: AppOAuthClientsUpdateHandler
+            security: authenticated
+            scopes:
+              - applications:oauth
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/oauth-clients/{clientRowId}/rotate-secret
+            method: POST
+            executor: AppOAuthClientsRotateHandler
+            security: authenticated
+            scopes:
+              - applications:oauth
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/oauth-clients/{clientRowId}
+            method: DELETE
+            executor: AppOAuthClientsDeleteHandler
+            security: authenticated
+            scopes:
+              - applications:oauth
+              - applications:write
+              - applications
+              - super:admin
+          # Registration schema admin endpoints — manage the steps +
+          # fields served publicly at /a/.../registration-fields.
+          - path: /{res:applications}/{id}/registration-fields
+            method: GET
+            executor: AppRegistrationFieldsListHandler
+            security: authenticated
+            scopes:
+              - applications:registration_fields:read
+              - applications:registration_fields
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/registration-fields
+            method: PUT
+            executor: AppRegistrationFieldsReplaceHandler
+            security: authenticated
+            scopes:
+              - applications:registration_fields
+              - applications:write
+              - applications
+              - super:admin
+          # Per-application analytics (Detail panel widgets). Each
+          # endpoint gated by its widget scope + the :read umbrella.
+          - path: /{res:applications}/{id}/analytics/users-count
+            method: GET
+            executor: AppAnalyticsUsersCountHandler
+            security: authenticated
+            scopes:
+              - applications:analytics:users:read
+              - applications:analytics:read
+              - applications:analytics
+              - super:admin
+          - path: /{res:applications}/{id}/analytics/groups-count
+            method: GET
+            executor: AppAnalyticsGroupsCountHandler
+            security: authenticated
+            scopes:
+              - applications:analytics:groups:read
+              - applications:analytics:read
+              - applications:analytics
+              - super:admin
+          - path: /{res:applications}/{id}/analytics/scopes-count
+            method: GET
+            executor: AppAnalyticsScopesCountHandler
+            security: authenticated
+            scopes:
+              - applications:analytics:scopes:read
+              - applications:analytics:read
+              - applications:analytics
+              - super:admin
+          - path: /{res:applications}/{id}/analytics/recent-grants
+            method: GET
+            executor: AppAnalyticsRecentGrantsHandler
+            security: authenticated
+            scopes:
+              - applications:analytics:recent_grants:read
+              - applications:analytics:read
+              - applications:analytics
+              - super:admin
+          - path: /{res:applications}/{id}/analytics/pending-recoveries
+            method: GET
+            executor: AppAnalyticsPendingRecoveriesHandler
+            security: authenticated
+            scopes:
+              - applications:analytics:pending_recoveries:read
+              - applications:analytics:read
+              - applications:analytics
+              - super:admin
+
+  # Public — rendered login page + authenticate + asset serving.
+  # Login-template JSON config + auth endpoints — still under /api/v1/
+  # since they are part of the public API surface.
+  - path: /api/v1/
+    content_type: application/json
+    security: public
+    children:
+      - path: public/applications
+        security: public
+        children:
+          - path: /login-template
+            method: GET
+            executor: AppLoginTemplatePublicGetHandler
+            security: public
+          - path: /auth-methods
+            method: POST
+            executor: AppLoginMethodsHandler
+            security: public
+      - path: applications
+        security: public
+        children:
+          - path: /authenticate
+            method: POST
+            executor: AppLoginAuthenticateHandler
+            security: public
+          - path: /{id}/.well-known/jwks.json
+            method: GET
+            executor: AppKeysPublicJWKSHandler
+            security: public
+          - path: /renew
+            method: POST
+            executor: AppRenewHandler
+            security: public
+
+  # Image serving lives OUTSIDE /api/v1/ so <img src> tags resolve
+  # cleanly regardless of where the page is hosted — no API version
+  # prefix, no CORS preflight, no auth middleware.
+  - path: /p/applications
+    security: public
+    children:
+      - path: /assets/{assetId}
+        method: GET
+        executor: AppLoginTemplatePublicAssetHandler
+        security: public

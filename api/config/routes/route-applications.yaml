@@ -1,0 +1,344 @@
+routes:
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: applications
+        content_type: application/json
+        security: authenticated
+        scopes:
+          - super:admin
+        children:
+          - path: /{res:applications}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:delete
+              - applications
+              - super:admin
+          - path: /{res:applications}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:delete
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:application_scopes}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:read
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:application_scopes}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:write
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:application_scopes}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:delete
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:application_scopes}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:write
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:application_scopes}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:write
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:application_scopes}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:read
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:application_scopes}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:delete
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:application_scopes}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:write
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:application_scopes}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:write
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:application_user_acl}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:read
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_user_acl}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_user_acl}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:delete
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_user_acl}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_user_acl}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_user_acl}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:read
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_user_acl}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:delete
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_user_acl}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_user_acl}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_group_acl}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:read
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_group_acl}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_group_acl}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:delete
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_group_acl}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_group_acl}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_group_acl}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:read
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_group_acl}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:delete
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_group_acl}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:application_group_acl}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - applications:acl:write
+              - applications:acl
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/scopes/export
+            method: GET
+            executor: ApplicationScopesExportHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:read
+              - applications:scopes
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/scopes/import
+            method: POST
+            executor: ApplicationScopesImportHandler
+            security: authenticated
+            scopes:
+              - applications:scopes:write
+              - applications:scopes
+              - applications
+              - super:admin

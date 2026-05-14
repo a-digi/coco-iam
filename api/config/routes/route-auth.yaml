@@ -1,0 +1,15 @@
+routes:
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: auth
+        content_type: application/json
+        security: authenticated
+        children:
+          - path: /change-password
+            method: POST
+            executor: ActivationChangePasswordHandler
+            security: authenticated
+            scopes:
+              - system:pwd_reset_required

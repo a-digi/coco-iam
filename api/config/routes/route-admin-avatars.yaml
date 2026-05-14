@@ -1,0 +1,13 @@
+routes:
+  # Public serve path for admin-user avatars. Same convention as
+  # /p/applications/assets/* and /p/media/* — no auth (avatar
+  # images are non-sensitive — they're what a signed-in admin
+  # sees everywhere), rooted outside /api/v1/ so <img src>
+  # resolution is straightforward.
+  - path: /p/admin-avatars
+    security: public
+    children:
+      - path: /{adminUserId}
+        method: GET
+        executor: AdminAvatarServeHandler
+        security: public

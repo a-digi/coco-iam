@@ -1,0 +1,20 @@
+[
+    {
+        "id": "workspaces",
+        "description": "Allows creating or modifying workspaces.",
+        "scopes": [
+            {
+                "id": "workspaces:read",
+                "description": "Allows reading workspaces."
+            },
+            {
+                "id": "workspaces:write",
+                "description": "Allows creating or modifying workspaces."
+            },
+            {
+                "id": "workspaces:delete",
+                "description": "Allows deleting workspaces."
+            }
+        ]
+    }
+]

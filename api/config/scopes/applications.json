@@ -1,0 +1,152 @@
+[
+    {
+        "id": "applications",
+        "description": "Allows creating or modifying applications.",
+        "scopes": [
+            {
+                "id": "applications:read",
+                "description": "Allows reading applications."
+            },
+            {
+                "id": "applications:write",
+                "description": "Allows creating or modifying applications."
+            },
+            {
+                "id": "applications:delete",
+                "description": "Allows deleting applications."
+            },
+            {
+                "id": "applications:scopes",
+                "description": "Allows managing the scope vocabulary an application exposes.",
+                "scopes": [
+                    {
+                        "id": "applications:scopes:read",
+                        "description": "Allows reading application scope definitions."
+                    },
+                    {
+                        "id": "applications:scopes:write",
+                        "description": "Allows creating or modifying application scope definitions."
+                    },
+                    {
+                        "id": "applications:scopes:delete",
+                        "description": "Allows deleting application scope definitions."
+                    }
+                ]
+            },
+            {
+                "id": "applications:users",
+                "description": "Allows managing user assignments on applications.",
+                "scopes": [
+                    {
+                        "id": "applications:users:read",
+                        "description": "Allows reading application user assignments."
+                    },
+                    {
+                        "id": "applications:users:write",
+                        "description": "Allows creating or modifying application user assignments."
+                    },
+                    {
+                        "id": "applications:users:delete",
+                        "description": "Allows deleting application user assignments."
+                    }
+                ]
+            },
+            {
+                "id": "applications:acl",
+                "description": "Allows managing scope assignments on application users.",
+                "scopes": [
+                    {
+                        "id": "applications:acl:read",
+                        "description": "Allows reading application user ACLs."
+                    },
+                    {
+                        "id": "applications:acl:write",
+                        "description": "Allows creating or modifying application user ACLs."
+                    },
+                    {
+                        "id": "applications:acl:delete",
+                        "description": "Allows deleting application user ACLs."
+                    }
+                ]
+            },
+            {
+                "id": "applications:keys",
+                "description": "Allows access to per-application signing keys.",
+                "scopes": [
+                    {
+                        "id": "applications:keys:read",
+                        "description": "Allows reading the public key and JWKS metadata."
+                    },
+                    {
+                        "id": "applications:keys:read_private",
+                        "description": "Allows viewing the private key PEM. Holders of this scope can sign tokens on behalf of the application — keep strictly limited."
+                    }
+                ]
+            },
+            {
+                "id": "applications:api_credentials",
+                "description": "Allows issuing and revoking the machine-auth api id + secret credentials an application uses to call /a/... endpoints.",
+                "scopes": [
+                    {
+                        "id": "applications:api_credentials:read",
+                        "description": "Allows listing an application's api credentials (never shows the plaintext secret, which is only returned once at create time)."
+                    }
+                ]
+            },
+            {
+                "id": "applications:registration_fields",
+                "description": "Allows managing the per-application registration schema (steps + fields) served publicly at /a/{org}/{ws}/{app}/registration-fields.",
+                "scopes": [
+                    {
+                        "id": "applications:registration_fields:read",
+                        "description": "Allows reading the saved registration schema for an application."
+                    }
+                ]
+            },
+            {
+                "id": "applications:login_templates",
+                "description": "Manages the per-application login page template, background, logo, titles, and text block.",
+                "scopes": [
+                    {
+                        "id": "applications:login_templates:read",
+                        "description": "Allows reading the login-template settings and uploaded assets."
+                    },
+                    {
+                        "id": "applications:login_templates:write",
+                        "description": "Allows changing the layout, background, logo, titles, and text block. The allow_recovery and allow_registration flags live on the application entity itself and are managed via applications:write."
+                    }
+                ]
+            },
+            {
+                "id": "applications:analytics",
+                "description": "Per-application analytics on the Detail panel. Fine-grained per widget; the :read scope grants access to all widgets.",
+                "scopes": [
+                    {
+                        "id": "applications:analytics:read",
+                        "description": "Allows viewing ALL analytics widgets on an application's Detail panel."
+                    },
+                    {
+                        "id": "applications:analytics:users:read",
+                        "description": "Allows viewing the application's user-access count widget."
+                    },
+                    {
+                        "id": "applications:analytics:groups:read",
+                        "description": "Allows viewing the application's group-access count widget."
+                    },
+                    {
+                        "id": "applications:analytics:scopes:read",
+                        "description": "Allows viewing the application's active-scopes count widget."
+                    },
+                    {
+                        "id": "applications:analytics:recent_grants:read",
+                        "description": "Allows viewing the application's recent ACL grants widget."
+                    },
+                    {
+                        "id": "applications:analytics:pending_recoveries:read",
+                        "description": "Allows viewing the application's pending password-recovery count widget."
+                    }
+                ]
+            }
+        ]
+    }
+]

@@ -1,0 +1,135 @@
+{
+  "starters": [
+    {
+      "name": "admin_invite",
+      "display_name": "Admin Invitation",
+      "description": "Invite a new administrator to the system. Contains an activation link + temporary password.",
+      "tokens": [
+        {
+          "name": "WebsiteTitle",
+          "description": "Human-readable name of the product or instance.",
+          "example": "coco-iam"
+        },
+        {
+          "name": "Username",
+          "description": "Username of the invited administrator.",
+          "example": "alice"
+        },
+        {
+          "name": "ActivationLink",
+          "description": "Absolute URL the invitee clicks to activate the account and set a password.",
+          "example": "https://iam.example.com/activate?token=abc123"
+        },
+        {
+          "name": "TempPassword",
+          "description": "Short-lived password the user can sign in with until they change it.",
+          "example": "Kq2mpRn7tuv3"
+        },
+        {
+          "name": "ExpiresIn",
+          "description": "Human-readable duration before the activation link expires.",
+          "example": "24 hours"
+        }
+      ]
+    },
+    {
+      "name": "user_invite",
+      "display_name": "User Invitation",
+      "description": "Activation email sent to a regular (non-admin) user who was just created.",
+      "tokens": [
+        {
+          "name": "WebsiteTitle",
+          "description": "Human-readable name of the product or instance.",
+          "example": "coco-iam"
+        },
+        {
+          "name": "Username",
+          "description": "Username of the invited user.",
+          "example": "alice"
+        },
+        {
+          "name": "ActivationLink",
+          "description": "Absolute URL the invitee clicks to activate the account and set a password.",
+          "example": "https://iam.example.com/activate?token=abc123"
+        },
+        {
+          "name": "TempPassword",
+          "description": "Short-lived password the user can sign in with until they change it.",
+          "example": "Kq2mpRn7tuv3"
+        },
+        {
+          "name": "ExpiresIn",
+          "description": "Human-readable duration before the activation link expires.",
+          "example": "24 hours"
+        }
+      ]
+    },
+    {
+      "name": "password_recovery",
+      "display_name": "Password Recovery",
+      "description": "Send a password-reset link to a user who requested recovery.",
+      "tokens": [
+        {
+          "name": "WebsiteTitle",
+          "description": "Human-readable name of the product or instance.",
+          "example": "coco-iam"
+        },
+        {
+          "name": "Username",
+          "description": "Username of the account being recovered.",
+          "example": "alice"
+        },
+        {
+          "name": "ResetLink",
+          "description": "Absolute URL the recipient clicks to choose a new password.",
+          "example": "https://iam.example.com/password-reset?token=abc123"
+        },
+        {
+          "name": "ExpiresIn",
+          "description": "Human-readable duration before the link expires.",
+          "example": "1 hour"
+        }
+      ]
+    },
+    {
+      "name": "admin_password_expiry_warning",
+      "display_name": "Admin Password Expiry Warning",
+      "description": "Warns an administrator that their password will expire soon.",
+      "tokens": [
+        {"name": "WebsiteTitle",    "description": "Human-readable name of the product or instance.", "example": "My Platform"},
+        {"name": "Username",        "description": "Username of the administrator.", "example": "alice"},
+        {"name": "DaysUntilExpiry", "description": "Number of days remaining before the password expires.", "example": "7"},
+        {"name": "ExpiryDate",      "description": "Human-readable expiry date.", "example": "26 May 2026"}
+      ]
+    },
+    {
+      "name": "user_password_expiry_warning",
+      "display_name": "User Password Expiry Warning",
+      "description": "Warns an organisation user that their password will expire soon.",
+      "tokens": [
+        {"name": "WebsiteTitle",    "description": "Human-readable name of the product or instance.", "example": "My Platform"},
+        {"name": "Username",        "description": "Username of the user.", "example": "bob"},
+        {"name": "DaysUntilExpiry", "description": "Number of days remaining before the password expires.", "example": "1"},
+        {"name": "ExpiryDate",      "description": "Human-readable expiry date.", "example": "26 May 2026"}
+      ]
+    },
+    {
+      "name": "org_user_deactivated",
+      "display_name": "Organisation User Deactivated",
+      "description": "Notifies an organisation user that their account has been deactivated.",
+      "tokens": [
+        {"name": "WebsiteTitle", "description": "Human-readable name of the product or instance.", "example": "My Platform"},
+        {"name": "Username",     "description": "Username of the affected user.", "example": "alice"}
+      ]
+    },
+    {
+      "name": "org_user_removed",
+      "display_name": "Organisation User Removed",
+      "description": "Notifies an organisation user that their account has been permanently removed.",
+      "tokens": [
+        {"name": "WebsiteTitle", "description": "Human-readable name of the product or instance.", "example": "My Platform"},
+        {"name": "Username",     "description": "Username of the affected user.", "example": "alice"}
+      ]
+    }
+  ]
+}

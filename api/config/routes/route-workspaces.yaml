@@ -1,0 +1,100 @@
+routes:
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: workspaces
+        content_type: application/json
+        security: authenticated
+        scopes:
+          - super:admin
+        children:
+          - path: /{res:workspaces}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:read
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:write
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:delete
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:write
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:write
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:read
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}/{id}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:write
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:delete
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:write
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - workspaces:write
+              - workspaces
+              - super:admin
+          - path: /{res:workspaces}/{id}/stats
+            method: GET
+            executor: WorkspaceStatsHandler
+            security: authenticated
+            scopes:
+              - workspaces:read
+              - workspaces
+              - super:admin
+

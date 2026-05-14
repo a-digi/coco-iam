@@ -1,0 +1,19 @@
+routes:
+  # Public — request + reset endpoints. The actual recovery pages are
+  # rendered client-side using the login template settings. Admin
+  # template editors were removed with the login-template redesign.
+  - path: /api/v1/
+    content_type: application/json
+    security: public
+    children:
+      - path: public/applications
+        security: public
+        children:
+          - path: /recover/request
+            method: POST
+            executor: AppRecoveryPublicRequestHandler
+            security: public
+          - path: /recover/reset
+            method: POST
+            executor: AppRecoveryPublicResetHandler
+            security: public

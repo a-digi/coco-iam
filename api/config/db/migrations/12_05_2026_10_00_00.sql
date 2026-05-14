@@ -1,0 +1,2 @@
+/***Statement***/
+DROP TABLE IF EXISTS password_recoveries;

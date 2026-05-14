@@ -1,0 +1,772 @@
+routes:
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: admin
+        content_type: application/json
+        security: authenticated
+        scopes:
+          - super:admin
+        children:
+          - path: /dashboard/stats
+            method: GET
+            executor: AdminDashboardStatsHandler
+            security: authenticated
+            scopes:
+              - admin:dashboard:stats:read
+              - super:admin
+          - path: /dashboard/registrations
+            method: GET
+            executor: AdminDashboardRegistrationsHandler
+            security: authenticated
+            scopes:
+              - admin:dashboard:registrations:read
+              - super:admin
+          - path: /dashboard/top-orgs
+            method: GET
+            executor: AdminDashboardTopOrgsHandler
+            security: authenticated
+            scopes:
+              - admin:dashboard:top_orgs:read
+              - super:admin
+          - path: /dashboard/queue
+            method: GET
+            executor: AdminDashboardQueueHandler
+            security: authenticated
+            scopes:
+              - admin:dashboard:queue:read
+              - super:admin
+          - path: /dashboard/recent-users
+            method: GET
+            executor: AdminDashboardRecentUsersHandler
+            security: authenticated
+            scopes:
+              - admin:dashboard:recent_users:read
+              - super:admin
+          - path: /dashboard/failed-tasks
+            method: GET
+            executor: AdminDashboardFailedTasksHandler
+            security: authenticated
+            scopes:
+              - admin:dashboard:failed_tasks:read
+              - super:admin
+          - path: /oauth/authenticate
+            method: POST
+            executor: AdminLoginHandler
+            security: public
+          - path: /oauth/renew
+            method: POST
+            executor: TokenRenewHandler
+            security: public
+          - path: /acl/scopes
+            method: GET
+            executor: AclScopesHandler
+            security: authenticated
+            scopes:
+              - admin:acl:read
+              - admin:acl
+          - path: /{res:users}
+            method: GET
+            executor: ApiResourceHandler
+            filters:
+              - isActive: true
+            security: authenticated
+            scopes:
+              - admin:users:read
+          - path: /{res:users}
+            method: POST
+            executor: ApiResourceHandler
+            filters:
+              - isActive: true
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /{res:users}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /{res:users}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /{res:users}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /{res:users}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:users:read
+          - path: /{res:users}/{id}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /{res:users}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /{res:users}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /{res:users}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /{res:admin_acl}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:acl:read
+              - admin:acl
+          - path: /{res:admin_acl}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:users:acl:write
+              - admin:users:acl
+          - path: /{res:admin_acl}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:users:acl:delete
+              - admin:users:acl
+          - path: /{res:admin_acl}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:users:acl:write
+              - admin:users:acl
+          - path: /{res:admin_acl}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:users:acl:write
+              - admin:users:acl
+          - path: /{res:admin_acl}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:users:acl:read
+              - admin:users:acl
+          - path: /{res:admin_groups}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:read
+              - admin:groups
+          - path: /{res:admin_groups}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_groups}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:delete
+              - admin:groups
+          - path: /{res:admin_groups}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_groups}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_groups}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:read
+              - admin:groups
+          - path: /{res:admin_groups}/{id}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_groups}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:delete
+              - admin:groups
+          - path: /{res:admin_groups}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_groups}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_group_acl}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:acl:read
+              - admin:acl
+          - path: /{res:admin_group_acl}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:acl:write
+              - admin:groups:acl
+          - path: /{res:admin_group_acl}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:acl:delete
+              - admin:groups:acl
+          - path: /{res:admin_group_acl}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:acl:write
+              - admin:groups:acl
+          - path: /{res:admin_group_acl}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:acl:write
+              - admin:groups:acl
+          - path: /{res:admin_group_acl}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:acl:read
+              - admin:groups:acl
+          - path: /{res:admin_group_acl}/{id}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:acl:write
+              - admin:groups:acl
+          - path: /{res:admin_group_acl}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:acl:delete
+              - admin:groups:acl
+          - path: /{res:admin_group_acl}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:acl:write
+              - admin:groups:acl
+          - path: /{res:admin_group_acl}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:acl:write
+              - admin:groups:acl
+          - path: /{res:admin_group_members}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:read
+              - admin:groups
+          - path: /{res:admin_group_members}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_group_members}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:delete
+              - admin:groups
+          - path: /{res:admin_group_members}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_group_members}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_group_members}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:read
+              - admin:groups
+          - path: /{res:admin_group_members}/{id}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_group_members}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:delete
+              - admin:groups
+          - path: /{res:admin_group_members}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /{res:admin_group_members}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:groups:write
+              - admin:groups
+          - path: /me/admin_groups
+            method: GET
+            executor: MeGroupsHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          - path: /me/acl
+            method: GET
+            executor: MeAclHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          # Admin self-profile — see plan/admin-user-profile/plan.md.
+          - path: /users/me
+            method: GET
+            executor: MeHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          - path: /users/me
+            method: PATCH
+            executor: MePatchHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          - path: /users/me/avatar
+            method: POST
+            executor: AdminAvatarUploadHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          - path: /users/me/avatar
+            method: DELETE
+            executor: AdminAvatarDeleteHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          - path: /users/me/password-notification
+            method: GET
+            executor: MePasswordNotificationGetHandler
+            security: authenticated
+            scopes:
+              - admin:me
+              - super:admin
+          - path: /users/me/password-notification
+            method: PUT
+            executor: MePasswordNotificationPutHandler
+            security: authenticated
+            scopes:
+              - admin:me
+              - super:admin
+          - path: /queue/queues
+            method: GET
+            executor: AdminQueueStatsHandler
+            security: authenticated
+            scopes:
+              - admin:queue:read
+              - admin:queue
+              - super:admin
+          - path: /queue/queues
+            method: POST
+            executor: AdminQueueCreateHandler
+            security: authenticated
+            scopes:
+              - admin:queue:write
+              - admin:queue
+              - super:admin
+          - path: /queue/{res:queue_tasks}
+            method: GET
+            executor: AdminQueueTasksListHandler
+            security: authenticated
+            scopes:
+              - admin:queue:read
+              - admin:queue
+              - super:admin
+          - path: /queue/{res:queue_tasks}/{id}
+            method: GET
+            executor: AdminQueueTaskGetHandler
+            security: authenticated
+            scopes:
+              - admin:queue:read
+              - admin:queue
+              - super:admin
+          - path: /queue/retry/{id}
+            method: POST
+            executor: AdminQueueRetryHandler
+            security: authenticated
+            scopes:
+              - admin:queue:write
+              - admin:queue
+              - super:admin
+          - path: /queue/tasks/{id}/payload
+            method: GET
+            executor: AdminQueueTaskPayloadHandler
+            security: authenticated
+            scopes:
+              - admin:queue:read
+              - admin:queue
+              - super:admin
+          - path: /mail/test
+            method: POST
+            executor: AdminMailTestHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /mail/outbound
+            method: GET
+            executor: AdminMailListHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /mail/outbound/{id}
+            method: GET
+            executor: AdminMailDetailHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /mail/outbound/{id}/retry
+            method: POST
+            executor: AdminMailRetryHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /mail/status
+            method: GET
+            executor: AdminMailStatusHandler
+            security: authenticated
+            scopes:
+              - super:admin
+          - path: /mail/template-starters
+            method: GET
+            executor: AdminMailTemplatesStartersHandler
+            security: authenticated
+            scopes:
+              - admin:mail:templates:read
+              - admin:mail:templates
+              - super:admin
+          - path: /mail/templates
+            method: GET
+            executor: AdminMailTemplatesListHandler
+            security: authenticated
+            scopes:
+              - admin:mail:templates:read
+              - admin:mail:templates
+              - super:admin
+          - path: /mail/templates
+            method: POST
+            executor: AdminMailTemplatesCreateHandler
+            security: authenticated
+            scopes:
+              - admin:mail:templates:write
+              - admin:mail:templates
+              - super:admin
+          - path: /mail/templates/{id}
+            method: GET
+            executor: AdminMailTemplatesGetHandler
+            security: authenticated
+            scopes:
+              - admin:mail:templates:read
+              - admin:mail:templates
+              - super:admin
+          - path: /mail/templates/{id}
+            method: PATCH
+            executor: AdminMailTemplatesUpdateHandler
+            security: authenticated
+            scopes:
+              - admin:mail:templates:write
+              - admin:mail:templates
+              - super:admin
+          - path: /mail/templates/{id}
+            method: DELETE
+            executor: AdminMailTemplatesDeleteHandler
+            security: authenticated
+            scopes:
+              - admin:mail:templates:delete
+              - admin:mail:templates
+              - super:admin
+          - path: /mail/settings
+            method: GET
+            executor: AdminMailSettingsGetHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:read
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/settings
+            method: PATCH
+            executor: AdminMailSettingsUpdateHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:write
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/settings/events
+            method: GET
+            executor: AdminMailSettingsEventsHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:read
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/settings/test
+            method: POST
+            executor: AdminMailSettingsTestHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:write
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/accounts
+            method: GET
+            executor: AdminMailAccountsListHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:read
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/accounts
+            method: POST
+            executor: AdminMailAccountsCreateHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:write
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/accounts/{id}
+            method: GET
+            executor: AdminMailAccountsGetHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:read
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/accounts/{id}
+            method: PATCH
+            executor: AdminMailAccountsUpdateHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:write
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/accounts/{id}
+            method: DELETE
+            executor: AdminMailAccountsDeleteHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:write
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/accounts/{id}/activate
+            method: POST
+            executor: AdminMailAccountsActivateHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:write
+              - admin:mail:settings
+              - super:admin
+          - path: /mail/accounts/{id}/test
+            method: POST
+            executor: AdminMailAccountsTestHandler
+            security: authenticated
+            scopes:
+              - admin:mail:settings:write
+              - admin:mail:settings
+              - super:admin
+          - path: /users/{id}/send-activation
+            method: POST
+            executor: AdminUserSendActivationHandler
+            security: authenticated
+            scopes:
+              - admin:users:write
+              - super:admin
+          - path: /activation/admin/{id}/resend
+            method: POST
+            executor: ActivationResendAdminHandler
+            security: authenticated
+            scopes:
+              - admin:users:write
+              - super:admin
+          - path: /activation/user/{id}/resend
+            method: POST
+            executor: ActivationResendUserHandler
+            security: authenticated
+            scopes:
+              - admin:users:write
+              - super:admin
+          - path: /settings/general
+            method: GET
+            executor: AdminGeneralSettingsGetHandler
+            security: authenticated
+            scopes:
+              - admin:settings:general:read
+              - admin:settings:general
+              - super:admin
+          - path: /settings/general
+            method: PATCH
+            executor: AdminGeneralSettingsUpdateHandler
+            security: authenticated
+            scopes:
+              - admin:settings:general:write
+              - admin:settings:general
+              - super:admin
+          - path: /settings/user-rules
+            method: GET
+            executor: AdminUserRulesGetHandler
+            security: authenticated
+            scopes:
+              - admin:settings:user_rules:read
+              - admin:settings:user_rules
+              - super:admin
+          - path: /settings/user-rules
+            method: PATCH
+            executor: AdminUserRulesUpdateHandler
+            security: authenticated
+            scopes:
+              - admin:settings:user_rules:write
+              - admin:settings:user_rules
+              - super:admin
+
+          # ── coco-observe ──────────────────────────────────────────────
+          - path: /observe/push
+            method: POST
+            executor: ObservePushHandler
+            security: public
+
+          - path: /observe/metrics
+            method: GET
+            executor: ObserveQueryHandler
+            security: authenticated
+            scopes:
+              - observe:view
+              - super:admin
+
+          - path: /observe/metrics/latest
+            method: GET
+            executor: ObserveQueryHandler
+            security: authenticated
+            scopes:
+              - observe:view
+              - super:admin
+
+          - path: /observe/metrics/raw
+            method: GET
+            executor: ObserveQueryHandler
+            security: authenticated
+            scopes:
+              - observe:view
+              - super:admin
+
+          - path: /observe/agents
+            method: GET
+            executor: ObserveAgentsHandler
+            security: authenticated
+            scopes:
+              - observe:manage
+              - super:admin
+
+          - path: /observe/agents
+            method: POST
+            executor: ObserveAgentsHandler
+            security: authenticated
+            scopes:
+              - observe:manage
+              - super:admin
+
+          - path: /observe/agents/{id}
+            method: PATCH
+            executor: ObserveAgentsHandler
+            security: authenticated
+            scopes:
+              - observe:manage
+              - super:admin
+
+          - path: /observe/agents/{id}
+            method: DELETE
+            executor: ObserveAgentsHandler
+            security: authenticated
+            scopes:
+              - observe:manage
+              - super:admin
+
+          - path: /observe/agents/{id}/download
+            method: GET
+            executor: ObserveAgentDownloadHandler
+            security: authenticated
+            scopes:
+              - observe:manage
+              - super:admin

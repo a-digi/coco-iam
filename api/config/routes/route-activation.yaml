@@ -1,0 +1,29 @@
+routes:
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: activation
+        content_type: application/json
+        security: public
+        children:
+          - path: /verify
+            method: POST
+            executor: ActivationVerifyHandler
+            security: public
+          - path: /activate
+            method: POST
+            executor: ActivationActivateHandler
+            security: public
+          - path: a
+            content_type: application/json
+            security: public
+            children:
+              - path: /verify
+                method: POST
+                executor: AdminActivationVerifyHandler
+                security: public
+              - path: /activate
+                method: POST
+                executor: AdminActivationActivateHandler
+                security: public

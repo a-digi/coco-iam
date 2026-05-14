@@ -1,0 +1,21 @@
+routes:
+  - path: /api/v1/
+    content_type: application/json
+    security: public
+    children:
+      - path: recovery
+        content_type: application/json
+        security: public
+        children:
+          - path: /request
+            method: POST
+            executor: RecoveryRequestHandler
+            security: public
+          - path: /verify
+            method: POST
+            executor: RecoveryVerifyHandler
+            security: public
+          - path: /reset
+            method: POST
+            executor: RecoveryResetHandler
+            security: public

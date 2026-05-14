@@ -1,0 +1,234 @@
+[
+    {
+        "id": "admin",
+        "description": "Administrator scope",
+        "scopes": [
+            {
+                "id": "admin:super_admin",
+                "description": "Allows super admin actions.",
+                "scopes": [
+                    {
+                        "id": "admin:super_admin:read",
+                        "description": "Allows reading super admin actions."
+                    },
+                    {
+                        "id": "admin:super_admin:write",
+                        "description": "Allows creating or modifying super admin actions."
+                    },
+                    {
+                        "id": "admin:super_admin:delete",
+                        "description": "Allows deleting super admin actions."
+                    },
+                    {
+                        "id": "admin:super_admin:manage",
+                        "description": "Allows managing super admin actions."
+                    }
+                ]
+            },
+            {
+                "id": "admin:users",
+                "description": "Allows creating or modifying users.",
+                "scopes": [
+                    {
+                        "id": "admin:users:read",
+                        "description": "Allows reading users."
+                    },
+                    {
+                        "id": "admin:users:write",
+                        "description": "Allows creating or modifying users."
+                    },
+                    {
+                        "id": "admin:users:delete",
+                        "description": "Allows deleting users."
+                    },
+                    {
+                        "id": "admin:users:manage",
+                        "description": "Allows managing users."
+                    }
+                ]
+            },
+            {
+                "id": "admin:groups",
+                "description": "Allows creating or modifying user groups.",
+                "scopes": [
+                    {
+                        "id": "admin:groups:read",
+                        "description": "Allows reading groups."
+                    },
+                    {
+                        "id": "admin:groups:write",
+                        "description": "Allows creating or modifying groups."
+                    },
+                    {
+                        "id": "admin:groups:delete",
+                        "description": "Allows deleting groups."
+                    },
+                    {
+                        "id": "admin:groups:users:manage",
+                        "description": "Allows managing users in groups."
+                    }
+                ]
+            },
+            {
+                "id": "admin:acl",
+                "description": "Allows creating or modifying ACLs and roles.",
+                "scopes": [
+                    {
+                        "id": "admin:acl:read",
+                        "description": "Allows reading the ACLs and roles."
+                    },
+                    {
+                        "id": "admin:acl:write",
+                        "description": "Allows creating or modifying the ACLs and roles."
+                    },
+                    {
+                        "id": "admin:acl:delete",
+                        "description": "Allows deleting the ACLs and roles."
+                    },
+                    {
+                        "id": "admin:acl:manage",
+                        "description": "Allows managing the ACLs and roles."
+                    }
+                ]
+            },
+            {
+                "id": "admin:users:acl",
+                "description": "Allows creating or modifying ACLs and roles.",
+                "scopes": [
+                    {
+                        "id": "admin:users:acl:read",
+                        "description": "Allows reading the ACLs and roles."
+                    },
+                    {
+                        "id": "admin:users:acl:write",
+                        "description": "Allows creating or modifying the ACLs and roles."
+                    },
+                    {
+                        "id": "admin:users:acl:delete",
+                        "description": "Allows deleting the ACLs and roles."
+                    },
+                    {
+                        "id": "admin:users:acl:manage",
+                        "description": "Allows managing the ACLs and roles."
+                    }
+                ]
+            },
+            {
+                "id": "admin:queue",
+                "description": "Allows inspecting and controlling async queues.",
+                "scopes": [
+                    {
+                        "id": "admin:queue:read",
+                        "description": "Allows viewing queues, their task lists, and dead-letter queues."
+                    },
+                    {
+                        "id": "admin:queue:write",
+                        "description": "Allows retrying dead-lettered or failed tasks."
+                    }
+                ]
+            },
+            {
+                "id": "admin:mail:templates",
+                "description": "Allows managing email templates.",
+                "scopes": [
+                    {
+                        "id": "admin:mail:templates:read",
+                        "description": "Allows listing and reading email templates."
+                    },
+                    {
+                        "id": "admin:mail:templates:write",
+                        "description": "Allows creating or modifying email templates."
+                    },
+                    {
+                        "id": "admin:mail:templates:delete",
+                        "description": "Allows deleting email templates."
+                    }
+                ]
+            },
+            {
+                "id": "admin:mail:settings",
+                "description": "Allows managing mail engine settings (SMTP, event bindings).",
+                "scopes": [
+                    {
+                        "id": "admin:mail:settings:read",
+                        "description": "Allows reading mail engine settings."
+                    },
+                    {
+                        "id": "admin:mail:settings:write",
+                        "description": "Allows updating mail engine settings."
+                    }
+                ]
+            },
+            {
+                "id": "admin:settings:general",
+                "description": "Allows managing app-wide general settings (base URL, branding, SEO).",
+                "scopes": [
+                    {
+                        "id": "admin:settings:general:read",
+                        "description": "Allows reading general app settings."
+                    },
+                    {
+                        "id": "admin:settings:general:write",
+                        "description": "Allows updating general app settings."
+                    }
+                ]
+            },
+            {
+                "id": "admin:groups:acl",
+                "description": "Allows creating or modifying ACLs and roles.",
+                "scopes": [
+                    {
+                        "id": "admin:groups:acl:read",
+                        "description": "Allows reading the ACLs and roles."
+                    },
+                    {
+                        "id": "admin:groups:acl:write",
+                        "description": "Allows creating or modifying the ACLs and roles."
+                    },
+                    {
+                        "id": "admin:groups:acl:delete",
+                        "description": "Allows deleting the ACLs and roles."
+                    },
+                    {
+                        "id": "admin:groups:acl:manage",
+                        "description": "Allows managing the ACLs and roles."
+                    }
+                ]
+            },
+            {
+                "id": "admin:dashboard",
+                "description": "Admin dashboard page and widgets.",
+                "scopes": [
+                    {
+                        "id": "admin:dashboard:read",
+                        "description": "Allows accessing the admin dashboard page."
+                    },
+                    {
+                        "id": "admin:dashboard:stats:read",
+                        "description": "Allows viewing the dashboard stat cards (totals)."
+                    },
+                    {
+                        "id": "admin:dashboard:registrations:read",
+                        "description": "Allows viewing the organization registrations chart."
+                    },
+                    {
+                        "id": "admin:dashboard:top_orgs:read",
+                        "description": "Allows viewing the top organizations table."
+                    },
+                    {
+                        "id": "admin:dashboard:queue:read",
+                        "description": "Allows viewing the queue status chart and top queues list."
+                    },
+                    {
+                        "id": "admin:dashboard:recent_users:read",
+                        "description": "Allows viewing the recent users table."
+                    },
+                    {
+                        "id": "admin:dashboard:failed_tasks:read",
+                        "description": "Allows viewing the recent failed tasks table."
+                    }
+                ]
+            }
+        ]
+    }
+]

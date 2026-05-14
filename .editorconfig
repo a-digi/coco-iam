@@ -1,0 +1,79 @@
+# Overview of indentation rules by file type/technology:
+#
+# indent_size = 2 (spaces):
+#   - TypeScript:        *.ts, *.tsx
+#   - JavaScript:        *.js, *.jsx
+#   - JSON/YAML:         *.json, *.yml, *.yaml
+#   - Markdown:          *.md
+#   - CSS/SCSS:          *.css, *.scss
+#
+# indent_style = tab:
+#   - Go:                *.go
+#
+# indent_size = 4 (default for all others, unless overridden):
+#   - All other file types
+#
+# These rules are automatically applied by supported editors/IDEs.
+
+# EditorConfig helps maintain consistent coding styles between different editors and IDEs
+# More info: https://EditorConfig.org
+
+root = true
+
+# Default for all files
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Go: tabs for indentation
+[*.go]
+indent_style = tab
+
+# TypeScript and TSX: 2 spaces
+[*.ts]
+indent_style = space
+indent_size = 2
+
+[*.tsx]
+indent_style = space
+indent_size = 2
+
+# JavaScript and JSX: 2 spaces
+[*.js]
+indent_style = space
+indent_size = 2
+
+[*.jsx]
+indent_style = space
+indent_size = 2
+
+# JSON and YAML: 2 spaces
+[*.json]
+indent_style = space
+indent_size = 2
+
+[*.yml]
+indent_style = space
+indent_size = 2
+
+[*.yaml]
+indent_style = space
+indent_size = 2
+
+# Markdown: 2 spaces
+[*.md]
+indent_style = space
+indent_size = 2
+
+# CSS and SCSS: 2 spaces
+[*.css]
+indent_style = space
+indent_size = 2
+
+[*.scss]
+indent_style = space
+indent_size = 2

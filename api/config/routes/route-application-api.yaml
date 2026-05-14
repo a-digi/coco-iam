@@ -1,0 +1,122 @@
+routes:
+  # Public machine-auth API, rooted at /a/{org}/{ws}/{app}/... — the
+  # slug-triple URL shape external applications can build from their
+  # admin-chosen identifiers without knowing any UUIDs. Outside of
+  # /api/v1/ on purpose: /api/v1 is reserved for the admin session
+  # surface from now on.
+  #
+  # Authentication: HTTP Basic using an api_id + api_secret issued
+  # from the admin UI (stored per-org in api_credentials.db).
+  - path: /a
+    content_type: application/json
+    security: public
+    children:
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/security-key
+        method: GET
+        executor: AppApiGetPublicKeysHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/security-key/private
+        method: GET
+        executor: AppApiGetPrivateKeyHandler
+        security: public
+      # Registration schema — public, no auth. Serves 404 when
+      # allow_registration is off on the app. See
+      # plan/application-registration-fields/plan.md.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/registration-fields
+        method: GET
+        executor: AppApiRegistrationFieldsHandler
+        security: public
+      # Signed-in workspace-application user's own profile. Auth
+      # is the user's RS256 access token; the handler verifies
+      # the token itself (security: public here tells the framework
+      # not to run its bearer middleware in front of us). See
+      # plan/app-user-profile-me/plan.md.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/me
+        method: GET
+        executor: AppApiProfileMeHandler
+        security: public
+      # PATCH merges a JSON body into the user's profile_data.
+      # See plan/app-user-profile-me-write/plan.md.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/me
+        method: PATCH
+        executor: AppApiProfileMePatchHandler
+        security: public
+      # File-type profile field upload / delete / serve. Bytes
+      # land under data/db/organization/<orgID>/uploads/users/
+      # <userID>/. Content is magic-byte scanned by the media
+      # subsystem; per-field accept_mime / max_bytes narrow the
+      # defaults. See plan/app-user-profile-me-write/plan.md.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/me/files/{fieldName}
+        method: POST
+        executor: AppApiProfileMeFileUploadHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/me/files/{fieldName}
+        method: DELETE
+        executor: AppApiProfileMeFileDeleteHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/me/files/{fieldName}
+        method: GET
+        executor: AppApiProfileMeFileServeHandler
+        security: public
+      # External IdP OAuth handshake — Google, GitHub, Microsoft.
+      # The authorize endpoint 302s the browser to the IdP's
+      # consent page; the callback endpoint receives the IdP's
+      # code, exchanges it for an access token, resolves the user,
+      # mints our RS256 bearer and 302s back to return_url.
+      # See plan/workspace-app-oauth/plan.md.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/auth/oauth/{provider}/authorize
+        method: GET
+        executor: AppOAuthAuthorizeHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/auth/oauth/{provider}/callback
+        method: GET
+        executor: AppOAuthCallbackHandler
+        security: public
+      # OAuth PROVIDER endpoints — coco-iam acting as the OIDC
+      # identity provider for third-party clients. Discovery,
+      # authorize, token, userinfo, revoke, introspect.
+      # See plan/oauth-provider/plan.md.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/.well-known/openid-configuration
+        method: GET
+        executor: AppOAuthSrvDiscoveryHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/oauth/authorize
+        method: GET
+        executor: AppOAuthSrvAuthorizeHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/oauth/authorize
+        method: POST
+        executor: AppOAuthSrvAuthorizeHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/oauth/token
+        method: POST
+        executor: AppOAuthSrvTokenHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/oauth/userinfo
+        method: GET
+        executor: AppOAuthSrvUserinfoHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/oauth/userinfo
+        method: POST
+        executor: AppOAuthSrvUserinfoHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/oauth/revoke
+        method: POST
+        executor: AppOAuthSrvRevokeHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/oauth/introspect
+        method: POST
+        executor: AppOAuthSrvIntrospectHandler
+        security: public
+      # User-facing "Connected apps" — let the authenticated
+      # workspace-app user list and revoke OAuth client
+      # consents they previously approved. Same RS256 bearer
+      # auth as /profile/me.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/me/consents
+        method: GET
+        executor: AppOAuthSrvConsentsListHandler
+        security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/me/consents/{clientRowId}
+        method: DELETE
+        executor: AppOAuthSrvConsentsRevokeHandler
+        security: public

@@ -1,0 +1,105 @@
+routes:
+  # Public per-application management API. Routes are `public` (no
+  # coco-iam admin session required); every handler runs its own
+  # bearer + scope + grantable check against the application's JWKS.
+  - path: /api/v1/
+    content_type: application/json
+    security: public
+    children:
+      - path: public/applications
+        security: public
+        children:
+          # --- Users ---
+          - path: /{id}/users
+            method: GET
+            executor: PublicApiUsersListHandler
+            security: public
+          - path: /{id}/users
+            method: POST
+            executor: PublicApiUsersCreateHandler
+            security: public
+          - path: /{id}/users/{userId}
+            method: GET
+            executor: PublicApiUsersGetHandler
+            security: public
+          - path: /{id}/users/{userId}
+            method: PATCH
+            executor: PublicApiUsersPatchHandler
+            security: public
+          - path: /{id}/users/{userId}
+            method: DELETE
+            executor: PublicApiUsersDeleteHandler
+            security: public
+          - path: /{id}/users/{userId}/password
+            method: POST
+            executor: PublicApiUsersPasswordHandler
+            security: public
+          # --- User ACL ---
+          - path: /{id}/users/{userId}/acl
+            method: GET
+            executor: PublicApiUserAclGetHandler
+            security: public
+          - path: /{id}/users/{userId}/acl
+            method: PUT
+            executor: PublicApiUserAclPutHandler
+            security: public
+          - path: /{id}/users/{userId}/acl
+            method: DELETE
+            executor: PublicApiUserAclDeleteHandler
+            security: public
+          # --- Groups ---
+          - path: /{id}/groups
+            method: GET
+            executor: PublicApiGroupsListHandler
+            security: public
+          - path: /{id}/groups
+            method: POST
+            executor: PublicApiGroupsCreateHandler
+            security: public
+          - path: /{id}/groups/{groupId}
+            method: GET
+            executor: PublicApiGroupsGetHandler
+            security: public
+          - path: /{id}/groups/{groupId}
+            method: PATCH
+            executor: PublicApiGroupsPatchHandler
+            security: public
+          - path: /{id}/groups/{groupId}
+            method: DELETE
+            executor: PublicApiGroupsDeleteHandler
+            security: public
+          # --- Group members ---
+          - path: /{id}/groups/{groupId}/members
+            method: GET
+            executor: PublicApiGroupMembersListHandler
+            security: public
+          - path: /{id}/groups/{groupId}/members
+            method: POST
+            executor: PublicApiGroupMembersAddHandler
+            security: public
+          - path: /{id}/groups/{groupId}/members/{userId}
+            method: DELETE
+            executor: PublicApiGroupMembersRemoveHandler
+            security: public
+          # --- Group ACL ---
+          - path: /{id}/groups/{groupId}/acl
+            method: GET
+            executor: PublicApiGroupAclGetHandler
+            security: public
+          - path: /{id}/groups/{groupId}/acl
+            method: PUT
+            executor: PublicApiGroupAclPutHandler
+            security: public
+          - path: /{id}/groups/{groupId}/acl
+            method: DELETE
+            executor: PublicApiGroupAclDeleteHandler
+            security: public
+          # --- User me: password notification prefs ---
+          - path: /{id}/me/password-notification
+            method: GET
+            executor: PasswordNotificationGetHandler
+            security: public
+          - path: /{id}/me/password-notification
+            method: PUT
+            executor: PasswordNotificationPutHandler
+            security: public

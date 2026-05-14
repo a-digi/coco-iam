@@ -1,0 +1,29 @@
+; systemd unit for the coco-iam backend. Install ONCE on the
+; target server at /etc/systemd/system/coco-iam.service, then
+; `systemctl daemon-reload && systemctl enable coco-iam`.
+; After that, every `make deploy` will restart the unit.
+;
+; Paths match deploy/prod/deploy.yaml (flat layout):
+;   binary     /app/coco-iam-api/coco-iam-api
+;   env file   /app/.env          (leading `-` tolerates missing)
+;   config dir /app/coco-iam-api/config (referenced via
+;              COCO_IAM_CONFIG_DIR in /app/.env)
+
+[Unit]
+Description=coco-iam IAM backend
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/app/coco-iam-api
+EnvironmentFile=-/app/.env
+ExecStart=/app/coco-iam-api/coco-iam-api start
+Restart=on-failure
+RestartSec=5s
+; Systemd sees file changes via inotify; we don't need any
+; explicit reload hook — `systemctl restart coco-iam` after a
+; deploy is enough to pick up the new binary.
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,63 @@
+routes:
+  # Authenticated — admin-facing media management under applications.
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: applications
+        security: authenticated
+        children:
+          - path: /{res:applications}/{id}/media
+            method: GET
+            executor: MediaListHandler
+            security: authenticated
+            scopes:
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/media/folders
+            method: POST
+            executor: MediaCreateFolderHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/media/folders/{folderId}
+            method: DELETE
+            executor: MediaDeleteFolderHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/media/files
+            method: POST
+            executor: MediaUploadFileHandler
+            security: authenticated
+            content_type: ""
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/media/files/{fileId}
+            method: DELETE
+            executor: MediaDeleteFileHandler
+            security: authenticated
+            scopes:
+              - applications:write
+              - applications
+              - super:admin
+
+  # Public — file-server endpoint. Deliberately lives OUTSIDE /api/v1/
+  # so images can be hot-linked from anywhere without tripping the
+  # versioned API's auth / CORS preflight. Matches URLs like
+  # /p/media/<ownerID>/<folder>/.../<filename>; the handler uses the
+  # media service as the Resolver and streams bytes.
+  - path: /p/media
+    security: public
+    children:
+      - path: /**
+        method: GET
+        executor: MediaFileServer
+        security: public

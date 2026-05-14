@@ -1,0 +1,694 @@
+routes:
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: organizations
+        content_type: application/json
+        security: authenticated
+        scopes:
+          - super:admin
+        children:
+          - path: /{res:organizations}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:read
+              - organizations
+              - super:admin
+          - path: /{res:organizations}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:delete
+              - organizations
+              - super:admin
+          - path: /{res:organizations}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:read
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:delete
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/user-rules
+            method: GET
+            executor: OrgUserRulesGetHandler
+            security: authenticated
+            scopes:
+              - organizations:read
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/user-rules
+            method: PATCH
+            executor: OrgUserRulesUpdateHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/settings/general
+            method: GET
+            executor: OrgGeneralSettingsGetHandler
+            security: authenticated
+            scopes:
+              - organizations:read
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/settings/general
+            method: PATCH
+            executor: OrgGeneralSettingsUpdateHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:read
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:write
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:delete
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:write
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:write
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:read
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:delete
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:write
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:write
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_users}/{id}/resend-activation
+            method: POST
+            executor: OrgUserResendActivationHandler
+            security: authenticated
+            scopes:
+              - organizations:users:write
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_groups}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:read
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_groups}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_groups}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:delete
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_groups}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_groups}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_groups}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:read
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_groups}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:delete
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_groups}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_groups}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_members}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:read
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_members}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_members}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:delete
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_members}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_members}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_members}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:read
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_members}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:delete
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_members}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_members}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:write
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:user_acl}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:orgs:users:acl:read
+              - admin:orgs:users:acl
+              - super:admin
+          - path: /{res:user_acl}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:orgs:users:acl:write
+              - admin:orgs:users:acl
+              - super:admin
+          - path: /{res:user_acl}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:orgs:users:acl:delete
+              - admin:orgs:users:acl
+              - super:admin
+          - path: /{res:user_acl}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:orgs:users:acl:write
+              - admin:orgs:users:acl
+              - super:admin
+          - path: /{res:user_acl}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:orgs:users:acl:write
+              - admin:orgs:users:acl
+              - super:admin
+          - path: /{res:user_acl}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:orgs:users:acl:read
+              - admin:orgs:users:acl
+              - super:admin
+          - path: /{res:user_acl}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:orgs:users:acl:delete
+              - admin:orgs:users:acl
+              - super:admin
+          - path: /{res:user_acl}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:orgs:users:acl:write
+              - admin:orgs:users:acl
+              - super:admin
+          - path: /{res:user_acl}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - admin:orgs:users:acl:write
+              - admin:orgs:users:acl
+              - super:admin
+          - path: /{res:organization_user_acl}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:acl:read
+              - organizations:users:acl
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_user_acl}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:acl:write
+              - organizations:users:acl
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_user_acl}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:acl:delete
+              - organizations:users:acl
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_user_acl}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:acl:write
+              - organizations:users:acl
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_user_acl}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:acl:write
+              - organizations:users:acl
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_user_acl}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:acl:read
+              - organizations:users:acl
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_user_acl}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:acl:delete
+              - organizations:users:acl
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_user_acl}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:acl:write
+              - organizations:users:acl
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_user_acl}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:users:acl:write
+              - organizations:users:acl
+              - organizations:users
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_acl}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:acl:read
+              - organizations:groups:acl
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_acl}
+            method: POST
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:acl:write
+              - organizations:groups:acl
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_acl}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:acl:delete
+              - organizations:groups:acl
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_acl}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:acl:write
+              - organizations:groups:acl
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_acl}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:acl:write
+              - organizations:groups:acl
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_acl}/{id}
+            method: GET
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:acl:read
+              - organizations:groups:acl
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_acl}/{id}
+            method: DELETE
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:acl:delete
+              - organizations:groups:acl
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_acl}/{id}
+            method: PATCH
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:acl:write
+              - organizations:groups:acl
+              - organizations:groups
+              - organizations
+              - super:admin
+          - path: /{res:organization_group_acl}/{id}
+            method: PUT
+            executor: ApiResourceHandler
+            security: authenticated
+            scopes:
+              - organizations:groups:acl:write
+              - organizations:groups:acl
+              - organizations:groups
+              - organizations
+              - super:admin
+          # Organization profile-field schema administration
+          - path: /{res:organizations}/{id}/profile-fields
+            method: GET
+            executor: OrgProfileFieldsListHandler
+            security: authenticated
+            scopes:
+              - organizations:profile_fields:read
+              - organizations:profile_fields
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/profile-fields
+            method: POST
+            executor: OrgProfileFieldsCreateHandler
+            security: authenticated
+            scopes:
+              - organizations:profile_fields:write
+              - organizations:profile_fields
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/profile-fields/reorder
+            method: POST
+            executor: OrgProfileFieldsReorderHandler
+            security: authenticated
+            scopes:
+              - organizations:profile_fields:write
+              - organizations:profile_fields
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/profile-fields/{fieldId}
+            method: PATCH
+            executor: OrgProfileFieldsUpdateHandler
+            security: authenticated
+            scopes:
+              - organizations:profile_fields:write
+              - organizations:profile_fields
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/profile-fields/{fieldId}
+            method: DELETE
+            executor: OrgProfileFieldsDeleteHandler
+            security: authenticated
+            scopes:
+              - organizations:profile_fields:delete
+              - organizations:profile_fields
+              - organizations
+              - super:admin
+          # Organization user profile values (self + admin-side)
+          - path: /{res:organizations}/{id}/users/{userId}/profile
+            method: GET
+            executor: OrgUserProfileGetHandler
+            security: authenticated
+            scopes:
+              - organizations:users:profile:read
+              - organizations:users:profile
+              - user:me
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/users/{userId}/profile
+            method: PUT
+            executor: OrgUserProfileUpsertHandler
+            security: authenticated
+            scopes:
+              - organizations:users:profile:write
+              - organizations:users:profile
+              - user:me
+              - organizations
+              - super:admin

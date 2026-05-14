@@ -1,0 +1,21 @@
+routes:
+  - path: /api/v1/
+    content_type: application/json
+    security: authenticated
+    children:
+      - path: account
+        content_type: application/json
+        security: authenticated
+        children:
+          - path: /password/verify
+            method: POST
+            executor: AccountPasswordVerifyHandler
+            security: authenticated
+          - path: /password/change
+            method: POST
+            executor: AccountPasswordChangeHandler
+            security: authenticated
+          - path: /user-rules
+            method: GET
+            executor: AccountUserRulesHandler
+            security: authenticated

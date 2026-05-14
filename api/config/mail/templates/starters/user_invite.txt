@@ -1,0 +1,19 @@
+Subject: Activate your {{ .WebsiteTitle }} account
+
+Hello {{ .Username }},
+
+An account has been created for you on {{ .WebsiteTitle }}.
+Activate it and choose your own password by opening the link below:
+
+{{ .ActivationLink }}
+
+Prefer to sign in manually? Use the temporary password below and you'll
+be asked to change it on first login:
+
+    {{ .TempPassword }}
+
+The activation link expires in {{ .ExpiresIn }}.
+
+If you did not expect this invitation you can safely ignore this email.
+
+— {{ .WebsiteTitle }}
