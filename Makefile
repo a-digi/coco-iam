@@ -59,6 +59,9 @@ run-dev-app: run-dev
 stop-dev:
 	cd api && go run main.go shutdown
 
+.PHONY: run-locally
+run-locally: run-dev run-dev-app
+
 .PHONY: run
 run:
 	BRANCH=$(shell git rev-parse --abbrev-ref HEAD | sed 's/\./-/g'); \
