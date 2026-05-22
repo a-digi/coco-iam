@@ -1,5 +1,7 @@
 routes:
   - path: /api/v1/docs
+    method: GET
+    executor: SwaggerSpecHandler
     security: public
     children:
       - path: /openapi.json

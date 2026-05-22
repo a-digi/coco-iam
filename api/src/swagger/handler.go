@@ -3,6 +3,7 @@ package swagger
 import (
 	_ "embed"
 	"net/http"
+	"strings"
 
 	"github.com/a-digi/coco-server/server/request"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -16,12 +17,26 @@ import (
 var specJSON []byte
 
 // SpecHandler serves the Swagger UI at GET /api/v1/docs/
+// It also handles /api/v1/docs (no trailing slash) by redirecting so that
+// httpSwagger can compute the correct asset prefix from the URL.
 type SpecHandler struct{}
 
 func (h *SpecHandler) ServeHTTP(reqCtx request.RequestContext) {
+	w := reqCtx.GetWriter()
+	r := reqCtx.GetRequest()
+
+	// httpSwagger derives its asset prefix from the URL path. If the path has
+	// no trailing slash and no file extension it computes the wrong prefix,
+	// causing a redirect to /api/v1/index.html instead of /api/v1/docs/index.html.
+	// Forcing a redirect to the slash form fixes the prefix for all subsequent requests.
+	if !strings.HasSuffix(r.URL.Path, "/") && !strings.Contains(r.URL.Path[strings.LastIndex(r.URL.Path, "/"):], ".") {
+		http.Redirect(w, r, r.URL.Path+"/", http.StatusMovedPermanently)
+		return
+	}
+
 	httpSwagger.Handler(
 		httpSwagger.URL("/api/v1/docs/openapi.json"),
-	).ServeHTTP(reqCtx.GetWriter(), reqCtx.GetRequest())
+	).ServeHTTP(w, r)
 }
 
 // RawSpecHandler serves the raw OpenAPI JSON spec at GET /api/v1/docs/openapi.json.
