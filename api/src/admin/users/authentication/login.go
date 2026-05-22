@@ -27,6 +27,21 @@ import (
 // back to `users` under any condition.
 type DatabaseAuthenticationLogin struct{}
 
+// ServeHTTP authenticates an admin user.
+//
+//	@Summary		Admin login
+//	@Description	Authenticates an admin user with username+password and returns a signed JWT.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		auth_entity.LoginCredentials	true	"Username and password"
+//	@Success		200		{object}	entity.LoginSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Failure		401		{object}	response.ErrorBody
+//	@Failure		403		{object}	response.ErrorBody
+//	@Failure		500		{object}	response.ErrorBody
+//	@Router			/admin/oauth/authenticate [post]
+
 func (h *DatabaseAuthenticationLogin) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

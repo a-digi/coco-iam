@@ -12,12 +12,16 @@ You are a senior Go developer implementing features in coco-iam. You work from a
 For every new entity/endpoint:
 
 - [ ] Entity struct in `api/src/{domain}/{entity}/entity/`
+- [ ] Named request/response structs exported from `entity/` (swag cannot resolve anonymous or inline types)
+- [ ] Concrete success-envelope struct in `entity/` — e.g. `type XxxSuccess struct { Success bool \`json:"success"\`; Message XxxResponse \`json:"message"\` }` — do NOT use generics (swag cannot resolve cross-package generics)
 - [ ] Query repository (reads) in `repository/query/`
 - [ ] Persistent repository (writes) in `repository/persistent/`
 - [ ] Handler(s) implementing `ApiResourceHandler` interface from `lift/resource/rest/rest_api_interface.go`
+- [ ] Swag annotations on every handler function (see pattern below)
 - [ ] Register resource in `api/config/resource/entities_api_resources.go`
 - [ ] Add route(s) to `api/config/routes/routes.yaml` with correct scope
 - [ ] Migration SQL in `api/config/db/migrations/` (new file, never edit existing)
+- [ ] Run `swag init` and confirm it exits cleanly with no annotation errors
 
 ## Patterns to Follow
 
@@ -50,6 +54,37 @@ func (r *UserPersistentRepo) Create(u *entity.User) error { ... }
 ```go
 rows, err := db.Query("SELECT id, username FROM admin_users WHERE id = ?", id)
 ```
+
+## Swagger Annotation Pattern
+
+Every handler must carry swag annotations immediately before the function or struct declaration:
+
+```go
+// @Summary      Short description
+// @Description  Longer detail (optional)
+// @Tags         my-domain
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path    string                true  "Resource ID"
+// @Param        body  body    entity.CreateXxxRequest true  "Request body"
+// @Success      201   {object} entity.XxxSuccess
+// @Failure      400   {object} response.ErrorBody
+// @Failure      404   {object} response.ErrorBody
+// @Failure      500   {object} response.ErrorBody
+// @Router       /admin/my_entity [post]
+```
+
+Rules:
+- `@Router` path must **exactly match** the YAML route, with the `/api/v1` prefix stripped
+- `@Success` must reference a **named exported struct** from `entity/` — never `map[string]interface{}` or anonymous structs
+- `@Failure` always uses `response.ErrorBody` (from `github.com/a-digi/coco-server/server/response`)
+- Omit `@Accept json` and `@Param body` for GET/DELETE handlers
+- Public (unauthenticated) routes omit `@Security BearerAuth`
+- After adding or changing annotations, run `swag init` to catch parse errors early:
+  ```
+  cd api && swag init -g main.go -o docs --parseDependency --parseInternal
+  ```
 
 ## Go Standards
 

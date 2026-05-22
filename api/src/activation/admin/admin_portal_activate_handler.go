@@ -20,6 +20,18 @@ import (
 // JWT on success. Never scans per-org databases.
 type AdminPortalActivateHandler struct{}
 
+// ServeHTTP activates an admin account via the admin portal flow.
+//
+//	@Summary		Admin portal activate
+//	@Description	Admin-only activation. Checks admin_activations exclusively and always issues a JWT on success.
+//	@Tags			activation
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		activation_entity.ActivateRequest	true	"Activation payload"
+//	@Success		200		{object}	activation_entity.ActivateSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Router			/activation/a/activate [post]
+
 func (h *AdminPortalActivateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

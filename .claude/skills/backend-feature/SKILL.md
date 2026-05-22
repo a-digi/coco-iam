@@ -49,6 +49,7 @@ Produce a design covering:
 - Scope requirements (existing scope or new one with justification)
 - Migration SQL
 - Security considerations
+- OpenAPI contract: `@Tags`, named entity types for request/response, `@Router` paths, `@Success`/`@Failure` types
 
 ### Step 3 — Present design to user
 Show the design clearly. Wait for explicit approval before writing any code. If the user requests changes, revise the design and present again.
@@ -56,7 +57,13 @@ Show the design clearly. Wait for explicit approval before writing any code. If 
 ### Step 4 — DEVELOPER: Implement
 Invoke the `senior-backend-developer-golang` skill.
 
-Implement the approved design exactly. Follow the implementation checklist in that skill (entity → repos → handler → register resource → add route → migration). Do not add features not in the design.
+Implement the approved design exactly. Follow the implementation checklist in that skill:
+- entity structs (including named request/response/envelope types for swag)
+- query repo → persistent repo → handler
+- swag annotations on every handler (`@Summary`, `@Tags`, `@Param`, `@Success`, `@Failure`, `@Security`, `@Router`)
+- register resource → add route → migration
+
+After implementation, run `swag init` inside `api/` and confirm it exits cleanly before proceeding to review. Do not add features not in the design.
 
 ### Step 5 — REVIEWER: Review
 Invoke the `code-reviewer-backend` skill.
@@ -83,3 +90,4 @@ Report to the user:
 - **Fix all BLOCKING issues before reporting done.** Advisory findings may be left open with documentation.
 - **Do not change scope mid-implementation.** If implementation reveals the design needs a change, surface it — don't silently expand.
 - **Migrations are append-only.** Never edit an existing migration file, even to fix it. Add a new one.
+- **Swagger is not optional.** Every new or changed route must have swag annotations and `swag init` must pass cleanly before the review step.

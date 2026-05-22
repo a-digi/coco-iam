@@ -61,6 +61,20 @@ type activationEcho struct {
 // admin user row (without a password), then delegates to the activation
 // service which generates the token + temp password and enqueues the
 // invite email.
+//
+//	@Summary		Create admin user
+//	@Description	Creates a pending admin user and sends an activation email. No password is accepted on the wire.
+//	@Tags			admin-users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		entity.CreateUserRequest	true	"User payload"
+//	@Success		201		{object}	entity.CreateUserSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Failure		401		{object}	response.ErrorBody
+//	@Failure		409		{object}	response.ErrorBody
+//	@Failure		500		{object}	response.ErrorBody
+//	@Router			/admin/users [post]
 func CustomCreateUserHandler(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	ctx := reqCtx.GetDI()

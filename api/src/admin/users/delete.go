@@ -14,6 +14,21 @@ import (
 	"github.com/a-digi/coco-server/server/response"
 )
 
+// CustomDeleteUserHandler handles DELETE /admin/{res:users}/{id}.
+//
+//	@Summary		Delete admin user
+//	@Description	Deletes an admin user. Cannot delete yourself or the last super-admin.
+//	@Tags			admin-users
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		string	true	"User ID"
+//	@Success		200	{object}	entity.UserSuccess
+//	@Failure		400	{object}	response.ErrorBody
+//	@Failure		401	{object}	response.ErrorBody
+//	@Failure		403	{object}	response.ErrorBody
+//	@Failure		404	{object}	response.ErrorBody
+//	@Failure		500	{object}	response.ErrorBody
+//	@Router			/admin/users/{id} [delete]
 func CustomDeleteUserHandler(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	ctx := reqCtx.GetDI()

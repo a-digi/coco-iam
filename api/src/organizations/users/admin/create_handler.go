@@ -49,6 +49,19 @@ type activationEcho struct {
 // CustomCreateOrganizationUserHandler serves POST /admin/{res:organization_users}.
 // Inserts a regular-user row and delegates to the activation service to
 // send the invite email. No password is accepted on the wire.
+//
+//	@Summary		Create organization user
+//	@Description	Creates a pending org user and sends an activation email. No password on the wire.
+//	@Tags			org-users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		users_entity.CreateOrgUserRequest	true	"User payload"
+//	@Success		201		{object}	users_entity.CreateOrgUserSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Failure		409		{object}	response.ErrorBody
+//	@Failure		500		{object}	response.ErrorBody
+//	@Router			/admin/organization_users [post]
 func CustomCreateOrganizationUserHandler(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	ctx := reqCtx.GetDI()

@@ -46,3 +46,5 @@ vendor/
 
 # Config (if you want to ignore local config)
 # api/config.json
+
+.claude/settings.local.json

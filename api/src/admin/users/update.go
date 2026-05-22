@@ -20,6 +20,23 @@ import (
 	"github.com/a-digi/coco-server/server/response"
 )
 
+// CustomUpdateUserHandler handles PATCH /admin/{res:users}/{id}.
+//
+//	@Summary		Update admin user
+//	@Description	Partially updates an admin user. Username changes are rejected.
+//	@Tags			admin-users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id		path		string						true	"User ID"
+//	@Param			body	body		entity.UpdateUserRequest	true	"Fields to update"
+//	@Success		200		{object}	entity.UserSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Failure		401		{object}	response.ErrorBody
+//	@Failure		404		{object}	response.ErrorBody
+//	@Failure		409		{object}	response.ErrorBody
+//	@Failure		500		{object}	response.ErrorBody
+//	@Router			/admin/users/{id} [patch]
 func CustomUpdateUserHandler(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	ctx := reqCtx.GetDI()

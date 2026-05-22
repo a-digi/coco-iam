@@ -27,6 +27,26 @@ import (
 // state. The wiring layer mints one TokenHandler per request
 // inside its route builder; library tests instantiate one per
 // test case.
+//
+// ServeHTTP issues an access token via authorization_code or refresh_token grant.
+//
+//	@Summary		OAuth token endpoint
+//	@Description	Issues an access token. Supports authorization_code (with PKCE) and refresh_token grants.
+//	@Tags			oauth
+//	@Accept			application/x-www-form-urlencoded
+//	@Produce		json
+//	@Param			grant_type		formData	string	true	"Grant type: authorization_code or refresh_token"
+//	@Param			client_id		formData	string	true	"Client ID"
+//	@Param			client_secret	formData	string	false	"Client secret"
+//	@Param			code			formData	string	false	"Authorization code (authorization_code grant)"
+//	@Param			code_verifier	formData	string	false	"PKCE code verifier (authorization_code grant)"
+//	@Param			redirect_uri	formData	string	false	"Redirect URI (authorization_code grant)"
+//	@Param			refresh_token	formData	string	false	"Refresh token (refresh_token grant)"
+//	@Param			scope			formData	string	false	"Scope (optional narrowing on refresh)"
+//	@Success		200	{object}	TokenResponse
+//	@Failure		400	{object}	entity.OAuthErrorResponse
+//	@Failure		401	{object}	entity.OAuthErrorResponse
+//	@Router			/{orgSlug}/{wsSlug}/{appSlug}/oauth/token [post]
 type TokenHandler struct {
 	ApplicationIDFromRequest func(r *http.Request) (applicationID, organizationID string, err error)
 	Clients                  ClientRegistry

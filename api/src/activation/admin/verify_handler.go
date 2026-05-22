@@ -21,6 +21,18 @@ import (
 // can't be used as a probe.
 type VerifyHandler struct{}
 
+// ServeHTTP verifies an activation token without consuming it.
+//
+//	@Summary		Verify activation token
+//	@Description	First step of the activation UX. Confirms token+email match a pending row.
+//	@Tags			activation
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		activation_entity.VerifyRequest	true	"Token and email"
+//	@Success		200		{object}	activation_entity.VerifySuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Router			/activation/verify [post]
+
 type verifyRequest struct {
 	Token string `json:"token"`
 	Email string `json:"email"`

@@ -16,6 +16,18 @@ import (
 // Every failure collapses to the same generic 400.
 type AdminPortalVerifyHandler struct{}
 
+// ServeHTTP verifies an admin-only activation token.
+//
+//	@Summary		Verify admin activation token
+//	@Description	Admin-portal first step: confirms token+email match a pending admin activation row.
+//	@Tags			activation
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		activation_entity.VerifyRequest	true	"Token and email"
+//	@Success		200		{object}	activation_entity.VerifySuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Router			/activation/a/verify [post]
+
 func (h *AdminPortalVerifyHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

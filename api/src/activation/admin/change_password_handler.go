@@ -21,6 +21,20 @@ import (
 // must_change_password flag is TRUE.
 type ChangePasswordHandler struct{}
 
+// ServeHTTP forces a password change for the authenticated admin.
+//
+//	@Summary		Force password change
+//	@Description	For admins with must_change_password=true. Accepts a new password and re-issues a full JWT.
+//	@Tags			activation
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		activation_entity.ChangePasswordRequest	true	"New password"
+//	@Success		200		{object}	activation_entity.ChangePasswordSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Failure		401		{object}	response.ErrorBody
+//	@Router			/auth/change-password [post]
+
 type changePasswordRequest struct {
 	NewPassword string `json:"new_password"`
 }

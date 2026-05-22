@@ -170,3 +170,10 @@ func (e *OAuthError) Error() string {
 func NewOAuthError(code OAuthErrorCode, description string, status int) *OAuthError {
 	return &OAuthError{Code: code, Description: description, Status: status}
 }
+
+// OAuthErrorResponse is the RFC 6749 §5.2 error body written to the wire.
+// Used exclusively in swag @Failure annotations.
+type OAuthErrorResponse struct {
+	Error            string `json:"error"             example:"invalid_request"`
+	ErrorDescription string `json:"error_description" example:"grant_type required"`
+}

@@ -36,6 +36,13 @@ Every design must cover:
 5. **Migration** — SQL for any schema changes (file goes in `api/config/db/migrations/`)
 6. **Security considerations** — who can call this, what can go wrong
 7. **Dependencies** — which existing repositories or services this touches
+8. **OpenAPI contract** — for every new or changed endpoint, specify:
+   - `@Tags` group name (matches the domain, e.g. `org-users`, `applications`)
+   - Named entity structs for request body and response (goes in `entity/` package — swag cannot resolve anonymous structs)
+   - `@Success` type: `entity.XxxSuccess` (concrete envelope, not a generic)
+   - `@Failure` types: `response.ErrorBody` for all 4xx/5xx
+   - `@Security BearerAuth` on every authenticated route
+   - Exact `@Router` path (strip `/api/v1` prefix, match the YAML route exactly)
 
 ## Architectural Principles
 

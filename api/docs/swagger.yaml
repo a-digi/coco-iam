@@ -1,0 +1,843 @@
+basePath: /api/v1
+definitions:
+  entity.ActivationEcho:
+    properties:
+      expires_at:
+        example: "2025-01-01T00:00:00Z"
+        type: string
+    type: object
+  entity.Application:
+    properties:
+      allow_password_login:
+        default: true
+        description: |-
+          AllowPasswordLogin toggles the username+password login endpoint
+          for this app. Default true preserves legacy behaviour; an admin
+          flips it off to force the OAuth-only path. Both the login
+          handler and the public auth-methods endpoint honour this flag.
+        type: boolean
+      allow_recovery:
+        default: true
+        type: boolean
+      allow_registration:
+        default: false
+        type: boolean
+      client_id:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_active:
+        default: true
+        type: boolean
+      registration_type:
+        default: legacy
+        description: |-
+          RegistrationType declares how registration is collected:
+            - "legacy": consumers render a form with username + password
+              implicit and the admin-configured extras on top.
+            - "oauth":  provider delivers identity; extras only.
+          Only "legacy" is wired today; "oauth" is a declarative label
+          we surface so the consumer can branch its UI ahead of the
+          provider-flow implementation landing.
+        type: string
+      title:
+        type: string
+      workspace_id:
+        type: string
+    type: object
+  entity.ApplicationRequest:
+    properties:
+      allow_password_login:
+        type: boolean
+      allow_recovery:
+        type: boolean
+      allow_registration:
+        type: boolean
+      client_id:
+        example: my-app
+        type: string
+      description:
+        example: App description
+        type: string
+      is_active:
+        type: boolean
+      registration_type:
+        example: legacy
+        type: string
+      title:
+        example: My Application
+        type: string
+      workspace_id:
+        example: ws-uuid
+        type: string
+    type: object
+  entity.ApplicationSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.Application'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.CreateOrgUserRequest:
+    properties:
+      email:
+        example: jdoe@example.com
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      organization_id:
+        example: org-uuid
+        type: string
+      redirect_application_id:
+        example: app-uuid
+        type: string
+      username:
+        example: jdoe
+        type: string
+    type: object
+  entity.CreateOrgUserResponse:
+    properties:
+      activation:
+        $ref: '#/definitions/entity.OrgActivationEcho'
+      activation_error:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_a-digi_coco-iam_src_organizations_users_entity.User'
+    type: object
+  entity.CreateOrgUserSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.CreateOrgUserResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.CreateUserRequest:
+    properties:
+      email:
+        example: jdoe@example.com
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      is_super_admin:
+        example: false
+        type: boolean
+      username:
+        example: jdoe
+        type: string
+    type: object
+  entity.CreateUserResponse:
+    properties:
+      activation:
+        $ref: '#/definitions/entity.ActivationEcho'
+      activation_error:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_a-digi_coco-iam_src_admin_users_entity.User'
+    type: object
+  entity.CreateUserSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.CreateUserResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.OrgActivationEcho:
+    properties:
+      expires_at:
+        example: "2025-01-01T00:00:00Z"
+        type: string
+    type: object
+  entity.OrgUserListSuccess:
+    properties:
+      message:
+        items:
+          $ref: '#/definitions/entity.OrgUserResponse'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.OrgUserResponse:
+    properties:
+      activation_pending:
+        example: false
+        type: boolean
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        default: true
+        type: boolean
+      organization_id:
+        type: string
+      username:
+        type: string
+    type: object
+  entity.OrgUserSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.OrgUserResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.PatchOrgUserRequest:
+    properties:
+      email:
+        example: new@example.com
+        type: string
+      is_active:
+        example: true
+        type: boolean
+    type: object
+  entity.UpdateUserRequest:
+    properties:
+      email:
+        example: new@example.com
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      is_super_admin:
+        example: false
+        type: boolean
+      old_password:
+        example: OldPass1!
+        type: string
+      password:
+        example: NewPass1!
+        type: string
+    type: object
+  entity.UserSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/github_com_a-digi_coco-iam_src_admin_users_entity.User'
+      success:
+        example: true
+        type: boolean
+    type: object
+  github_com_a-digi_coco-iam_src_admin_users_entity.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        default: true
+        type: boolean
+      is_super_admin:
+        default: false
+        type: boolean
+      username:
+        type: string
+    type: object
+  github_com_a-digi_coco-iam_src_organizations_users_entity.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        default: true
+        type: boolean
+      organization_id:
+        type: string
+      username:
+        type: string
+    type: object
+  response.ErrorBody:
+    properties:
+      error:
+        example: true
+        type: boolean
+      message:
+        example: resource not found
+        type: string
+    type: object
+host: localhost:2026
+info:
+  contact: {}
+  description: Multi-tenant Identity and Access Management
+  title: CoCo IAM API
+  version: "1.0"
+paths:
+  /admin/organization_users:
+    get:
+      description: Returns a list of users for the given organization (requires organization_id
+        filter) or a single user by ID.
+      parameters:
+      - description: Organization ID filter (list lookup)
+        in: query
+        name: filter[@exact:organization_id]
+        type: string
+      - description: Page size (max 500, default 50)
+        in: query
+        name: limit
+        type: integer
+      - description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgUserListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List or get organization users
+      tags:
+      - org-users
+    post:
+      consumes:
+      - application/json
+      description: Creates a pending org user and sends an activation email. No password
+        on the wire.
+      parameters:
+      - description: User payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateOrgUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.CreateOrgUserSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Create organization user
+      tags:
+      - org-users
+  /admin/organization_users/{id}:
+    delete:
+      description: Removes the org user from the per-org DB and enqueues ACL cleanup.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgUserSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Delete organization user
+      tags:
+      - org-users
+    get:
+      description: Returns a list of users for the given organization (requires organization_id
+        filter) or a single user by ID.
+      parameters:
+      - description: User ID (single-user lookup)
+        in: path
+        name: id
+        type: string
+      - description: Organization ID filter (list lookup)
+        in: query
+        name: filter[@exact:organization_id]
+        type: string
+      - description: Page size (max 500, default 50)
+        in: query
+        name: limit
+        type: integer
+      - description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgUserListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List or get organization users
+      tags:
+      - org-users
+    patch:
+      consumes:
+      - application/json
+      description: Partially updates an org user. Username changes are rejected.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.PatchOrgUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgUserSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update organization user
+      tags:
+      - org-users
+  /admin/users:
+    post:
+      consumes:
+      - application/json
+      description: Creates a pending admin user and sends an activation email. No
+        password is accepted on the wire.
+      parameters:
+      - description: User payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.CreateUserSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Create admin user
+      tags:
+      - admin-users
+  /admin/users/{id}:
+    delete:
+      description: Deletes an admin user. Cannot delete yourself or the last super-admin.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.UserSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Delete admin user
+      tags:
+      - admin-users
+    patch:
+      consumes:
+      - application/json
+      description: Partially updates an admin user. Username changes are rejected.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.UserSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update admin user
+      tags:
+      - admin-users
+  /applications/applications:
+    get:
+      consumes:
+      - application/json
+      description: POST creates a new application. GET returns one (by id) or a list
+        (filtered by workspace_id). PATCH/PUT updates. DELETE soft-deletes (sets is_active=false).
+      parameters:
+      - description: Workspace ID filter (list)
+        in: query
+        name: workspace_id
+        type: string
+      - description: Application body (POST/PATCH/PUT)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/entity.ApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Manage applications (CRUD)
+      tags:
+      - applications
+    post:
+      consumes:
+      - application/json
+      description: POST creates a new application. GET returns one (by id) or a list
+        (filtered by workspace_id). PATCH/PUT updates. DELETE soft-deletes (sets is_active=false).
+      parameters:
+      - description: Workspace ID filter (list)
+        in: query
+        name: workspace_id
+        type: string
+      - description: Application body (POST/PATCH/PUT)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/entity.ApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Manage applications (CRUD)
+      tags:
+      - applications
+  /applications/applications/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: POST creates a new application. GET returns one (by id) or a list
+        (filtered by workspace_id). PATCH/PUT updates. DELETE soft-deletes (sets is_active=false).
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        type: string
+      - description: Workspace ID filter (list)
+        in: query
+        name: workspace_id
+        type: string
+      - description: Application body (POST/PATCH/PUT)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/entity.ApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Manage applications (CRUD)
+      tags:
+      - applications
+    get:
+      consumes:
+      - application/json
+      description: POST creates a new application. GET returns one (by id) or a list
+        (filtered by workspace_id). PATCH/PUT updates. DELETE soft-deletes (sets is_active=false).
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        type: string
+      - description: Workspace ID filter (list)
+        in: query
+        name: workspace_id
+        type: string
+      - description: Application body (POST/PATCH/PUT)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/entity.ApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Manage applications (CRUD)
+      tags:
+      - applications
+    patch:
+      consumes:
+      - application/json
+      description: POST creates a new application. GET returns one (by id) or a list
+        (filtered by workspace_id). PATCH/PUT updates. DELETE soft-deletes (sets is_active=false).
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        type: string
+      - description: Workspace ID filter (list)
+        in: query
+        name: workspace_id
+        type: string
+      - description: Application body (POST/PATCH/PUT)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/entity.ApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.ApplicationSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Manage applications (CRUD)
+      tags:
+      - applications
+securityDefinitions:
+  BearerAuth:
+    description: Bearer <JWT token>
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

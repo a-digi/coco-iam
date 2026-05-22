@@ -18,6 +18,26 @@ import (
 
 // CustomApplicationsHandler routes all CRUD operations for the applications
 // entity to the per-org DB (data/db/organization/{orgID}/users.db).
+//
+//	@Summary		Manage applications (CRUD)
+//	@Description	POST creates a new application. GET returns one (by id) or a list (filtered by workspace_id). PATCH/PUT updates. DELETE soft-deletes (sets is_active=false).
+//	@Tags			applications
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id				path		string							false	"Application ID"
+//	@Param			workspace_id	query		string							false	"Workspace ID filter (list)"
+//	@Param			body			body		entity.ApplicationRequest	false	"Application body (POST/PATCH/PUT)"
+//	@Success		200		{object}	entity.ApplicationSuccess
+//	@Success		201		{object}	entity.ApplicationSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Failure		404		{object}	response.ErrorBody
+//	@Failure		500		{object}	response.ErrorBody
+//	@Router			/applications/applications [post]
+//	@Router			/applications/applications [get]
+//	@Router			/applications/applications/{id} [get]
+//	@Router			/applications/applications/{id} [patch]
+//	@Router			/applications/applications/{id} [delete]
 func CustomApplicationsHandler(reqCtx request.RequestContext) {
 	r := reqCtx.GetRequest()
 	switch r.Method {

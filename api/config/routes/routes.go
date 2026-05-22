@@ -71,6 +71,7 @@ import (
 	serverdi "github.com/a-digi/coco-server/server/di"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/routing"
+	swagger_handler "github.com/a-digi/coco-iam/src/swagger"
 )
 
 type RootHandler struct{}
@@ -931,6 +932,8 @@ func Init(ctx serverdi.Context) {
 		"ObserveAgentsHandler":          observeAgents,
 		"ObserveAgentDownloadHandler":   observeDownload,
 		"ApiResourceHandler":   resource.GetApiResourceHandler(),
+		"SwaggerSpecHandler":   &swagger_handler.SpecHandler{},
+		"SwaggerRawSpecHandler": &swagger_handler.RawSpecHandler{},
 	}
 
 	authCfgBytes, err := config.ReadConfigFile("config.json")

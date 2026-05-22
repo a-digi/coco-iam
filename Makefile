@@ -13,7 +13,7 @@ get-branch:
 build:
 	@mkdir -p versions
 	BRANCH=$(shell git rev-parse --abbrev-ref HEAD | sed 's/\./-/g'); \
-	cd api && go build -o ../versions/coco-iam-$$BRANCH main.go
+	cd api && go build -o ../versions/coco-iam-$$BRANCH .
 
 # Linux target architecture for the deploy build. Override if
 # the server is x86_64:
@@ -30,6 +30,15 @@ else
   $(error Unsupported DEPLOY_GOARCH "$(DEPLOY_GOARCH)" — use amd64 or arm64)
 endif
 
+.PHONY: swag-gen
+swag-gen:
+	@command -v swag >/dev/null 2>&1 || { \
+	    echo "swag not found. Install with: go install github.com/swaggo/swag/cmd/swag@latest"; \
+	    exit 1; \
+	}
+	cd api && swag init -g main.go -o docs --parseDependency --parseInternal
+	cp api/docs/swagger.json api/src/swagger/static/swagger.json
+
 .PHONY: build-linux
 build-linux:
 	@mkdir -p versions
@@ -44,7 +53,7 @@ build-linux:
 	cd api && CGO_ENABLED=1 GOOS=linux GOARCH=$(DEPLOY_GOARCH) \
 	    CC="zig cc -target $(ZIG_TARGET)" \
 	    CXX="zig c++ -target $(ZIG_TARGET)" \
-	    go build -o ../versions/coco-iam-deploy main.go
+	    go build -o ../versions/coco-iam-deploy .
 
 .PHONY: run-dev
 run-dev:

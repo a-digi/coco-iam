@@ -16,6 +16,22 @@ import (
 
 type AdminUserSendActivationHandler struct{}
 
+// ServeHTTP sends an activation email for an inactive admin user.
+//
+//	@Summary		Send activation email
+//	@Description	Sends an activation email to the specified inactive admin user.
+//	@Tags			admin-users
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		string	true	"User ID"
+//	@Success		202	{object}	entity.SendActivationSuccess
+//	@Failure		400	{object}	response.ErrorBody
+//	@Failure		401	{object}	response.ErrorBody
+//	@Failure		403	{object}	response.ErrorBody
+//	@Failure		404	{object}	response.ErrorBody
+//	@Failure		500	{object}	response.ErrorBody
+//	@Router			/admin/users/{id}/send-activation [post]
+
 func (h *AdminUserSendActivationHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	ctx := reqCtx.GetDI()

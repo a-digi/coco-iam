@@ -36,6 +36,22 @@ type orgUserResponse struct {
 //
 // - List: requires filter[@exact:organization_id]=<uuid>; queries per-org DB.
 // - By ID: scans per-org DBs to find the user; queries per-org DB.
+//
+//	@Summary		List or get organization users
+//	@Description	Returns a list of users for the given organization (requires organization_id filter) or a single user by ID.
+//	@Tags			org-users
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id						path		string	false	"User ID (single-user lookup)"
+//	@Param			filter[@exact:organization_id]	query		string	false	"Organization ID filter (list lookup)"
+//	@Param			limit					query		int		false	"Page size (max 500, default 50)"
+//	@Param			page					query		int		false	"Page number (1-based)"
+//	@Success		200		{object}	users_entity.OrgUserListSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Failure		404		{object}	response.ErrorBody
+//	@Failure		500		{object}	response.ErrorBody
+//	@Router			/admin/organization_users [get]
+//	@Router			/admin/organization_users/{id} [get]
 func CustomGetOrganizationUsersHandler(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -134,6 +150,21 @@ func customGetOrganizationUserByID(reqCtx request.RequestContext, w http.Respons
 
 // CustomPatchOrganizationUserHandler serves PATCH /{res:organization_users}/{id:uuid}.
 // Accepts a JSON body with any subset of {username, email, is_active}.
+//
+//	@Summary		Update organization user
+//	@Description	Partially updates an org user. Username changes are rejected.
+//	@Tags			org-users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id		path		string							true	"User ID"
+//	@Param			body	body		users_entity.PatchOrgUserRequest	true	"Fields to update"
+//	@Success		200		{object}	users_entity.OrgUserSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Failure		404		{object}	response.ErrorBody
+//	@Failure		409		{object}	response.ErrorBody
+//	@Failure		500		{object}	response.ErrorBody
+//	@Router			/admin/organization_users/{id} [patch]
 func CustomPatchOrganizationUserHandler(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -221,6 +252,18 @@ func CustomPatchOrganizationUserHandler(reqCtx request.RequestContext) {
 
 // CustomDeleteOrganizationUserHandler serves DELETE /{res:organization_users}/{id:uuid}.
 // Removes the user from the per-org DB and cleans the main DB routing indexes.
+//
+//	@Summary		Delete organization user
+//	@Description	Removes the org user from the per-org DB and enqueues ACL cleanup.
+//	@Tags			org-users
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		string	true	"User ID"
+//	@Success		200	{object}	users_entity.OrgUserSuccess
+//	@Failure		400	{object}	response.ErrorBody
+//	@Failure		404	{object}	response.ErrorBody
+//	@Failure		500	{object}	response.ErrorBody
+//	@Router			/admin/organization_users/{id} [delete]
 func CustomDeleteOrganizationUserHandler(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -22,6 +22,19 @@ import (
 // same generic error message so attackers can't probe which part failed.
 type ActivateHandler struct{}
 
+// ServeHTTP activates a user account.
+//
+//	@Summary		Activate account
+//	@Description	Consumes a one-time activation token and sets the user password. Returns a JWT on success for admin users.
+//	@Tags			activation
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		activation_entity.ActivateRequest	true	"Activation payload"
+//	@Success		200		{object}	activation_entity.ActivateSuccess
+//	@Failure		400		{object}	response.ErrorBody
+//	@Failure		500		{object}	response.ErrorBody
+//	@Router			/activation/activate [post]
+
 // genericFailureMsg is the only error string returned for any
 // authentication-related activation failure. Kept deliberately vague.
 const genericFailureMsg = "Something went wrong. The activation link may be invalid, expired, or already used."
