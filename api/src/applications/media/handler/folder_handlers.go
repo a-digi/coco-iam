@@ -19,6 +19,13 @@ type createFolderRequest struct {
 	Slug     string  `json:"slug"`
 }
 
+// @Summary     Create a media folder for an application
+// @Tags        app-media
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/media/folders [post]
 func (h *CreateFolderHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -66,6 +73,13 @@ func (h *CreateFolderHandler) ServeHTTP(reqCtx request.RequestContext) {
 // DeleteFolderHandler serves DELETE /.../media/folders/{id:<folderId>}?recursive=<bool>.
 type DeleteFolderHandler struct{}
 
+// @Summary     Delete a media folder from an application
+// @Tags        app-media
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       folderId path string true "Folder ID"
+// @Router      /applications/applications/{id}/media/folders/{folderId} [delete]
 func (h *DeleteFolderHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)

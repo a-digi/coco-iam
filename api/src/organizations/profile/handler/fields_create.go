@@ -26,6 +26,13 @@ type createFieldRequest struct {
 	MaxBytes    int      `json:"max_bytes"`
 }
 
+// @Summary     Create organization profile field
+// @Tags        org-profile-fields
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Router      /organizations/organizations/{id}/profile-fields [post]
 func (h *OrgProfileFieldsCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	_, repo, err := repositoryFromRequest(reqCtx)

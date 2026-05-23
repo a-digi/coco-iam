@@ -26,6 +26,14 @@ type addMemberBody struct {
 // we surface only the slice relevant to this application.
 type GroupMembersListHandler struct{}
 
+// @Summary     List members of a group
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       groupId path string true "Group ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups/{groupId}/members [get]
 func (h *GroupMembersListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "groups:read")
 	if caller == nil {
@@ -74,6 +82,16 @@ func (h *GroupMembersListHandler) ServeHTTP(reqCtx request.RequestContext) {
 // user. Duplicate insertion is ignored so the endpoint is idempotent.
 type GroupMembersAddHandler struct{}
 
+// @Summary     Add a member to a group
+// @Tags        public-api
+// @Accept      json
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       groupId path string true "Group ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups/{groupId}/members [post]
 func (h *GroupMembersAddHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "groups:write")
 	if caller == nil {
@@ -119,6 +137,15 @@ func (h *GroupMembersAddHandler) ServeHTTP(reqCtx request.RequestContext) {
 // GroupMembersRemoveHandler serves DELETE .../groups/{groupId}/members/{userId}.
 type GroupMembersRemoveHandler struct{}
 
+// @Summary     Remove a member from a group
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       groupId path string true "Group ID"
+// @Param       userId path string true "User ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups/{groupId}/members/{userId} [delete]
 func (h *GroupMembersRemoveHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "groups:write")
 	if caller == nil {

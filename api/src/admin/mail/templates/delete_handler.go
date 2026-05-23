@@ -13,6 +13,14 @@ import (
 // AdminMailTemplatesDeleteHandler serves DELETE /api/v1/admin/mail/templates/{id}.
 type AdminMailTemplatesDeleteHandler struct{}
 
+// @Summary     Delete a mail template
+// @Tags        admin-mail-templates
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Template ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/templates/{id} [delete]
 func (h *AdminMailTemplatesDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

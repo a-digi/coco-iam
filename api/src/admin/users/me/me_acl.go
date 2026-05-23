@@ -12,6 +12,13 @@ import (
 
 type MeAclHandler struct{}
 
+// @Summary     Get current admin user ACL
+// @Tags        admin-me
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/me/acl [get]
 func (h *MeAclHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

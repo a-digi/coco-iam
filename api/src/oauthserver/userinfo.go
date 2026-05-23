@@ -16,18 +16,6 @@ import (
 //
 // Filtering: the response includes only claims permitted by
 // the scope set in the access token (per OIDC §5.4).
-//
-// ServeHTTP returns OIDC user claims for the authenticated token bearer.
-//
-//	@Summary		OAuth userinfo endpoint
-//	@Description	Returns OIDC user claims for the access token bearer. Supports GET and POST per the OIDC spec.
-//	@Tags			oauth
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Success		200	{object}	map[string]interface{}
-//	@Failure		401	{object}	entity.OAuthErrorResponse
-//	@Router			/{orgSlug}/{wsSlug}/{appSlug}/oauth/userinfo [get]
-//	@Router			/{orgSlug}/{wsSlug}/{appSlug}/oauth/userinfo [post]
 type UserinfoHandler struct {
 	ApplicationIDFromRequest func(r *http.Request) (applicationID, organizationID string, err error)
 	Verifier                 AccessTokenVerifier
@@ -56,6 +44,15 @@ var ErrAccessTokenInvalid = &entity.OAuthError{
 	Status:      http.StatusUnauthorized,
 }
 
+// @Summary		OAuth userinfo endpoint
+// @Description	Returns OIDC user claims for the access token bearer. Supports GET and POST per the OIDC spec.
+// @Tags			oauth
+// @Produce		json
+// @Security		BearerAuth
+// @Success		200	{object}	map[string]interface{}
+// @Failure		401	{object}	entity.OAuthErrorResponse
+// @Router			/{orgSlug}/{wsSlug}/{appSlug}/oauth/userinfo [get]
+// @Router			/{orgSlug}/{wsSlug}/{appSlug}/oauth/userinfo [post]
 func (h *UserinfoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h == nil || h.Verifier == nil || h.Claims == nil || h.ApplicationIDFromRequest == nil {
 		writeJSONError(w, entity.ErrCodeServerError, "userinfo handler not configured", http.StatusInternalServerError)

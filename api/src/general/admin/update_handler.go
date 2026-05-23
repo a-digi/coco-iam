@@ -14,6 +14,13 @@ import (
 // Any field may be omitted; a present string replaces the stored value.
 type AdminGeneralSettingsUpdateHandler struct{}
 
+// @Summary     Update general settings
+// @Tags        admin-settings
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/settings/general [patch]
 func (h *AdminGeneralSettingsUpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

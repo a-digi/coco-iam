@@ -27,6 +27,13 @@ type importedResult struct {
 	Total    int `json:"total"`
 }
 
+// @Summary     Import application scopes
+// @Tags        applications
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/scopes/import [post]
 func (h *ApplicationScopesImportHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

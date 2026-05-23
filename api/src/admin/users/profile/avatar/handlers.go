@@ -38,6 +38,13 @@ type uploadResponse struct {
 	AvatarURL     string `json:"avatar_url"`
 }
 
+// @Summary     Upload admin user avatar
+// @Tags        admin-me
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/users/me/avatar [post]
 func (h *UploadHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -131,6 +138,13 @@ func (h *UploadHandler) ServeHTTP(reqCtx request.RequestContext) {
 // Idempotent — "no avatar to delete" is a 200 success, not a 404.
 type DeleteHandler struct{}
 
+// @Summary     Delete admin user avatar
+// @Tags        admin-me
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/users/me/avatar [delete]
 func (h *DeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -175,6 +189,13 @@ func (h *DeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 // (same category as any signed-in landing page).
 type PublicServeHandler struct{}
 
+// @Summary     Serve admin user avatar (public)
+// @Description Public endpoint outside /api/v1 base path. No authentication required.
+// @Tags        admin-avatars
+// @Produce     json
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /p/admin-avatars/{adminUserId} [get]
 func (h *PublicServeHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

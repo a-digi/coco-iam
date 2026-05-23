@@ -29,6 +29,16 @@ type testRequest struct {
 	Name string `json:"name"`
 }
 
+// @Summary     Test a mail account
+// @Tags        admin-mail
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Account ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/accounts/{id}/test [post]
 func (h *AdminMailAccountsTestHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -27,6 +27,11 @@ type verifyResponse struct {
 	Rules userrules.RuleSet `json:"rules"`
 }
 
+// @Summary     Verify recovery token
+// @Tags        recovery
+// @Accept      json
+// @Produce     json
+// @Router      /recovery/verify [post]
 func (h *VerifyHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

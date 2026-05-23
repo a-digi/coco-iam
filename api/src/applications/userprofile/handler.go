@@ -36,6 +36,10 @@ type meResponse struct {
 	Fields []FieldWithValue `json:"fields"`
 }
 
+// @Summary     Get current user profile
+// @Tags        app-profile-me
+// @Produce     json
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me [get]
 func (h *GetMeHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

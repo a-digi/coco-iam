@@ -24,6 +24,12 @@ type SlugsResponse struct {
 // UUID in the path. Scope: applications:read (declared in YAML).
 type AppSlugsHandler struct{}
 
+// @Summary     Get application slugs
+// @Tags        applications
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/slugs [get]
 func (h *AppSlugsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)

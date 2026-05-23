@@ -41,6 +41,11 @@ type patchMeValidationResponse struct {
 	Errors []FieldError `json:"errors,omitempty"`
 }
 
+// @Summary     Patch current user profile
+// @Tags        app-profile-me
+// @Accept      json
+// @Produce     json
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me [patch]
 func (h *PatchMeHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

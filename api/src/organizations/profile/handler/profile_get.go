@@ -25,6 +25,13 @@ type userProfileResponse struct {
 	UpdatedAt string                `json:"updated_at,omitempty"`
 }
 
+// @Summary     Get organization user profile
+// @Tags        org-users
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Param       userId path string true "User ID"
+// @Router      /organizations/organizations/{id}/users/{userId}/profile [get]
 func (h *OrgUserProfileGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

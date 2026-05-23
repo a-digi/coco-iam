@@ -42,6 +42,13 @@ var localeRE = regexp.MustCompile(`^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$`)
 // identifier segments (e.g. Europe/Berlin, America/Argentina/Buenos_Aires).
 var timezoneRE = regexp.MustCompile(`^[A-Za-z_]+(?:/[A-Za-z_]+)*$`)
 
+// @Summary     Update current admin user profile
+// @Tags        admin-me
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/users/me [patch]
 func (h *MePatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

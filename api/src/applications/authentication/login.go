@@ -126,6 +126,11 @@ type credsBody struct {
 	Password string `json:"password"`
 }
 
+// @Summary     Authenticate application user
+// @Tags        app-auth
+// @Accept      json
+// @Produce     json
+// @Router      /applications/authenticate [post]
 func (h *AppLoginHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

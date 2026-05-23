@@ -76,6 +76,12 @@ import (
 
 type RootHandler struct{}
 
+// @Summary     Health check
+// @Description Returns a plain-text confirmation that the server is running.
+// @Tags        system
+// @Produce     plain
+// @Success     200 "Server is running!"
+// @Router      / [get]
 func (h *RootHandler) ServeHTTP(reqCtx request.RequestContext) {
 	reqCtx.GetWriter().Write([]byte("Server is running!"))
 }

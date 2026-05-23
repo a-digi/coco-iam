@@ -35,6 +35,15 @@ type activationPatch struct {
 	ResendCooldownSeconds *int `json:"resend_cooldown_seconds,omitempty"`
 }
 
+// @Summary     Update mail settings
+// @Tags        admin-mail
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/settings [patch]
 func (h *AdminMailSettingsUpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

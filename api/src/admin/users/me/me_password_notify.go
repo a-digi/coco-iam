@@ -12,6 +12,13 @@ import (
 // MePasswordNotificationGetHandler serves GET /admin/users/me/password-notification.
 type MePasswordNotificationGetHandler struct{}
 
+// @Summary     Get password notification preferences
+// @Tags        admin-me
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/users/me/password-notification [get]
 func (h *MePasswordNotificationGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -48,6 +55,13 @@ type notifyPrefsBody struct {
 	NotifyDays []int `json:"notify_days"`
 }
 
+// @Summary     Update password notification preferences
+// @Tags        admin-me
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/users/me/password-notification [put]
 func (h *MePasswordNotificationPutHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

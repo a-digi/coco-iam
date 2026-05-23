@@ -24,6 +24,13 @@ type RecentTask struct {
 // AdminDashboardFailedTasksHandler serves GET /api/v1/admin/dashboard/failed-tasks.
 type AdminDashboardFailedTasksHandler struct{}
 
+// @Summary     Get failed tasks
+// @Tags        admin-dashboard
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/dashboard/failed-tasks [get]
 func (h *AdminDashboardFailedTasksHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -34,6 +34,12 @@ type flatScope struct {
 // application's scope tree in the same JSON format as `admin.json`.
 type ApplicationScopesExportHandler struct{}
 
+// @Summary     Export application scopes
+// @Tags        applications
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/scopes/export [get]
 func (h *ApplicationScopesExportHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

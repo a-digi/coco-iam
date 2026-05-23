@@ -12,6 +12,12 @@ import (
 // root of the application's media tree.
 type ListHandler struct{}
 
+// @Summary     List media for an application
+// @Tags        app-media
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/media [get]
 func (h *ListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)

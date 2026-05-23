@@ -16,6 +16,10 @@ import (
 // Returns the render-only PublicLoginConfig — no secrets, no redirect URL.
 type PublicGetConfigHandler struct{}
 
+// @Summary     Get public login template config
+// @Tags        app-public
+// @Produce     json
+// @Router      /public/applications/login-template [get]
 func (h *PublicGetConfigHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)
@@ -68,6 +72,11 @@ func publicMediaURL(orgSlug, wsSlug, clientID, filename string) string {
 // PublicServeAssetHandler serves GET /api/v1/public/applications/assets/{assetId}.
 type PublicServeAssetHandler struct{}
 
+// @Summary     Serve public login template asset
+// @Tags        app-public
+// @Produce     json
+// @Param       assetId path string true "Asset ID"
+// @Router      /p/applications/assets/{assetId} [get]
 func (h *PublicServeAssetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

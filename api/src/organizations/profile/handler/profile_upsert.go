@@ -27,6 +27,14 @@ type upsertResponse struct {
 	Errors []profile.FieldError `json:"errors,omitempty"`
 }
 
+// @Summary     Upsert organization user profile
+// @Tags        org-users
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Param       userId path string true "User ID"
+// @Router      /organizations/organizations/{id}/users/{userId}/profile [put]
 func (h *OrgUserProfileUpsertHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

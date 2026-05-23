@@ -23,6 +23,15 @@ type createRequest struct {
 	IsActive    *bool  `json:"is_active,omitempty"`
 }
 
+// @Summary     Create a mail template
+// @Tags        admin-mail-templates
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/templates [post]
 func (h *AdminMailTemplatesCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

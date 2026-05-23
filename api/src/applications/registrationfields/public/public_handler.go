@@ -42,6 +42,10 @@ type response200 struct {
 	Steps            []service.StepWithFields `json:"steps"`
 }
 
+// @Summary     Get public registration fields
+// @Tags        app-public
+// @Produce     json
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/registration-fields [get]
 func (h *RegistrationFieldsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

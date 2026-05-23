@@ -11,6 +11,12 @@ import (
 // Returns all fields (active + soft-deleted) ordered by order_index.
 type OrgProfileFieldsListHandler struct{}
 
+// @Summary     List organization profile fields
+// @Tags        org-profile-fields
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Router      /organizations/organizations/{id}/profile-fields [get]
 func (h *OrgProfileFieldsListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	_, repo, err := repositoryFromRequest(reqCtx)

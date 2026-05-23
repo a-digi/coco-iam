@@ -18,6 +18,12 @@ import (
 // Returns the four branding fields from the org's per-org DB.
 type OrgGeneralSettingsGetHandler struct{}
 
+// @Summary     Get organization general settings
+// @Tags        org-settings
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Router      /organizations/organizations/{id}/settings/general [get]
 func (h *OrgGeneralSettingsGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	store := resolveOrgStore(reqCtx, w)
@@ -44,6 +50,13 @@ type updateRequest struct {
 // Any field may be omitted; a present string replaces the stored value.
 type OrgGeneralSettingsUpdateHandler struct{}
 
+// @Summary     Update organization general settings
+// @Tags        org-settings
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Router      /organizations/organizations/{id}/settings/general [patch]
 func (h *OrgGeneralSettingsUpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

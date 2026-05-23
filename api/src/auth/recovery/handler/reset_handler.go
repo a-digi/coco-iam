@@ -28,6 +28,11 @@ type resetResponse struct {
 	Ok bool `json:"ok"`
 }
 
+// @Summary     Reset password
+// @Tags        recovery
+// @Accept      json
+// @Produce     json
+// @Router      /recovery/reset [post]
 func (h *ResetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

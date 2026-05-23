@@ -29,6 +29,16 @@ type updateRequest struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// @Summary     Update a mail account
+// @Tags        admin-mail
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Account ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/accounts/{id} [patch]
 func (h *AdminMailAccountsUpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

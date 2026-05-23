@@ -13,6 +13,11 @@ import (
 // Returns the admin-wide rule set, or defaults if unset.
 type AdminUserRulesGetHandler struct{}
 
+// @Summary     Get admin user rules
+// @Tags        admin-settings
+// @Produce     json
+// @Security    BearerAuth
+// @Router      /admin/settings/user-rules [get]
 func (h *AdminUserRulesGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	store := resolveStore(reqCtx)
@@ -32,6 +37,12 @@ func (h *AdminUserRulesGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 // form always ships the complete object).
 type AdminUserRulesUpdateHandler struct{}
 
+// @Summary     Update admin user rules
+// @Tags        admin-settings
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Router      /admin/settings/user-rules [patch]
 func (h *AdminUserRulesUpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

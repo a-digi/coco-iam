@@ -14,6 +14,13 @@ import (
 // binding. The UI renders one dropdown per entry.
 type AdminMailSettingsEventsHandler struct{}
 
+// @Summary     List mail settings event catalog
+// @Tags        admin-mail
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/settings/events [get]
 func (h *AdminMailSettingsEventsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	response.SuccessResponse(w, http.StatusOK, mailsettings.EventCatalog)

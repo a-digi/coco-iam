@@ -18,6 +18,12 @@ type TokenRenewRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// @Summary     Renew OAuth token
+// @Tags        auth
+// @Produce     json
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/oauth/renew [post]
 func (h *TokenRenewHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -51,6 +51,13 @@ type starterResponse struct {
 	Tokens      []starterToken `json:"tokens"`
 }
 
+// @Summary     List mail template starters
+// @Tags        admin-mail-templates
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/template-starters [get]
 func (h *AdminMailTemplatesStartersHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 

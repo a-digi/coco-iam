@@ -63,6 +63,12 @@ type listResponse struct {
 	Providers []adminView `json:"providers"`
 }
 
+// @Summary     List OAuth providers for an application
+// @Tags        app-oauth-providers
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/oauth-providers [get]
 func (h *ListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	appID := appIDFromPath(reqCtx)
@@ -104,6 +110,13 @@ type createPayload struct {
 	AllowRegistration bool     `json:"allow_registration"`
 }
 
+// @Summary     Create an OAuth provider for an application
+// @Tags        app-oauth-providers
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/oauth-providers [post]
 func (h *CreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -171,6 +184,14 @@ type updatePayload struct {
 	IsActive          bool     `json:"is_active"`
 }
 
+// @Summary     Update an OAuth provider for an application
+// @Tags        app-oauth-providers
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       providerId path string true "Provider ID"
+// @Router      /applications/applications/{id}/oauth-providers/{providerId} [patch]
 func (h *UpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -232,6 +253,13 @@ func (h *UpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 // DeleteHandler serves DELETE /api/v1/applications/{id}/oauth-providers/{providerId}.
 type DeleteHandler struct{}
 
+// @Summary     Delete an OAuth provider from an application
+// @Tags        app-oauth-providers
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       providerId path string true "Provider ID"
+// @Router      /applications/applications/{id}/oauth-providers/{providerId} [delete]
 func (h *DeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

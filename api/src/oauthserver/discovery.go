@@ -76,6 +76,12 @@ type DiscoveryHandler struct {
 	ScopesSupported []string
 }
 
+// @Summary     OpenID Connect discovery document
+// @Description Returns the OIDC discovery metadata for the application. Standard .well-known/openid-configuration endpoint.
+// @Tags        oauth
+// @Produce     json
+// @Success     200 {object} DiscoveryMetadata
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/.well-known/openid-configuration [get]
 func (h *DiscoveryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h == nil || h.IssuerFromRequest == nil || h.BasePathFromRequest == nil {
 		writeJSONError(w, "server_error", "discovery handler not configured", http.StatusInternalServerError)

@@ -15,6 +15,13 @@ import (
 // revoked_at set so audit tools can still see who held what.
 type RevokeHandler struct{}
 
+// @Summary     Revoke an API credential
+// @Tags        app-api-credentials
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       credId path string true "Credential ID"
+// @Router      /applications/applications/{id}/api-credentials/{credId}/revoke [post]
 func (h *RevokeHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -15,6 +15,14 @@ import (
 // active and promotes the requested id inside a single transaction.
 type AdminMailAccountsActivateHandler struct{}
 
+// @Summary     Activate a mail account
+// @Tags        admin-mail
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Account ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/accounts/{id}/activate [post]
 func (h *AdminMailAccountsActivateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

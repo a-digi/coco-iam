@@ -26,6 +26,14 @@ type aclPutBody struct {
 // UserAclGetHandler serves GET .../users/{userId}/acl.
 type UserAclGetHandler struct{}
 
+// @Summary     Get a user's ACL
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       userId path string true "User ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/users/{userId}/acl [get]
 func (h *UserAclGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "acl:read")
 	if caller == nil {
@@ -63,6 +71,16 @@ func (h *UserAclGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 // tighten permissions even on roles they can't re-grant).
 type UserAclPutHandler struct{}
 
+// @Summary     Replace a user's ACL
+// @Tags        public-api
+// @Accept      json
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       userId path string true "User ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/users/{userId}/acl [put]
 func (h *UserAclPutHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "acl:write")
 	if caller == nil {
@@ -135,6 +153,14 @@ func (h *UserAclPutHandler) ServeHTTP(reqCtx request.RequestContext) {
 // Soft-delete only — the row survives for audit.
 type UserAclDeleteHandler struct{}
 
+// @Summary     Delete a user's ACL (soft)
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       userId path string true "User ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/users/{userId}/acl [delete]
 func (h *UserAclDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "acl:delete")
 	if caller == nil {

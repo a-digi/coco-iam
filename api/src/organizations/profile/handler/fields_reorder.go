@@ -16,6 +16,13 @@ type reorderRequest struct {
 	OrderedIDs []string `json:"ordered_ids"`
 }
 
+// @Summary     Reorder organization profile fields
+// @Tags        org-profile-fields
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Router      /organizations/organizations/{id}/profile-fields/reorder [post]
 func (h *OrgProfileFieldsReorderHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 

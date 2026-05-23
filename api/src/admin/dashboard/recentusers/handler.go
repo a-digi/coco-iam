@@ -18,6 +18,13 @@ type RecentUser struct {
 // AdminDashboardRecentUsersHandler serves GET /api/v1/admin/dashboard/recent-users.
 type AdminDashboardRecentUsersHandler struct{}
 
+// @Summary     Get recent users
+// @Tags        admin-dashboard
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/dashboard/recent-users [get]
 func (h *AdminDashboardRecentUsersHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

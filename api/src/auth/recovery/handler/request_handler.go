@@ -24,6 +24,11 @@ type requestResponse struct {
 	Ok bool `json:"ok"`
 }
 
+// @Summary     Request password recovery
+// @Tags        recovery
+// @Accept      json
+// @Produce     json
+// @Router      /recovery/request [post]
 func (h *RequestHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -17,6 +17,10 @@ import (
 // parameter is absent and 404 when the application cannot be resolved.
 type PublicGeneralSettingsHandler struct{}
 
+// @Summary     Get public general settings
+// @Tags        general
+// @Produce     json
+// @Router      /public/general [get]
 func (h *PublicGeneralSettingsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

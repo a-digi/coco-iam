@@ -11,6 +11,13 @@ import (
 // Soft-delete only. Values stored on users remain but won't be rendered in forms.
 type OrgProfileFieldsDeleteHandler struct{}
 
+// @Summary     Delete organization profile field
+// @Tags        org-profile-fields
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Param       fieldId path string true "Field ID"
+// @Router      /organizations/organizations/{id}/profile-fields/{fieldId} [delete]
 func (h *OrgProfileFieldsDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

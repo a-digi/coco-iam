@@ -30,6 +30,13 @@ type DashboardStats struct {
 // AdminDashboardStatsHandler serves GET /api/v1/admin/dashboard/stats.
 type AdminDashboardStatsHandler struct{}
 
+// @Summary     Get dashboard stats
+// @Tags        admin-dashboard
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/dashboard/stats [get]
 func (h *AdminDashboardStatsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

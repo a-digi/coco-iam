@@ -57,6 +57,10 @@ type ListHandler struct{ Deps }
 // RevokeHandler serves DELETE .../consents/{clientRowId}.
 type RevokeHandler struct{ Deps }
 
+// @Summary     List user OAuth consents
+// @Tags        app-oauth-consents
+// @Produce     json
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/consents [get]
 func (h *ListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -122,6 +126,11 @@ func (h *ListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	response.SuccessResponse(w, http.StatusOK, listResponse{Consents: out})
 }
 
+// @Summary     Revoke user OAuth consent
+// @Tags        app-oauth-consents
+// @Produce     json
+// @Param       clientRowId path string true "Client Row ID"
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/consents/{clientRowId} [delete]
 func (h *RevokeHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

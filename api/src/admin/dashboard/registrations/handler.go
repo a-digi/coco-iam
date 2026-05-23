@@ -24,6 +24,13 @@ type OrgRegistrations struct {
 // AdminDashboardRegistrationsHandler serves GET /api/v1/admin/dashboard/registrations.
 type AdminDashboardRegistrationsHandler struct{}
 
+// @Summary     Get organisation registrations breakdown
+// @Tags        admin-dashboard
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/dashboard/registrations [get]
 func (h *AdminDashboardRegistrationsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

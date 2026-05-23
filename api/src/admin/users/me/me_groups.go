@@ -12,6 +12,13 @@ import (
 
 type MeGroupsHandler struct{}
 
+// @Summary     Get current admin user groups
+// @Tags        admin-me
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/me/admin_groups [get]
 func (h *MeGroupsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

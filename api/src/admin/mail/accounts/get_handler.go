@@ -13,6 +13,14 @@ import (
 // AdminMailAccountsGetHandler serves GET /api/v1/admin/mail/accounts/{id}.
 type AdminMailAccountsGetHandler struct{}
 
+// @Summary     Get a mail account
+// @Tags        admin-mail
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Account ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/accounts/{id} [get]
 func (h *AdminMailAccountsGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

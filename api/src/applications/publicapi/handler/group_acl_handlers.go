@@ -21,6 +21,14 @@ type groupAclView struct {
 // GroupAclGetHandler serves GET .../groups/{groupId}/acl.
 type GroupAclGetHandler struct{}
 
+// @Summary     Get a group's ACL
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       groupId path string true "Group ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups/{groupId}/acl [get]
 func (h *GroupAclGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "acl:read")
 	if caller == nil {
@@ -46,6 +54,16 @@ func (h *GroupAclGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 // GroupAclPutHandler serves PUT .../groups/{groupId}/acl.
 type GroupAclPutHandler struct{}
 
+// @Summary     Replace a group's ACL
+// @Tags        public-api
+// @Accept      json
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       groupId path string true "Group ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups/{groupId}/acl [put]
 func (h *GroupAclPutHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "acl:write")
 	if caller == nil {
@@ -106,6 +124,14 @@ func (h *GroupAclPutHandler) ServeHTTP(reqCtx request.RequestContext) {
 // GroupAclDeleteHandler serves DELETE .../groups/{groupId}/acl.
 type GroupAclDeleteHandler struct{}
 
+// @Summary     Delete a group's ACL (soft)
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       groupId path string true "Group ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups/{groupId}/acl [delete]
 func (h *GroupAclDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "acl:delete")
 	if caller == nil {

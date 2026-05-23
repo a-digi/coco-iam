@@ -13,6 +13,14 @@ import (
 // AdminMailTemplatesGetHandler serves GET /api/v1/admin/mail/templates/{id}.
 type AdminMailTemplatesGetHandler struct{}
 
+// @Summary     Get a mail template
+// @Tags        admin-mail-templates
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Template ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/templates/{id} [get]
 func (h *AdminMailTemplatesGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

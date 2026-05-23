@@ -69,6 +69,12 @@ type listResponse struct {
 	Clients []clientView `json:"clients"`
 }
 
+// @Summary     List OAuth clients for an application
+// @Tags        app-oauth-clients
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/oauth-clients [get]
 func (h *ListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	appID := appIDFromPath(reqCtx)
@@ -116,6 +122,13 @@ type createResponse struct {
 	ClientSecret string     `json:"client_secret,omitempty"`
 }
 
+// @Summary     Create an OAuth client for an application
+// @Tags        app-oauth-clients
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/oauth-clients [post]
 func (h *CreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -216,6 +229,14 @@ type updateResponse struct {
 // is explicit even when empty.
 type RotateSecretRequest struct{}
 
+// @Summary     Update an OAuth client for an application
+// @Tags        app-oauth-clients
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       clientRowId path string true "Client Row ID"
+// @Router      /applications/applications/{id}/oauth-clients/{clientRowId} [patch]
 func (h *UpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -275,6 +296,13 @@ func (h *UpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 // returns the plaintext exactly once. Fails for public clients.
 type RotateHandler struct{}
 
+// @Summary     Rotate the secret for an OAuth client
+// @Tags        app-oauth-clients
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       clientRowId path string true "Client Row ID"
+// @Router      /applications/applications/{id}/oauth-clients/{clientRowId}/rotate-secret [post]
 func (h *RotateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -326,6 +354,13 @@ func (h *RotateHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type DeleteHandler struct{}
 
+// @Summary     Delete an OAuth client from an application
+// @Tags        app-oauth-clients
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       clientRowId path string true "Client Row ID"
+// @Router      /applications/applications/{id}/oauth-clients/{clientRowId} [delete]
 func (h *DeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

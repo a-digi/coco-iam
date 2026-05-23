@@ -15,6 +15,11 @@ import (
 // signed by either the current or a recently-retired key.
 type PublicJWKSHandler struct{}
 
+// @Summary     Get public JWKS for an application
+// @Tags        app-keys
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Router      /applications/{id}/.well-known/jwks.json [get]
 func (h *PublicJWKSHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

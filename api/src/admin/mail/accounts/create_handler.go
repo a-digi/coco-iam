@@ -27,6 +27,15 @@ type createRequest struct {
 	IsActive  bool   `json:"is_active"`
 }
 
+// @Summary     Create a mail account
+// @Tags        admin-mail
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/accounts [post]
 func (h *AdminMailAccountsCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

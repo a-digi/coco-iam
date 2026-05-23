@@ -14,6 +14,13 @@ import (
 // Returns the authenticated org user's notification day preferences.
 type PasswordNotificationGetHandler struct{}
 
+// @Summary     Get password notification preferences for the authenticated user
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/me/password-notification [get]
 func (h *PasswordNotificationGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "user:me")
 	if caller == nil {
@@ -45,6 +52,15 @@ type orgNotifyPrefsBody struct {
 	NotifyDays []int `json:"notify_days"`
 }
 
+// @Summary     Replace password notification preferences for the authenticated user
+// @Tags        public-api
+// @Accept      json
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/me/password-notification [put]
 func (h *PasswordNotificationPutHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "user:me")
 	if caller == nil {

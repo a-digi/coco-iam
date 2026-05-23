@@ -29,6 +29,11 @@ type FileDeleteHandler struct {
 	Now    func() time.Time
 }
 
+// @Summary     Delete profile file
+// @Tags        app-profile-me
+// @Produce     json
+// @Param       fieldName path string true "Field Name"
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/files/{fieldName} [delete]
 func (h *FileDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

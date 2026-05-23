@@ -12,6 +12,13 @@ import (
 // Returns the four global branding fields from the main DB app_settings table.
 type AdminGeneralSettingsGetHandler struct{}
 
+// @Summary     Get general settings
+// @Tags        admin-settings
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/settings/general [get]
 func (h *AdminGeneralSettingsGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	store := resolveGlobalStore(reqCtx, w)

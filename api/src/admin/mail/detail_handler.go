@@ -19,6 +19,14 @@ import (
 // endpoint — the IDs are aligned.
 type AdminMailDetailHandler struct{}
 
+// @Summary     Get outbound mail detail
+// @Tags        admin-mail
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Mail ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/outbound/{id} [get]
 func (h *AdminMailDetailHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -11,27 +11,24 @@ import (
 // POST body), then names a token to revoke. The server returns
 // 200 OK regardless of whether the token actually existed —
 // per the RFC, this avoids leaking token-existence info.
-//
-// ServeHTTP revokes a token per RFC 7009.
-//
-//	@Summary		OAuth revoke endpoint
-//	@Description	Revokes a token. Returns 200 regardless of whether the token existed (per RFC 7009).
-//	@Tags			oauth
-//	@Accept			application/x-www-form-urlencoded
-//	@Produce		json
-//	@Param			client_id		formData	string	true	"Client ID"
-//	@Param			client_secret	formData	string	false	"Client secret"
-//	@Param			token			formData	string	true	"Token to revoke"
-//	@Param			token_type_hint	formData	string	false	"Hint: access_token or refresh_token"
-//	@Success		200
-//	@Failure		401	{object}	entity.OAuthErrorResponse
-//	@Router			/{orgSlug}/{wsSlug}/{appSlug}/oauth/revoke [post]
 type RevokeHandler struct {
 	ApplicationIDFromRequest func(r *http.Request) (applicationID, organizationID string, err error)
 	Clients                  ClientRegistry
 	Refresh                  RefreshStore
 }
 
+// @Summary		OAuth revoke endpoint
+// @Description	Revokes a token. Returns 200 regardless of whether the token existed (per RFC 7009).
+// @Tags			oauth
+// @Accept			application/x-www-form-urlencoded
+// @Produce		json
+// @Param			client_id		formData	string	true	"Client ID"
+// @Param			client_secret	formData	string	false	"Client secret"
+// @Param			token			formData	string	true	"Token to revoke"
+// @Param			token_type_hint	formData	string	false	"Hint: access_token or refresh_token"
+// @Success		200
+// @Failure		401	{object}	entity.OAuthErrorResponse
+// @Router			/{orgSlug}/{wsSlug}/{appSlug}/oauth/revoke [post]
 func (h *RevokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h == nil || h.Clients == nil || h.Refresh == nil || h.ApplicationIDFromRequest == nil {
 		writeJSONError(w, entity.ErrCodeServerError, "revoke handler not configured", http.StatusInternalServerError)

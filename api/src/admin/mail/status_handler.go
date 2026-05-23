@@ -13,6 +13,13 @@ import (
 // `{backlog, workers, min, max, step}` — the orchestrator's latest sample.
 type AdminMailStatusHandler struct{}
 
+// @Summary     Get mail orchestrator status
+// @Tags        admin-mail
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/status [get]
 func (h *AdminMailStatusHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	ctx := reqCtx.GetDI()

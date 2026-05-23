@@ -18,6 +18,14 @@ import (
 // the two sides stay aligned.
 type AdminMailRetryHandler struct{}
 
+// @Summary     Retry a failed outbound mail
+// @Tags        admin-mail
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Mail ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/outbound/{id}/retry [post]
 func (h *AdminMailRetryHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

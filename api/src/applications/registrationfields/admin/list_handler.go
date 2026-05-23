@@ -47,6 +47,12 @@ type listResponse struct {
 	Steps []listStep `json:"steps"`
 }
 
+// @Summary     List registration fields
+// @Tags        app-registration-fields
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/registration-fields [get]
 func (h *ListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	appID := appIDFromPath(reqCtx)

@@ -27,6 +27,14 @@ type updateFieldRequest struct {
 	MaxBytes    int      `json:"max_bytes"`
 }
 
+// @Summary     Update organization profile field
+// @Tags        org-profile-fields
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Param       fieldId path string true "Field ID"
+// @Router      /organizations/organizations/{id}/profile-fields/{fieldId} [patch]
 func (h *OrgProfileFieldsUpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

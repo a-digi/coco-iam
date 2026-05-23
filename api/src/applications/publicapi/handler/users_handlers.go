@@ -59,6 +59,13 @@ type passwordBody struct {
 
 type UsersListHandler struct{}
 
+// @Summary     List users for an application
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/users [get]
 func (h *UsersListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "users:read")
 	if caller == nil {
@@ -134,6 +141,14 @@ func (h *UsersListHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type UsersGetHandler struct{}
 
+// @Summary     Get a user by ID
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       userId path string true "User ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/users/{userId} [get]
 func (h *UsersGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "users:read")
 	if caller == nil {
@@ -165,6 +180,15 @@ func (h *UsersGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type UsersCreateHandler struct{}
 
+// @Summary     Create a user for an application
+// @Tags        public-api
+// @Accept      json
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/users [post]
 func (h *UsersCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "users:write")
 	if caller == nil {
@@ -262,6 +286,16 @@ func (h *UsersCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type UsersPatchHandler struct{}
 
+// @Summary     Patch a user
+// @Tags        public-api
+// @Accept      json
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       userId path string true "User ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/users/{userId} [patch]
 func (h *UsersPatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "users:write")
 	if caller == nil {
@@ -317,6 +351,16 @@ func (h *UsersPatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type UsersPasswordHandler struct{}
 
+// @Summary     Set a user's password
+// @Tags        public-api
+// @Accept      json
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       userId path string true "User ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/users/{userId}/password [post]
 func (h *UsersPasswordHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "users:write")
 	if caller == nil {
@@ -364,6 +408,14 @@ func (h *UsersPasswordHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type UsersDeleteHandler struct{}
 
+// @Summary     Delete a user (soft)
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       userId path string true "User ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/users/{userId} [delete]
 func (h *UsersDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "users:delete")
 	if caller == nil {

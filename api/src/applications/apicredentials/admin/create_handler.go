@@ -55,6 +55,13 @@ const (
 	secretEntropy = 32
 )
 
+// @Summary     Create an API credential for an application
+// @Tags        app-api-credentials
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/api-credentials [post]
 func (h *CreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

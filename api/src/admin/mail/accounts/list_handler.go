@@ -10,6 +10,13 @@ import (
 // AdminMailAccountsListHandler serves GET /api/v1/admin/mail/accounts.
 type AdminMailAccountsListHandler struct{}
 
+// @Summary     List mail accounts
+// @Tags        admin-mail
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/accounts [get]
 func (h *AdminMailAccountsListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	store := resolveStore(reqCtx)

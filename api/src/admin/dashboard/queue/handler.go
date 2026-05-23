@@ -36,6 +36,13 @@ type QueueResponse struct {
 // AdminDashboardQueueHandler serves GET /api/v1/admin/dashboard/queue.
 type AdminDashboardQueueHandler struct{}
 
+// @Summary     Get queue breakdown
+// @Tags        admin-dashboard
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/dashboard/queue [get]
 func (h *AdminDashboardQueueHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -21,6 +21,13 @@ type OrgUserCount struct {
 // AdminDashboardTopOrgsHandler serves GET /api/v1/admin/dashboard/top-orgs.
 type AdminDashboardTopOrgsHandler struct{}
 
+// @Summary     Get top organisations by user count
+// @Tags        admin-dashboard
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/dashboard/top-orgs [get]
 func (h *AdminDashboardTopOrgsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

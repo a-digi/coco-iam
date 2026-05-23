@@ -19,6 +19,12 @@ import (
 // Callers must hold organizations:users:write scope (enforced by the route layer).
 type ResendOrgUserActivationHandler struct{}
 
+// @Summary     Resend organization user activation email
+// @Tags        org-users
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "User ID"
+// @Router      /organizations/organization_users/{id}/resend-activation [post]
 func (h *ResendOrgUserActivationHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

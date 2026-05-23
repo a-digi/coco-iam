@@ -34,6 +34,13 @@ const genericUnauthorized = "unauthorized"
 // window.
 type GetPublicKeysHandler struct{}
 
+// @Summary     Get public security keys for an application
+// @Tags        app-security-keys
+// @Produce     json
+// @Param       orgSlug path string true "Organization slug"
+// @Param       wsSlug path string true "Workspace slug"
+// @Param       appSlug path string true "Application slug"
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/security-key [get]
 func (h *GetPublicKeysHandler) ServeHTTP(reqCtx request.RequestContext) {
 	serveKeys(reqCtx, false)
 }
@@ -47,6 +54,13 @@ func (h *GetPublicKeysHandler) ServeHTTP(reqCtx request.RequestContext) {
 // handing them out would widen the blast radius of a credential leak.
 type GetPrivateKeyHandler struct{}
 
+// @Summary     Get private security key for an application
+// @Tags        app-security-keys
+// @Produce     json
+// @Param       orgSlug path string true "Organization slug"
+// @Param       wsSlug path string true "Workspace slug"
+// @Param       appSlug path string true "Application slug"
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/security-key/private [get]
 func (h *GetPrivateKeyHandler) ServeHTTP(reqCtx request.RequestContext) {
 	serveKeys(reqCtx, true)
 }

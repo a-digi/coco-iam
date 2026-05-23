@@ -15,21 +15,6 @@ import (
 // receive `{active: true, ...claims}` for currently-valid
 // tokens, or `{active: false}` for anything else (per the RFC,
 // we never leak why a token is inactive).
-//
-// ServeHTTP introspects a token per RFC 7662.
-//
-//	@Summary		OAuth introspect endpoint
-//	@Description	Validates a token and returns its claims. Returns {active:false} for any invalid/expired token.
-//	@Tags			oauth
-//	@Accept			application/x-www-form-urlencoded
-//	@Produce		json
-//	@Param			client_id		formData	string	true	"Client ID"
-//	@Param			client_secret	formData	string	true	"Client secret"
-//	@Param			token			formData	string	true	"Token to introspect"
-//	@Param			token_type_hint	formData	string	false	"Hint: access_token or refresh_token"
-//	@Success		200	{object}	IntrospectionResponse
-//	@Failure		401	{object}	entity.OAuthErrorResponse
-//	@Router			/{orgSlug}/{wsSlug}/{appSlug}/oauth/introspect [post]
 type IntrospectHandler struct {
 	ApplicationIDFromRequest func(r *http.Request) (applicationID, organizationID string, err error)
 	Clients                  ClientRegistry
@@ -47,6 +32,18 @@ type IntrospectionResponse struct {
 	Exp      int64  `json:"exp,omitempty"`
 }
 
+// @Summary		OAuth introspect endpoint
+// @Description	Validates a token and returns its claims. Returns {active:false} for any invalid/expired token.
+// @Tags			oauth
+// @Accept			application/x-www-form-urlencoded
+// @Produce		json
+// @Param			client_id		formData	string	true	"Client ID"
+// @Param			client_secret	formData	string	true	"Client secret"
+// @Param			token			formData	string	true	"Token to introspect"
+// @Param			token_type_hint	formData	string	false	"Hint: access_token or refresh_token"
+// @Success		200	{object}	IntrospectionResponse
+// @Failure		401	{object}	entity.OAuthErrorResponse
+// @Router			/{orgSlug}/{wsSlug}/{appSlug}/oauth/introspect [post]
 func (h *IntrospectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h == nil || h.Clients == nil || h.Refresh == nil ||
 		h.Verifier == nil || h.ApplicationIDFromRequest == nil {

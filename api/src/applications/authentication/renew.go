@@ -40,6 +40,11 @@ type renewBody struct {
 // expiry still renew without forcing a full re-login.
 const renewGrace = 15 * time.Minute
 
+// @Summary     Renew application tokens
+// @Tags        app-auth
+// @Accept      json
+// @Produce     json
+// @Router      /applications/renew [post]
 func (h *AppRenewHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

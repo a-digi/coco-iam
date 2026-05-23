@@ -25,6 +25,12 @@ type verifyResponse struct {
 	Ok bool `json:"ok"`
 }
 
+// @Summary     Verify current password
+// @Tags        account
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Router      /account/password/verify [post]
 func (h *VerifyHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

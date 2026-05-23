@@ -16,6 +16,12 @@ import (
 //   - file                — the upload (required)
 type UploadFileHandler struct{}
 
+// @Summary     Upload a file to an application
+// @Tags        app-media
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/media/files [post]
 func (h *UploadFileHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -78,6 +84,13 @@ func (h *UploadFileHandler) ServeHTTP(reqCtx request.RequestContext) {
 // DeleteFileHandler serves DELETE /.../media/files/{id:<fileId>}.
 type DeleteFileHandler struct{}
 
+// @Summary     Delete a file from an application
+// @Tags        app-media
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       fileId path string true "File ID"
+// @Router      /applications/applications/{id}/media/files/{fileId} [delete]
 func (h *DeleteFileHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)

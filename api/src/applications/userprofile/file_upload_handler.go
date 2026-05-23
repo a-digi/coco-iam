@@ -48,6 +48,11 @@ type fileUploadResponse struct {
 	SizeBytes int64  `json:"size_bytes"`
 }
 
+// @Summary     Upload profile file
+// @Tags        app-profile-me
+// @Produce     json
+// @Param       fieldName path string true "Field Name"
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/files/{fieldName} [post]
 func (h *FileUploadHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

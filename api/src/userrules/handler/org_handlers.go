@@ -14,6 +14,12 @@ import (
 // OrgUserRulesGetHandler serves GET /api/v1/organizations/{id}/user-rules.
 type OrgUserRulesGetHandler struct{}
 
+// @Summary     Get organization user rules
+// @Tags        org-settings
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Router      /organizations/organizations/{id}/user-rules [get]
 func (h *OrgUserRulesGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	store := resolveStore(reqCtx)
@@ -36,6 +42,13 @@ func (h *OrgUserRulesGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 // OrgUserRulesUpdateHandler serves PATCH /api/v1/organizations/{id}/user-rules.
 type OrgUserRulesUpdateHandler struct{}
 
+// @Summary     Update organization user rules
+// @Tags        org-settings
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Organization ID"
+// @Router      /organizations/organizations/{id}/user-rules [patch]
 func (h *OrgUserRulesUpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -68,6 +81,11 @@ func (h *OrgUserRulesUpdateHandler) ServeHTTP(reqCtx request.RequestContext) {
 // admin rules for admins, the user's org rules for everyone else.
 type AccountUserRulesHandler struct{}
 
+// @Summary     Get account user rules
+// @Tags        account
+// @Produce     json
+// @Security    BearerAuth
+// @Router      /account/user-rules [get]
 func (h *AccountUserRulesHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	store := resolveStore(reqCtx)

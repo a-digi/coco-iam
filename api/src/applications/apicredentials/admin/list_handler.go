@@ -36,6 +36,12 @@ type listResponse struct {
 	Credentials []listEntry `json:"credentials"`
 }
 
+// @Summary     List API credentials for an application
+// @Tags        app-api-credentials
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/api-credentials [get]
 func (h *ListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	appID := appIDFromPath(reqCtx)

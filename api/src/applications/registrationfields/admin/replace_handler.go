@@ -49,6 +49,13 @@ type replaceField struct {
 	Regex            string  `json:"regex,omitempty"`
 }
 
+// @Summary     Replace registration fields
+// @Tags        app-registration-fields
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/registration-fields [put]
 func (h *ReplaceHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

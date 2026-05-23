@@ -40,6 +40,13 @@ type patchGroupBody struct {
 
 type GroupsListHandler struct{}
 
+// @Summary     List groups for an application
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups [get]
 func (h *GroupsListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "groups:read")
 	if caller == nil {
@@ -139,6 +146,14 @@ func (h *GroupsListHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type GroupsGetHandler struct{}
 
+// @Summary     Get a group by ID
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       groupId path string true "Group ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups/{groupId} [get]
 func (h *GroupsGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "groups:read")
 	if caller == nil {
@@ -169,6 +184,15 @@ func (h *GroupsGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type GroupsCreateHandler struct{}
 
+// @Summary     Create a group for an application
+// @Tags        public-api
+// @Accept      json
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups [post]
 func (h *GroupsCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "groups:write")
 	if caller == nil {
@@ -247,6 +271,16 @@ func (h *GroupsCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type GroupsPatchHandler struct{}
 
+// @Summary     Patch a group
+// @Tags        public-api
+// @Accept      json
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       groupId path string true "Group ID"
+// @Param       body body interface{} true "Request body"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups/{groupId} [patch]
 func (h *GroupsPatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "groups:write")
 	if caller == nil {
@@ -297,6 +331,14 @@ func (h *GroupsPatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 type GroupsDeleteHandler struct{}
 
+// @Summary     Delete a group (soft)
+// @Tags        public-api
+// @Produce     json
+// @Param       id path string true "Application ID"
+// @Param       groupId path string true "Group ID"
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /public/applications/{id}/groups/{groupId} [delete]
 func (h *GroupsDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "groups:delete")
 	if caller == nil {

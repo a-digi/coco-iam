@@ -28,6 +28,11 @@ type FileServeHandler struct {
 	Now    func() time.Time
 }
 
+// @Summary     Serve profile file
+// @Tags        app-profile-me
+// @Produce     json
+// @Param       fieldName path string true "Field Name"
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/files/{fieldName} [get]
 func (h *FileServeHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

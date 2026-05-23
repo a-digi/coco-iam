@@ -28,6 +28,13 @@ type listResponse struct {
 	Offset int         `json:"offset"`
 }
 
+// @Summary     List outbound mail
+// @Tags        admin-mail
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/outbound [get]
 func (h *AdminMailListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

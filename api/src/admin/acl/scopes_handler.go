@@ -13,6 +13,13 @@ import (
 
 type AclScopesHandler struct{}
 
+// @Summary     List ACL scopes
+// @Tags        admin-acl
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/acl/scopes [get]
 func (h *AclScopesHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 

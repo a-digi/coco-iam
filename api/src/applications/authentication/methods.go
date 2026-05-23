@@ -54,6 +54,11 @@ type authMethodsResponse struct {
 	OAuthProviders []OAuthProviderListing `json:"oauth_providers,omitempty"`
 }
 
+// @Summary     Get available authentication methods
+// @Tags        app-auth
+// @Accept      json
+// @Produce     json
+// @Router      /public/applications/auth-methods [post]
 func (h *AppLoginMethodsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

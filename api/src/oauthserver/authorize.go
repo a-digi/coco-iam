@@ -195,6 +195,20 @@ type ConsentRenderParams struct {
 	ReturnURL string `json:"return_url"`
 }
 
+// @Summary     OAuth authorize endpoint
+// @Description Initiates the OAuth2 authorization code flow. Redirects to login or consent screen. GET and POST both accepted.
+// @Tags        oauth
+// @Param       client_id query string true "Client ID"
+// @Param       redirect_uri query string true "Redirect URI"
+// @Param       response_type query string true "Must be 'code'"
+// @Param       scope query string false "Requested scopes"
+// @Param       state query string false "State parameter"
+// @Param       code_challenge query string false "PKCE code challenge"
+// @Param       code_challenge_method query string false "PKCE method (S256)"
+// @Success     302 "Redirect to login or consent page"
+// @Failure     400,500 {object} map[string]interface{}
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/oauth/authorize [get]
+// @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/oauth/authorize [post]
 // ServeHTTP runs the full authorize pipeline.
 func (h *AuthorizeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h == nil || h.Clients == nil || h.Codes == nil ||

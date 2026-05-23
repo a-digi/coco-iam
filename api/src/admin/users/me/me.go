@@ -40,6 +40,13 @@ type meResponse struct {
 	AvatarURL string `json:"avatar_url"`
 }
 
+// @Summary     Get current admin user
+// @Tags        admin-me
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/users/me [get]
 func (h *MeHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

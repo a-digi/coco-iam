@@ -13,6 +13,12 @@ import (
 // Multipart upload with a single `file` field.
 type UploadAssetHandler struct{}
 
+// @Summary     Upload login template asset
+// @Tags        app-login-template
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/login-template/assets [post]
 func (h *UploadAssetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -60,6 +66,12 @@ func (h *UploadAssetHandler) ServeHTTP(reqCtx request.RequestContext) {
 // Returns every asset registered for the application.
 type ListAssetsHandler struct{}
 
+// @Summary     List login template assets
+// @Tags        app-login-template
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/login-template/assets [get]
 func (h *ListAssetsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)
@@ -85,6 +97,13 @@ func (h *ListAssetsHandler) ServeHTTP(reqCtx request.RequestContext) {
 // DeleteAssetHandler serves DELETE /api/v1/applications/{id}/login-template/assets/{assetId}.
 type DeleteAssetHandler struct{}
 
+// @Summary     Delete login template asset
+// @Tags        app-login-template
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       assetId path string true "Asset ID"
+// @Router      /applications/applications/{id}/login-template/assets/{assetId} [delete]
 func (h *DeleteAssetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -54,6 +54,12 @@ type countPair struct {
 // UsersCountHandler — GET /api/v1/applications/{res:applications}/{id}/analytics/users-count
 type UsersCountHandler struct{}
 
+// @Summary     Get users count for an application
+// @Tags        app-analytics
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/analytics/users-count [get]
 func (h *UsersCountHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	appID := appIDFromPath(reqCtx)
@@ -77,6 +83,12 @@ func (h *UsersCountHandler) ServeHTTP(reqCtx request.RequestContext) {
 // GroupsCountHandler — GET /api/v1/applications/{res:applications}/{id}/analytics/groups-count
 type GroupsCountHandler struct{}
 
+// @Summary     Get groups count for an application
+// @Tags        app-analytics
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/analytics/groups-count [get]
 func (h *GroupsCountHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	appID := appIDFromPath(reqCtx)
@@ -105,6 +117,12 @@ func (h *GroupsCountHandler) ServeHTTP(reqCtx request.RequestContext) {
 // ScopesCountHandler — GET /api/v1/applications/{res:applications}/{id}/analytics/scopes-count
 type ScopesCountHandler struct{}
 
+// @Summary     Get scopes count for an application
+// @Tags        app-analytics
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/analytics/scopes-count [get]
 func (h *ScopesCountHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	appID := appIDFromPath(reqCtx)
@@ -141,6 +159,12 @@ type RecentGrant struct {
 // RecentGrantsHandler — GET /api/v1/applications/{res:applications}/{id}/analytics/recent-grants
 type RecentGrantsHandler struct{}
 
+// @Summary     Get recent grants for an application
+// @Tags        app-analytics
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/analytics/recent-grants [get]
 func (h *RecentGrantsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	appID := appIDFromPath(reqCtx)
@@ -186,6 +210,12 @@ type pendingCount struct {
 // is on this application's ACL.
 type PendingRecoveriesHandler struct{}
 
+// @Summary     Get pending recoveries count for an application
+// @Tags        app-analytics
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/analytics/pending-recoveries [get]
 func (h *PendingRecoveriesHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	appID := appIDFromPath(reqCtx)

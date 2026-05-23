@@ -27,6 +27,12 @@ type changeResponse struct {
 	Ok bool `json:"ok"`
 }
 
+// @Summary     Change password
+// @Tags        account
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Router      /account/password/change [post]
 func (h *ChangeHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

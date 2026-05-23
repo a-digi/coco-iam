@@ -63,6 +63,11 @@ type requestBody struct {
 	Email string `json:"email"`
 }
 
+// @Summary     Request password recovery
+// @Tags        app-recovery
+// @Accept      json
+// @Produce     json
+// @Router      /public/applications/recover/request [post]
 func (h *PublicRequestHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -100,6 +105,11 @@ type resetBody struct {
 	Password string `json:"password"`
 }
 
+// @Summary     Reset password via recovery token
+// @Tags        app-recovery
+// @Accept      json
+// @Produce     json
+// @Router      /public/applications/recover/reset [post]
 func (h *PublicResetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

@@ -31,6 +31,12 @@ type listResponse struct {
 	Keys []keys.Keypair `json:"keys"`
 }
 
+// @Summary     List application keys
+// @Tags        app-keys
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/keys [get]
 func (h *ListKeysHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)
@@ -73,6 +79,12 @@ func (h *ListKeysHandler) ServeHTTP(reqCtx request.RequestContext) {
 // first.
 type RegenerateKeysHandler struct{}
 
+// @Summary     Regenerate application keys
+// @Tags        app-keys
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/keys/regenerate [post]
 func (h *RegenerateKeysHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)
@@ -107,6 +119,12 @@ func (h *RegenerateKeysHandler) ServeHTTP(reqCtx request.RequestContext) {
 // expiry.
 type ActivatePendingHandler struct{}
 
+// @Summary     Activate the pending key for an application
+// @Tags        app-keys
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/keys/activate-pending [post]
 func (h *ActivatePendingHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)
@@ -133,6 +151,12 @@ func (h *ActivatePendingHandler) ServeHTTP(reqCtx request.RequestContext) {
 // /applications/{id}/keys/discard-pending.
 type DiscardPendingHandler struct{}
 
+// @Summary     Discard the pending key for an application
+// @Tags        app-keys
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/keys/discard-pending [post]
 func (h *DiscardPendingHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)
@@ -160,6 +184,13 @@ func (h *DiscardPendingHandler) ServeHTTP(reqCtx request.RequestContext) {
 // active/pending/expired keys are rejected with 409 / 404.
 type DeactivateKeyHandler struct{}
 
+// @Summary     Deactivate a key for an application
+// @Tags        app-keys
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Param       keyId path string true "Key ID"
+// @Router      /applications/applications/{id}/keys/{keyId}/deactivate [post]
 func (h *DeactivateKeyHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)

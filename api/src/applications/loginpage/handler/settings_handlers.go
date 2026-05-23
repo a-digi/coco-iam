@@ -26,6 +26,12 @@ type settingsResponse struct {
 	ClientID         string `json:"client_id,omitempty"`
 }
 
+// @Summary     Get login page settings
+// @Tags        app-login-template
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/login-settings [get]
 func (h *GetSettingsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	svc := resolveService(reqCtx)
@@ -59,6 +65,13 @@ func (h *GetSettingsHandler) ServeHTTP(reqCtx request.RequestContext) {
 // UpdateSettingsHandler serves PATCH /api/v1/applications/{id}/login-settings.
 type UpdateSettingsHandler struct{}
 
+// @Summary     Update login page settings
+// @Tags        app-login-template
+// @Accept      json
+// @Produce     json
+// @Security    BearerAuth
+// @Param       id path string true "Application ID"
+// @Router      /applications/applications/{id}/login-settings [patch]
 func (h *UpdateSettingsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()

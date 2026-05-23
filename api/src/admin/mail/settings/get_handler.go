@@ -12,6 +12,13 @@ import (
 // catalog. The account password is redacted.
 type AdminMailSettingsGetHandler struct{}
 
+// @Summary     Get mail settings
+// @Tags        admin-mail
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /admin/mail/settings [get]
 func (h *AdminMailSettingsGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	_, resolver := resolveStoreResolver(reqCtx)

@@ -38,6 +38,13 @@ type WorkspaceStatsResponse struct {
 // and returns aggregate counts for applications and users belonging to the workspace.
 type WorkspaceStatsHandler struct{}
 
+// @Summary     Get workspace stats
+// @Tags        workspaces
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} interface{}
+// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Router      /workspaces/workspaces/{id}/stats [get]
 func (h *WorkspaceStatsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
