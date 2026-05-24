@@ -129,7 +129,7 @@ func (h *WorkspaceStatsHandler) ServeHTTP(reqCtx request.RequestContext) {
 			COALESCE(SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END), 0),
 			COALESCE(SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END), 0)
 		 FROM applications
-		 WHERE workspace_id = ?`,
+		 WHERE workspace_id = ? AND is_active = 1`,
 		workspaceID,
 	)
 	if err := appRow.Scan(&stats.Applications.Total, &stats.Applications.Active, &stats.Applications.Inactive); err != nil {
@@ -139,7 +139,7 @@ func (h *WorkspaceStatsHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 	// App IDs for this workspace from per-org DB.
 	appIDRows, err := orgDB.Query(
-		`SELECT id FROM applications WHERE workspace_id = ?`, workspaceID,
+		`SELECT id FROM applications WHERE workspace_id = ? AND is_active = 1`, workspaceID,
 	)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, "failed to load app ids: "+err.Error())
@@ -180,7 +180,7 @@ func (h *WorkspaceStatsHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 	// Per-application list from per-org DB.
 	appRows, err := orgDB.Query(
-		`SELECT id, title FROM applications WHERE workspace_id = ? ORDER BY title`,
+		`SELECT id, title FROM applications WHERE workspace_id = ? AND is_active = 1 ORDER BY title`,
 		workspaceID,
 	)
 	if err != nil {
