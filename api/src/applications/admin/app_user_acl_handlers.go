@@ -153,6 +153,9 @@ func appUserAclGet(reqCtx request.RequestContext) {
 	}
 
 	_, aclID := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	if aclID == "" {
+		aclID = reqCtx.GetURI().GetPathVariable("id")
+	}
 
 	appID := extractAppIDParam(r)
 	if appID == "" {
@@ -217,6 +220,9 @@ func appUserAclUpdate(reqCtx request.RequestContext) {
 	}
 
 	_, aclID := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	if aclID == "" {
+		aclID = reqCtx.GetURI().GetPathVariable("id")
+	}
 	if aclID == "" {
 		response.ErrorResponse(w, http.StatusBadRequest, "ACL id missing from path")
 		return
@@ -313,6 +319,9 @@ func appUserAclDelete(reqCtx request.RequestContext) {
 	}
 
 	_, aclID := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	if aclID == "" {
+		aclID = reqCtx.GetURI().GetPathVariable("id")
+	}
 	if aclID == "" {
 		response.ErrorResponse(w, http.StatusBadRequest, "ACL id missing from path")
 		return

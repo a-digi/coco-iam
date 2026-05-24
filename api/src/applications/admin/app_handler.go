@@ -174,6 +174,9 @@ func applicationGet(reqCtx request.RequestContext) {
 	}
 
 	_, appID := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	if appID == "" {
+		appID = reqCtx.GetURI().GetPathVariable("id")
+	}
 
 	wsID := extractWorkspaceIDParam(r)
 
@@ -212,7 +215,7 @@ func applicationGet(reqCtx request.RequestContext) {
 		`SELECT id, workspace_id, client_id, title, description, created_at, is_active,
 		        allow_recovery, allow_registration, allow_password_login, registration_type
 		 FROM applications
-		 WHERE workspace_id = ?
+		 WHERE workspace_id = ? AND is_active = TRUE
 		 ORDER BY created_at DESC`,
 		wsID,
 	)
@@ -246,6 +249,9 @@ func applicationUpdate(reqCtx request.RequestContext) {
 	}
 
 	_, appID := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	if appID == "" {
+		appID = reqCtx.GetURI().GetPathVariable("id")
+	}
 	if appID == "" {
 		response.ErrorResponse(w, http.StatusBadRequest, "application id missing from path")
 		return
@@ -327,14 +333,16 @@ func applicationUpdate(reqCtx request.RequestContext) {
 
 func applicationDelete(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
-	r := reqCtx.GetRequest()
 
 	_, reg, ok := resolveAppAclDBs(reqCtx, w)
 	if !ok {
 		return
 	}
 
-	_, appID := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	_, appID := uri.ExtractKeyAndValueFromURI(reqCtx.GetURI().GetPath())
+	if appID == "" {
+		appID = reqCtx.GetURI().GetPathVariable("id")
+	}
 	if appID == "" {
 		response.ErrorResponse(w, http.StatusBadRequest, "application id missing from path")
 		return

@@ -122,6 +122,9 @@ func workspaceGet(reqCtx request.RequestContext) {
 	}
 
 	_, wsID := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	if wsID == "" {
+		wsID = reqCtx.GetURI().GetPathVariable("id")
+	}
 
 	orgID := extractOrgIDParam(r)
 
@@ -159,7 +162,7 @@ func workspaceGet(reqCtx request.RequestContext) {
 	rows, err := orgDB.Query(
 		`SELECT id, workspace_id, title, description, organization_id, created_at, is_active
 		 FROM workspace
-		 WHERE organization_id = ?
+		 WHERE organization_id = ? AND is_active = TRUE
 		 ORDER BY created_at DESC`,
 		orgID,
 	)
@@ -193,6 +196,9 @@ func workspaceUpdate(reqCtx request.RequestContext) {
 	}
 
 	_, wsID := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	if wsID == "" {
+		wsID = reqCtx.GetURI().GetPathVariable("id")
+	}
 	if wsID == "" {
 		response.ErrorResponse(w, http.StatusBadRequest, "workspace id missing from path")
 		return
@@ -259,14 +265,16 @@ func workspaceUpdate(reqCtx request.RequestContext) {
 
 func workspaceDelete(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
-	r := reqCtx.GetRequest()
 
 	_, reg, ok := resolveWorkspaceDBs(reqCtx, w)
 	if !ok {
 		return
 	}
 
-	_, wsID := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	_, wsID := uri.ExtractKeyAndValueFromURI(reqCtx.GetURI().GetPath())
+	if wsID == "" {
+		wsID = reqCtx.GetURI().GetPathVariable("id")
+	}
 	if wsID == "" {
 		response.ErrorResponse(w, http.StatusBadRequest, "workspace id missing from path")
 		return
