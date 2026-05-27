@@ -643,16 +643,15 @@ func buildProfileMePatchHandler(deps profileMeDeps) routing.HandlerInterface {
 // auth collaborators.
 func buildProfileMeFileUploadHandler(deps profileMeDeps) routing.HandlerInterface {
 	return &userprofile.FileUploadHandler{
-		Slugs:        deps.slugs,
-		Keys:         deps.keys,
-		Users:        deps.users,
-		Fields:       deps.fields,
-		Scanner:      deps.scanner,
-		VirusScanner: userprofile.NewClamdVirusScanner("/var/run/clamav/clamd.ctl"),
-		Store:        deps.store,
-		Files:        deps.fileRepo,
-		Writer:       deps.writer,
-		Profiles:     deps.profiles,
+		Slugs:    deps.slugs,
+		Keys:     deps.keys,
+		Users:    deps.users,
+		Fields:   deps.fields,
+		Scanner:  deps.scanner,
+		Store:    deps.store,
+		Files:    deps.fileRepo,
+		Writer:   deps.writer,
+		Profiles: deps.profiles,
 	}
 }
 
@@ -703,9 +702,8 @@ func buildProfileFieldsPutHandler(ctx serverdi.Context, deps profileMeDeps) rout
 		FullFields:   profilefields.NewOrgFullFieldLoader(profileReg),
 		Reader:       profilefields.NewOrgRegistryProfileReader(profileReg),
 		Saver:        profilefields.NewOrgProfileSaver(profileReg),
-		Scanner:      deps.scanner,
-		VirusScanner: userprofile.NewClamdVirusScanner("/var/run/clamav/clamd.ctl"),
-		Store:        deps.store,
+		Scanner: deps.scanner,
+		Store:   deps.store,
 		Files:        deps.fileRepo,
 	}
 }

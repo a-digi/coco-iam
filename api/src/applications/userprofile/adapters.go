@@ -1,7 +1,6 @@
 package userprofile
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"database/sql"
@@ -14,7 +13,6 @@ import (
 	"path/filepath"
 	"time"
 
-	clamd "github.com/dutchcoders/go-clamd"
 	"github.com/a-digi/coco-iam/src/applications/keys"
 	"github.com/a-digi/coco-iam/src/applications/loginpage"
 	profile_dbregistry "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
@@ -394,33 +392,6 @@ func scanOne(row *sql.Row) (*FileMeta, error) {
 		return nil, err
 	}
 	return &m, nil
-}
-
-// -- VirusScanner -------------------------------------------------
-
-// NewClamdVirusScanner returns a VirusScanner backed by a running clamd
-// daemon at the given socket path (e.g. "/var/run/clamav/clamd.ctl").
-// Bytes are streamed via INSTREAM so they never touch the filesystem.
-func NewClamdVirusScanner(socketPath string) VirusScanner {
-	return &clamdVirusScanner{socketPath: socketPath}
-}
-
-type clamdVirusScanner struct {
-	socketPath string
-}
-
-func (s *clamdVirusScanner) Scan(data []byte) error {
-	c := clamd.NewClamd(s.socketPath)
-	results, err := c.ScanStream(bytes.NewReader(data), make(chan bool))
-	if err != nil {
-		return fmt.Errorf("userprofile: clamd unavailable: %w", err)
-	}
-	for result := range results {
-		if result.Status == clamd.RES_FOUND {
-			return fmt.Errorf("%w: %s", ErrVirusFound, result.Description)
-		}
-	}
-	return nil
 }
 
 // -- FieldConfigReader --------------------------------------------
