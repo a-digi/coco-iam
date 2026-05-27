@@ -242,6 +242,105 @@
                         }
                     }
                 }
+            },
+            "put": {
+                "description": "Replaces the user's profile. Accepts multipart/form-data with a",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "app-profile-me"
+                ],
+                "summary": "Save user profile fields",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization slug",
+                        "name": "orgSlug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Workspace slug",
+                        "name": "wsSlug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Application slug",
+                        "name": "appSlug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "JSON object of field values",
+                        "name": "fields",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "One part per file field, named by field name",
+                        "name": "file",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/profilefields.PutProfileFieldsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
             }
         },
         "/a/{orgSlug}/{wsSlug}/{appSlug}/profile/me": {
@@ -8553,6 +8652,17 @@
                 }
             }
         },
+        "profilefields.PutProfileFieldsResponse": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/userprofile.FieldWithValue"
+                    }
+                }
+            }
+        },
         "response.ErrorBody": {
             "type": "object",
             "properties": {
@@ -8563,6 +8673,47 @@
                 "message": {
                     "type": "string",
                     "example": "resource not found"
+                }
+            }
+        },
+        "userprofile.FieldWithValue": {
+            "type": "object",
+            "properties": {
+                "data_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_required": {
+                    "type": "boolean"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "max_value": {
+                    "type": "integer"
+                },
+                "min_value": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "regex": {
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value is the user's current value for this field, or null\nwhen the user hasn't filled it in. Type follows DataType:\ntext → string, number → float64, date → string, select → string, etc."
                 }
             }
         },

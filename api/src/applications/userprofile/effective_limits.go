@@ -28,6 +28,13 @@ import (
 // When the returned allowlist is empty the caller treats it as
 // "media defaults"; when it's non-empty the caller must find the
 // detected mime in it.
+// EffectiveLimits is the exported form of effectiveLimits for use by
+// sibling packages (e.g. profilefields) that share the same file-
+// validation logic without re-implementing it.
+func EffectiveLimits(f *entity.ProfileField, detectedMime string) (allow []string, cap int64) {
+	return effectiveLimits(f, detectedMime)
+}
+
 func effectiveLimits(f *entity.ProfileField, detectedMime string) (allow []string, cap int64) {
 	if f != nil && strings.TrimSpace(f.AcceptMime) != "" {
 		for _, part := range strings.Split(f.AcceptMime, ",") {
@@ -53,6 +60,11 @@ func effectiveLimits(f *entity.ProfileField, detectedMime string) (allow []strin
 // mimeAllowed reports whether detectedMime is acceptable given a
 // per-field allowlist. Empty allowlist means "media defaults apply,
 // everything the scanner already accepted is fine".
+// MimeAllowed is the exported form of mimeAllowed for sibling packages.
+func MimeAllowed(detectedMime string, allow []string) bool {
+	return mimeAllowed(detectedMime, allow)
+}
+
 func mimeAllowed(detectedMime string, allow []string) bool {
 	if len(allow) == 0 {
 		return true

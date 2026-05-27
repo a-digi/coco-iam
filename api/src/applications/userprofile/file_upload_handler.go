@@ -29,16 +29,17 @@ import (
 // branching decision (per-field mime allowlist, per-field size cap)
 // is handled by the pure `effectiveLimits` helper.
 type FileUploadHandler struct {
-	Slugs    SlugResolver
-	Keys     KeyLoader
-	Users    UserOrgReader
-	Fields   FieldConfigReader
-	Scanner  Scanner
-	Store    FileStore
-	Files    FileRepo
-	Writer   ProfileWriter
-	Profiles ProfileReader
-	Now      func() time.Time
+	Slugs        SlugResolver
+	Keys         KeyLoader
+	Users        UserOrgReader
+	Fields       FieldConfigReader
+	Scanner      Scanner
+	VirusScanner VirusScanner
+	Store        FileStore
+	Files        FileRepo
+	Writer       ProfileWriter
+	Profiles     ProfileReader
+	Now          func() time.Time
 }
 
 type fileUploadResponse struct {
@@ -131,6 +132,17 @@ func (h *FileUploadHandler) ServeHTTP(reqCtx request.RequestContext) {
 	if err != nil {
 		response.ErrorResponse(w, http.StatusUnsupportedMediaType, err.Error())
 		return
+	}
+
+	if h.VirusScanner != nil {
+		if err := h.VirusScanner.Scan(data); err != nil {
+			if errors.Is(err, ErrVirusFound) {
+				response.ErrorResponse(w, http.StatusUnprocessableEntity, "file rejected: malware detected")
+				return
+			}
+			response.ErrorResponse(w, http.StatusServiceUnavailable, "virus scanner unavailable")
+			return
+		}
 	}
 
 	allow, capBytes := effectiveLimits(field, detectedMime)

@@ -48,6 +48,10 @@ routes:
         method: GET
         executor: AppApiProfileFieldsHandler
         security: public
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/fields
+        method: PUT
+        executor: AppApiProfileFieldsPutHandler
+        security: public
       # File-type profile field upload / delete / serve. Bytes
       # land under data/db/organization/<orgID>/uploads/users/
       # <userID>/. Content is magic-byte scanned by the media

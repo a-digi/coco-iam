@@ -123,6 +123,19 @@ type ProfileWriter interface {
 	UpdateFieldValue(orgID, userID, fieldName string, value any) error
 }
 
+// VirusScanner scans raw file bytes for malware. A nil VirusScanner on a
+// handler means scanning is disabled. ErrVirusFound is returned when the
+// bytes match a known signature. Any other non-nil error means the scanner
+// daemon is unreachable — callers must treat that as fail-closed (503).
+type VirusScanner interface {
+	Scan(data []byte) error
+}
+
+// ErrVirusFound is the sentinel VirusScanner.Scan returns when bytes match
+// a known malware signature. The handler maps it to 422; any other error
+// from Scan becomes 503 (scanner unavailable).
+var ErrVirusFound = errors.New("file rejected: malware detected")
+
 // ErrUserNotFound is the sentinel UserOrgReader returns when the
 // user id doesn't exist. The handler maps this to
 // ReasonUnknownUser / 401 specifically — any other error is

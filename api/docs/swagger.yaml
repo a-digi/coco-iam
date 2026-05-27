@@ -470,6 +470,13 @@ definitions:
       regex:
         type: string
     type: object
+  profilefields.PutProfileFieldsResponse:
+    properties:
+      fields:
+        items:
+          $ref: '#/definitions/userprofile.FieldWithValue'
+        type: array
+    type: object
   response.ErrorBody:
     properties:
       error:
@@ -478,6 +485,36 @@ definitions:
       message:
         example: resource not found
         type: string
+    type: object
+  userprofile.FieldWithValue:
+    properties:
+      data_type:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_required:
+        type: boolean
+      label:
+        type: string
+      max_value:
+        type: integer
+      min_value:
+        type: integer
+      name:
+        type: string
+      options:
+        items:
+          type: string
+        type: array
+      regex:
+        type: string
+      value:
+        description: |-
+          Value is the user's current value for this field, or null
+          when the user hasn't filled it in. Type follows DataType:
+          text → string, number → float64, date → string, select → string, etc.
     type: object
   userrules.EmailRules:
     properties:
@@ -880,6 +917,73 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorBody'
       summary: Get organization profile field schema
+      tags:
+      - app-profile-me
+    put:
+      consumes:
+      - multipart/form-data
+      description: Replaces the user's profile. Accepts multipart/form-data with a
+      parameters:
+      - description: Organization slug
+        in: path
+        name: orgSlug
+        required: true
+        type: string
+      - description: Workspace slug
+        in: path
+        name: wsSlug
+        required: true
+        type: string
+      - description: Application slug
+        in: path
+        name: appSlug
+        required: true
+        type: string
+      - description: JSON object of field values
+        in: formData
+        name: fields
+        required: true
+        type: string
+      - description: One part per file field, named by field name
+        in: formData
+        name: file
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/profilefields.PutProfileFieldsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "415":
+          description: Unsupported Media Type
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      summary: Save user profile fields
       tags:
       - app-profile-me
   /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me:

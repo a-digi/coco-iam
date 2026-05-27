@@ -643,15 +643,16 @@ func buildProfileMePatchHandler(deps profileMeDeps) routing.HandlerInterface {
 // auth collaborators.
 func buildProfileMeFileUploadHandler(deps profileMeDeps) routing.HandlerInterface {
 	return &userprofile.FileUploadHandler{
-		Slugs:    deps.slugs,
-		Keys:     deps.keys,
-		Users:    deps.users,
-		Fields:   deps.fields,
-		Scanner:  deps.scanner,
-		Store:    deps.store,
-		Files:    deps.fileRepo,
-		Writer:   deps.writer,
-		Profiles: deps.profiles,
+		Slugs:        deps.slugs,
+		Keys:         deps.keys,
+		Users:        deps.users,
+		Fields:       deps.fields,
+		Scanner:      deps.scanner,
+		VirusScanner: userprofile.NewClamdVirusScanner("/var/run/clamav/clamd.ctl"),
+		Store:        deps.store,
+		Files:        deps.fileRepo,
+		Writer:       deps.writer,
+		Profiles:     deps.profiles,
 	}
 }
 
@@ -676,6 +677,36 @@ func buildProfileMeFileServeHandler(deps profileMeDeps) routing.HandlerInterface
 		Users: deps.users,
 		Store: deps.store,
 		Files: deps.fileRepo,
+	}
+}
+
+// buildProfileFieldsPutHandler wires PUT /a/{org}/{ws}/{app}/profile/fields.
+// Resolves all file-handling deps plus the PUT-specific ports (FullFieldLoader,
+// ProfileReader, ProfileSaver) from the DI bag.
+func buildProfileFieldsPutHandler(ctx serverdi.Context, deps profileMeDeps) routing.HandlerInterface {
+	bag, ok := ctx.(bagGetter)
+	if !ok {
+		return &profilefields.PutProfileFieldsHandler{}
+	}
+	loginRaw, _ := bag.Get(app_loginpage.ContextBagKeyService)
+	keysRaw, _ := bag.Get(app_keys.ContextBagKeyService)
+	regRaw, _ := bag.Get(profile_dbregistry_main.ContextBagKey)
+	orgUsersRegRaw, _ := bag.Get(users_dbregistry.ContextBagKey)
+	loginSvc, _ := loginRaw.(*app_loginpage.Service)
+	keysSvc, _ := keysRaw.(*app_keys.Service)
+	profileReg, _ := regRaw.(*profile_dbregistry_main.OrgDBRegistry)
+	orgUsersReg, _ := orgUsersRegRaw.(*users_dbregistry.OrgUserDBRegistry)
+	return &profilefields.PutProfileFieldsHandler{
+		Slugs:        profilefields.NewLoginpageSlugResolver(loginSvc),
+		Keys:         profilefields.NewKeysServiceKeyLoader(keysSvc),
+		Users:        profilefields.NewOrgRegistryUserOrgReader(orgUsersReg),
+		FullFields:   profilefields.NewOrgFullFieldLoader(profileReg),
+		Reader:       profilefields.NewOrgRegistryProfileReader(profileReg),
+		Saver:        profilefields.NewOrgProfileSaver(profileReg),
+		Scanner:      deps.scanner,
+		VirusScanner: userprofile.NewClamdVirusScanner("/var/run/clamav/clamd.ctl"),
+		Store:        deps.store,
+		Files:        deps.fileRepo,
 	}
 }
 
@@ -916,6 +947,7 @@ func Init(ctx serverdi.Context) {
 		"AppApiProfileMeFileDeleteHandler":         buildProfileMeFileDeleteHandler(profileMe),
 		"AppApiProfileMeFileServeHandler":          buildProfileMeFileServeHandler(profileMe),
 		"AppApiProfileFieldsHandler":               buildProfileFieldsHandler(ctx),
+		"AppApiProfileFieldsPutHandler":            buildProfileFieldsPutHandler(ctx, profileMe),
 		"AppRegistrationFieldsListHandler":     &regfields_admin.ListHandler{},
 		"AppRegistrationFieldsReplaceHandler":  &regfields_admin.ReplaceHandler{},
 		"AppRecoveryPublicRequestHandler":     &app_recoverypage_handler.PublicRequestHandler{},

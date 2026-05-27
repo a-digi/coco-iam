@@ -14,6 +14,7 @@ import (
 	userprofile "github.com/a-digi/coco-iam/src/applications/userprofile"
 	profile "github.com/a-digi/coco-iam/src/organizations/profile"
 	profile_dbregistry "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
+	profile_entity "github.com/a-digi/coco-iam/src/organizations/profile/entity"
 	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 )
@@ -125,4 +126,55 @@ func (r *orgFieldSchemaReader) ActiveFields(orgID string) ([]ProfileFieldSchema,
 		})
 	}
 	return out, nil
+}
+
+// -- FullFieldLoader ---------------------------------------------------
+
+// NewOrgFullFieldLoader returns a FullFieldLoader backed by the per-org
+// profile DB registry. Returns full entity.ProfileField including
+// AcceptMime/MaxBytes for file-upload validation.
+func NewOrgFullFieldLoader(reg *profile_dbregistry.OrgDBRegistry) FullFieldLoader {
+	return &orgFullFieldLoader{reg: reg}
+}
+
+type orgFullFieldLoader struct {
+	reg *profile_dbregistry.OrgDBRegistry
+}
+
+func (l *orgFullFieldLoader) ActiveFieldsFull(orgID string) ([]profile_entity.ProfileField, error) {
+	db, err := l.reg.For(orgID)
+	if err != nil {
+		return nil, err
+	}
+	return profile.NewRepository(db).ListFields(true)
+}
+
+// -- ProfileReader (for PUT handler) -----------------------------------
+
+// NewOrgRegistryProfileReader delegates to userprofile.NewOrgRegistryProfileReader
+// so the SQL lives in one place. The two ProfileReader interfaces are
+// structurally identical, so the concrete type satisfies both.
+func NewOrgRegistryProfileReader(reg *profile_dbregistry.OrgDBRegistry) ProfileReader {
+	return userprofile.NewOrgRegistryProfileReader(reg)
+}
+
+// -- ProfileSaver ------------------------------------------------------
+
+// NewOrgProfileSaver returns a ProfileSaver backed by the per-org profile
+// DB registry. SaveProfile calls UpsertUserProfile which is an INSERT …
+// ON CONFLICT UPDATE — safe for both create and replace.
+func NewOrgProfileSaver(reg *profile_dbregistry.OrgDBRegistry) ProfileSaver {
+	return &orgProfileSaver{reg: reg}
+}
+
+type orgProfileSaver struct {
+	reg *profile_dbregistry.OrgDBRegistry
+}
+
+func (s *orgProfileSaver) SaveProfile(orgID, userID string, data map[string]interface{}) error {
+	db, err := s.reg.For(orgID)
+	if err != nil {
+		return err
+	}
+	return profile.NewRepository(db).UpsertUserProfile(userID, data)
 }

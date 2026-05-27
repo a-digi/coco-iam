@@ -1,6 +1,10 @@
 package profilefields
 
-import "crypto/rsa"
+import (
+	"crypto/rsa"
+
+	"github.com/a-digi/coco-iam/src/organizations/profile/entity"
+)
 
 // SlugResolver turns (orgSlug, wsSlug, appSlug) into the
 // application UUID + its parent organisation UUID.
@@ -23,4 +27,20 @@ type UserOrgReader interface {
 // FieldSchemaReader loads the active profile field definitions for an org.
 type FieldSchemaReader interface {
 	ActiveFields(orgID string) ([]ProfileFieldSchema, error)
+}
+
+// FullFieldLoader loads active fields with their full entity definitions,
+// including AcceptMime and MaxBytes needed for file-upload validation.
+type FullFieldLoader interface {
+	ActiveFieldsFull(orgID string) ([]entity.ProfileField, error)
+}
+
+// ProfileReader loads the stored profile data (fields + values) for a user.
+type ProfileReader interface {
+	LoadProfile(orgID, userID string) (fields []entity.ProfileField, data map[string]interface{}, err error)
+}
+
+// ProfileSaver replaces the entire profile_data blob for a user.
+type ProfileSaver interface {
+	SaveProfile(orgID, userID string, data map[string]interface{}) error
 }
