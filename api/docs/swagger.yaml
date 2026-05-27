@@ -436,6 +436,40 @@ definitions:
       token_type:
         type: string
     type: object
+  profilefields.GetProfileFieldsResponse:
+    properties:
+      fields:
+        items:
+          $ref: '#/definitions/profilefields.ProfileFieldSchema'
+        type: array
+    type: object
+  profilefields.ProfileFieldSchema:
+    properties:
+      data_type:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_required:
+        type: boolean
+      label:
+        type: string
+      max_value:
+        type: integer
+      min_value:
+        type: integer
+      name:
+        type: string
+      options:
+        items:
+          type: string
+        type: array
+      order_index:
+        type: integer
+      regex:
+        type: string
+    type: object
   response.ErrorBody:
     properties:
       error:
@@ -811,6 +845,43 @@ paths:
       summary: OAuth authorize endpoint
       tags:
       - oauth
+  /a/{orgSlug}/{wsSlug}/{appSlug}/profile/fields:
+    get:
+      description: Returns active profile field definitions for the organization.
+      parameters:
+      - description: Organization slug
+        in: path
+        name: orgSlug
+        required: true
+        type: string
+      - description: Workspace slug
+        in: path
+        name: wsSlug
+        required: true
+        type: string
+      - description: Application slug
+        in: path
+        name: appSlug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/profilefields.GetProfileFieldsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      summary: Get organization profile field schema
+      tags:
+      - app-profile-me
   /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me:
     get:
       produces:

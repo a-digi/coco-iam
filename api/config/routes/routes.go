@@ -32,6 +32,7 @@ import (
 	regfields_admin "github.com/a-digi/coco-iam/src/applications/registrationfields/admin"
 	regfields_public "github.com/a-digi/coco-iam/src/applications/registrationfields/public"
 	userprofile "github.com/a-digi/coco-iam/src/applications/userprofile"
+	profilefields "github.com/a-digi/coco-iam/src/applications/profilefields"
 	app_keys "github.com/a-digi/coco-iam/src/applications/keys"
 	app_keys_handler "github.com/a-digi/coco-iam/src/applications/keys/handler"
 	profile_dbregistry_main "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
@@ -678,6 +679,30 @@ func buildProfileMeFileServeHandler(deps profileMeDeps) routing.HandlerInterface
 	}
 }
 
+// buildProfileFieldsHandler wires GET /a/{org}/{ws}/{app}/profile/fields.
+// Resolves its own deps from the DI bag so it stays independent of
+// profileMeDeps internals.
+func buildProfileFieldsHandler(ctx serverdi.Context) routing.HandlerInterface {
+	bag, ok := ctx.(bagGetter)
+	if !ok {
+		return &profilefields.GetProfileFieldsHandler{}
+	}
+	loginRaw, _ := bag.Get(app_loginpage.ContextBagKeyService)
+	keysRaw, _ := bag.Get(app_keys.ContextBagKeyService)
+	regRaw, _ := bag.Get(profile_dbregistry_main.ContextBagKey)
+	orgUsersRegRaw, _ := bag.Get(users_dbregistry.ContextBagKey)
+	loginSvc, _ := loginRaw.(*app_loginpage.Service)
+	keysSvc, _ := keysRaw.(*app_keys.Service)
+	profileReg, _ := regRaw.(*profile_dbregistry_main.OrgDBRegistry)
+	orgUsersReg, _ := orgUsersRegRaw.(*users_dbregistry.OrgUserDBRegistry)
+	return &profilefields.GetProfileFieldsHandler{
+		Slugs:  profilefields.NewLoginpageSlugResolver(loginSvc),
+		Keys:   profilefields.NewKeysServiceKeyLoader(keysSvc),
+		Users:  profilefields.NewOrgRegistryUserOrgReader(orgUsersReg),
+		Fields: profilefields.NewOrgFieldSchemaReader(profileReg),
+	}
+}
+
 func Init(ctx serverdi.Context) {
 	routing.GlobalRouteBuilder.AddContext(ctx)
 	updatedYamlBytes, _ := lift_routes.LoadRoutesYAML(config.ConfigFS)
@@ -890,6 +915,7 @@ func Init(ctx serverdi.Context) {
 		"AppApiProfileMeFileUploadHandler":         buildProfileMeFileUploadHandler(profileMe),
 		"AppApiProfileMeFileDeleteHandler":         buildProfileMeFileDeleteHandler(profileMe),
 		"AppApiProfileMeFileServeHandler":          buildProfileMeFileServeHandler(profileMe),
+		"AppApiProfileFieldsHandler":               buildProfileFieldsHandler(ctx),
 		"AppRegistrationFieldsListHandler":     &regfields_admin.ListHandler{},
 		"AppRegistrationFieldsReplaceHandler":  &regfields_admin.ReplaceHandler{},
 		"AppRecoveryPublicRequestHandler":     &app_recoverypage_handler.PublicRequestHandler{},

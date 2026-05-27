@@ -41,6 +41,13 @@ routes:
         method: PATCH
         executor: AppApiProfileMePatchHandler
         security: public
+      # Read-only profile field schema — returns the org's active
+      # field definitions without user values. Requires a valid
+      # RS256 Bearer token (same as /profile/me).
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/fields
+        method: GET
+        executor: AppApiProfileFieldsHandler
+        security: public
       # File-type profile field upload / delete / serve. Bytes
       # land under data/db/organization/<orgID>/uploads/users/
       # <userID>/. Content is magic-byte scanned by the media

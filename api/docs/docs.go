@@ -200,6 +200,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/a/{orgSlug}/{wsSlug}/{appSlug}/profile/fields": {
+            "get": {
+                "description": "Returns active profile field definitions for the organization.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "app-profile-me"
+                ],
+                "summary": "Get organization profile field schema",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization slug",
+                        "name": "orgSlug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Workspace slug",
+                        "name": "wsSlug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Application slug",
+                        "name": "appSlug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/profilefields.GetProfileFieldsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/a/{orgSlug}/{wsSlug}/{appSlug}/profile/me": {
             "get": {
                 "produces": [
@@ -8453,6 +8508,58 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "profilefields.GetProfileFieldsResponse": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profilefields.ProfileFieldSchema"
+                    }
+                }
+            }
+        },
+        "profilefields.ProfileFieldSchema": {
+            "type": "object",
+            "properties": {
+                "data_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_required": {
+                    "type": "boolean"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "max_value": {
+                    "type": "integer"
+                },
+                "min_value": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "order_index": {
+                    "type": "integer"
+                },
+                "regex": {
                     "type": "string"
                 }
             }
