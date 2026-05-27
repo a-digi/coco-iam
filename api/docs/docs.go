@@ -8696,6 +8696,10 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "file_url": {
+                    "description": "FileURL is the absolute serve URL for file-type fields that have a\nstored value. Empty for non-file fields and for file fields with no\nuploaded file. Populated by PopulateFileURLs after BuildResponse.",
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },

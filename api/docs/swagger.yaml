@@ -492,6 +492,12 @@ definitions:
         type: string
       description:
         type: string
+      file_url:
+        description: |-
+          FileURL is the absolute serve URL for file-type fields that have a
+          stored value. Empty for non-file fields and for file fields with no
+          uploaded file. Populated by PopulateFileURLs after BuildResponse.
+        type: string
       id:
         type: string
       is_required:

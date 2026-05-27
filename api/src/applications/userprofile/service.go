@@ -33,7 +33,11 @@ type FieldWithValue struct {
 	// Value is the user's current value for this field, or null
 	// when the user hasn't filled it in. Type follows DataType:
 	// text → string, number → float64, date → string, select → string, etc.
-	Value interface{} `json:"value"`
+	Value   interface{} `json:"value"`
+	// FileURL is the absolute serve URL for file-type fields that have a
+	// stored value. Empty for non-file fields and for file fields with no
+	// uploaded file. Populated by PopulateFileURLs after BuildResponse.
+	FileURL string `json:"file_url,omitempty"`
 }
 
 // BuildResponse merges the org's profile-field definitions with the
@@ -88,4 +92,19 @@ func BuildResponse(fields []entity.ProfileField, data map[string]interface{}) []
 		out = append(out, entry)
 	}
 	return out
+}
+
+// PopulateFileURLs sets FileURL on every file-type entry that has a
+// non-nil value. slugBase is the slug-rooted path prefix for the app —
+// e.g. "https://api.example.com/a/acme/main/myapp". Call this after
+// BuildResponse once the slug triple is known.
+func PopulateFileURLs(entries []FieldWithValue, slugBase string) {
+	if slugBase == "" {
+		return
+	}
+	for i := range entries {
+		if entries[i].DataType == entity.DataTypeFile && entries[i].Value != nil {
+			entries[i].FileURL = slugBase + "/profile/me/files/" + entries[i].Name
+		}
+	}
 }

@@ -24,12 +24,13 @@ import (
 // A nil Now field falls back to time.Now so callers don't have to
 // set it unless they want deterministic behaviour.
 type PatchMeHandler struct {
-	Slugs    SlugResolver
-	Keys     KeyLoader
-	Users    UserOrgReader
-	Profiles ProfileReader
-	Writer   ProfileWriter
-	Now      func() time.Time
+	Slugs      SlugResolver
+	Keys       KeyLoader
+	Users      UserOrgReader
+	Profiles   ProfileReader
+	Writer     ProfileWriter
+	PublicBase string
+	Now        func() time.Time
 }
 
 type patchMeRequest struct {
@@ -102,7 +103,9 @@ func (h *PatchMeHandler) ServeHTTP(reqCtx request.RequestContext) {
 			response.ErrorResponse(w, http.StatusInternalServerError, "failed to load profile")
 			return
 		}
-		response.SuccessResponse(w, http.StatusOK, meResponse{Fields: BuildResponse(fields, data)})
+		built := BuildResponse(fields, data)
+		PopulateFileURLs(built, h.PublicBase+"/a/"+orgSlug+"/"+wsSlug+"/"+appSlug)
+		response.SuccessResponse(w, http.StatusOK, meResponse{Fields: built})
 		return
 	}
 
@@ -146,5 +149,7 @@ func (h *PatchMeHandler) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(w, http.StatusInternalServerError, "failed to load profile")
 		return
 	}
-	response.SuccessResponse(w, http.StatusOK, meResponse{Fields: BuildResponse(fields, data)})
+	built := BuildResponse(fields, data)
+	PopulateFileURLs(built, h.PublicBase+"/a/"+orgSlug+"/"+wsSlug+"/"+appSlug)
+	response.SuccessResponse(w, http.StatusOK, meResponse{Fields: built})
 }

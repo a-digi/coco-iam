@@ -23,11 +23,12 @@ import (
 // adapters.go). A nil Now field falls back to time.Now so callers
 // don't have to set it unless they want deterministic behaviour.
 type GetMeHandler struct {
-	Slugs    SlugResolver
-	Keys     KeyLoader
-	Users    UserOrgReader
-	Profiles ProfileReader
-	Now      func() time.Time
+	Slugs      SlugResolver
+	Keys       KeyLoader
+	Users      UserOrgReader
+	Profiles   ProfileReader
+	PublicBase string
+	Now        func() time.Time
 }
 
 const genericUnauthorized = "unauthorized"
@@ -93,9 +94,9 @@ func (h *GetMeHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 
-	response.SuccessResponse(w, http.StatusOK, meResponse{
-		Fields: BuildResponse(fields, data),
-	})
+	built := BuildResponse(fields, data)
+	PopulateFileURLs(built, h.PublicBase+"/a/"+orgSlug+"/"+wsSlug+"/"+appSlug)
+	response.SuccessResponse(w, http.StatusOK, meResponse{Fields: built})
 }
 
 // -- slug parsing (duplicated from sibling /a/... packages so this

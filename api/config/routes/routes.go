@@ -102,15 +102,16 @@ type bagGetter interface {
 // (GET, PATCH, file upload/delete/serve) gets the same concrete
 // services without repeating the DI dance per builder.
 type profileMeDeps struct {
-	slugs    userprofile.SlugResolver
-	keys     userprofile.KeyLoader
-	users    userprofile.UserOrgReader
-	profiles userprofile.ProfileReader
-	fields   userprofile.FieldConfigReader
-	writer   userprofile.ProfileWriter
-	fileRepo userprofile.FileRepo
-	store    userprofile.FileStore
-	scanner  userprofile.Scanner
+	slugs      userprofile.SlugResolver
+	keys       userprofile.KeyLoader
+	users      userprofile.UserOrgReader
+	profiles   userprofile.ProfileReader
+	fields     userprofile.FieldConfigReader
+	writer     userprofile.ProfileWriter
+	fileRepo   userprofile.FileRepo
+	store      userprofile.FileStore
+	scanner    userprofile.Scanner
+	publicBase string
 }
 
 // resolveProfileMeDeps walks the DI bag once, returning a fully-
@@ -133,16 +134,21 @@ func resolveProfileMeDeps(ctx serverdi.Context) profileMeDeps {
 	profileReg, _ := regRaw.(*profile_dbregistry_main.OrgDBRegistry)
 	orgUsersRegRaw, _ := bag.Get(users_dbregistry.ContextBagKey)
 	orgUsersReg, _ := orgUsersRegRaw.(*users_dbregistry.OrgUserDBRegistry)
+	pb := osGetenv("COCO_IAM_PUBLIC_BASE_URL")
+	if pb == "" {
+		pb = "http://localhost:2026"
+	}
 	return profileMeDeps{
-		slugs:    userprofile.NewLoginpageSlugResolver(loginSvc),
-		keys:     userprofile.NewKeysServiceKeyLoader(keysSvc),
-		users:    userprofile.NewOrgRegistryUserOrgReader(orgUsersReg),
-		profiles: userprofile.NewOrgRegistryProfileReader(profileReg),
-		fields:   userprofile.NewOrgFieldConfigReader(profileReg),
-		writer:   userprofile.NewOrgProfileWriter(profileReg),
-		fileRepo: userprofile.NewOrgFileRepo(profileReg),
-		store:    userprofile.NewPerOrgUserFileStore("./data/db"),
-		scanner:  userprofile.NewMediaScanner(),
+		slugs:      userprofile.NewLoginpageSlugResolver(loginSvc),
+		keys:       userprofile.NewKeysServiceKeyLoader(keysSvc),
+		users:      userprofile.NewOrgRegistryUserOrgReader(orgUsersReg),
+		profiles:   userprofile.NewOrgRegistryProfileReader(profileReg),
+		fields:     userprofile.NewOrgFieldConfigReader(profileReg),
+		writer:     userprofile.NewOrgProfileWriter(profileReg),
+		fileRepo:   userprofile.NewOrgFileRepo(profileReg),
+		store:      userprofile.NewPerOrgUserFileStore("./data/db"),
+		scanner:    userprofile.NewMediaScanner(),
+		publicBase: pb,
 	}
 }
 
@@ -618,10 +624,11 @@ func safeOAuthShim(endpoints *oauthServerEndpoints, pick func(*oauthServerEndpoi
 // handlerMap declaration stays compile-time simple.
 func buildProfileMeHandler(deps profileMeDeps) routing.HandlerInterface {
 	return &userprofile.GetMeHandler{
-		Slugs:    deps.slugs,
-		Keys:     deps.keys,
-		Users:    deps.users,
-		Profiles: deps.profiles,
+		Slugs:      deps.slugs,
+		Keys:       deps.keys,
+		Users:      deps.users,
+		Profiles:   deps.profiles,
+		PublicBase: deps.publicBase,
 	}
 }
 
@@ -630,11 +637,12 @@ func buildProfileMeHandler(deps profileMeDeps) routing.HandlerInterface {
 // adds the ProfileWriter for the merge-result apply step.
 func buildProfileMePatchHandler(deps profileMeDeps) routing.HandlerInterface {
 	return &userprofile.PatchMeHandler{
-		Slugs:    deps.slugs,
-		Keys:     deps.keys,
-		Users:    deps.users,
-		Profiles: deps.profiles,
-		Writer:   deps.writer,
+		Slugs:      deps.slugs,
+		Keys:       deps.keys,
+		Users:      deps.users,
+		Profiles:   deps.profiles,
+		Writer:     deps.writer,
+		PublicBase: deps.publicBase,
 	}
 }
 
@@ -696,15 +704,16 @@ func buildProfileFieldsPutHandler(ctx serverdi.Context, deps profileMeDeps) rout
 	profileReg, _ := regRaw.(*profile_dbregistry_main.OrgDBRegistry)
 	orgUsersReg, _ := orgUsersRegRaw.(*users_dbregistry.OrgUserDBRegistry)
 	return &profilefields.PutProfileFieldsHandler{
-		Slugs:        profilefields.NewLoginpageSlugResolver(loginSvc),
-		Keys:         profilefields.NewKeysServiceKeyLoader(keysSvc),
-		Users:        profilefields.NewOrgRegistryUserOrgReader(orgUsersReg),
-		FullFields:   profilefields.NewOrgFullFieldLoader(profileReg),
-		Reader:       profilefields.NewOrgRegistryProfileReader(profileReg),
-		Saver:        profilefields.NewOrgProfileSaver(profileReg),
-		Scanner: deps.scanner,
-		Store:   deps.store,
-		Files:        deps.fileRepo,
+		Slugs:      profilefields.NewLoginpageSlugResolver(loginSvc),
+		Keys:       profilefields.NewKeysServiceKeyLoader(keysSvc),
+		Users:      profilefields.NewOrgRegistryUserOrgReader(orgUsersReg),
+		FullFields: profilefields.NewOrgFullFieldLoader(profileReg),
+		Reader:     profilefields.NewOrgRegistryProfileReader(profileReg),
+		Saver:      profilefields.NewOrgProfileSaver(profileReg),
+		Scanner:    deps.scanner,
+		Store:      deps.store,
+		Files:      deps.fileRepo,
+		PublicBase: deps.publicBase,
 	}
 }
 

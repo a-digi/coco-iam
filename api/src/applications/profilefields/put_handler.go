@@ -50,6 +50,7 @@ type PutProfileFieldsHandler struct {
 	VirusScanner userprofile.VirusScanner
 	Store        userprofile.FileStore
 	Files        userprofile.FileRepo
+	PublicBase   string
 	Now          func() time.Time
 }
 
@@ -368,9 +369,9 @@ func (h *PutProfileFieldsHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 
-	response.SuccessResponse(w, http.StatusOK, PutProfileFieldsResponse{
-		Fields: userprofile.BuildResponse(fields, finalData),
-	})
+	built := userprofile.BuildResponse(fields, finalData)
+	userprofile.PopulateFileURLs(built, h.PublicBase+"/a/"+orgSlug+"/"+wsSlug+"/"+appSlug)
+	response.SuccessResponse(w, http.StatusOK, PutProfileFieldsResponse{Fields: built})
 }
 
 // newAssetIDLocal generates a 32-char base64url asset ID using
