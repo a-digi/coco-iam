@@ -48,3 +48,5 @@ vendor/
 # api/config.json
 
 .claude/settings.local.json
+
+versions/
