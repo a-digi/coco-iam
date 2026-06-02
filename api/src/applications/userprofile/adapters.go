@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/a-digi/coco-iam/src/applications/keys"
@@ -184,18 +185,46 @@ func (r *orgRegistryProfileReader) LoadProfile(orgID, userID string) ([]profile_
 
 // -- Scanner -------------------------------------------------------
 
-// NewMediaScanner returns a Scanner that forwards to the media
-// subsystem's magic-byte validator. One-line wrapper; the whole
-// scanning + allowlist behaviour lives in `media` so we never
-// drift from it.
+// NewMediaScanner returns a Scanner that extends the media subsystem's
+// magic-byte validator with AVIF support. Go's http.DetectContentType
+// does not recognise AVIF (returns application/octet-stream), so we
+// probe the ISOBMFF ftyp box first; all other types fall through to
+// the standard media validator.
 func NewMediaScanner() Scanner {
-	return &mediaScanner{}
+	return &avifAwareMediaScanner{}
 }
 
-type mediaScanner struct{}
+type avifAwareMediaScanner struct{}
 
-func (s *mediaScanner) DetectAndValidate(head []byte, claimedMime string) (string, string, error) {
+func (s *avifAwareMediaScanner) DetectAndValidate(head []byte, claimedMime string) (string, string, error) {
+	if isAVIFHead(head) {
+		claimed := stripMimeParams(claimedMime)
+		if claimed == "" || claimed == "image/avif" {
+			return "image/avif", "avif", nil
+		}
+		return "", "", errors.New("unsupported file type; allowed: PNG, JPEG, WebP, GIF, AVIF, CSS, WOFF/WOFF2/TTF/OTF, PDF")
+	}
 	return media.DetectAndValidateMime(head, claimedMime)
+}
+
+// isAVIFHead checks whether head starts with an ISOBMFF ftyp box
+// whose major brand is "avif" or "avis" (bytes 8–11).
+func isAVIFHead(head []byte) bool {
+	if len(head) < 12 {
+		return false
+	}
+	if head[4] != 'f' || head[5] != 't' || head[6] != 'y' || head[7] != 'p' {
+		return false
+	}
+	brand := string(head[8:12])
+	return brand == "avif" || brand == "avis"
+}
+
+func stripMimeParams(mime string) string {
+	if i := strings.IndexByte(mime, ';'); i >= 0 {
+		return strings.TrimRight(mime[:i], " \t")
+	}
+	return strings.TrimRight(mime, " \t")
 }
 
 // -- FileStore -----------------------------------------------------
