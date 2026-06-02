@@ -11,11 +11,12 @@ type FieldSource string
 const (
 	FieldSourceProfile FieldSource = "profile"
 	FieldSourceCustom  FieldSource = "custom"
+	FieldSourceSystem  FieldSource = "system"
 )
 
-// IsValid returns true for the two supported sources.
+// IsValid returns true for the three supported sources.
 func (s FieldSource) IsValid() bool {
-	return s == FieldSourceProfile || s == FieldSourceCustom
+	return s == FieldSourceProfile || s == FieldSourceCustom || s == FieldSourceSystem
 }
 
 // Field mirrors one row of application_registration_fields.
@@ -48,6 +49,10 @@ type Field struct {
 	MaxValue    *int    `json:"max_value,omitempty"`
 	OptionsJSON string  `json:"options_json,omitempty"`
 	Regex       string  `json:"regex,omitempty"`
+
+	// SystemFieldName is set when Source == FieldSourceSystem.
+	// Valid values: "email", "username".
+	SystemFieldName *string `json:"system_field_name,omitempty"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

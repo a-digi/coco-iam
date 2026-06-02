@@ -27,8 +27,9 @@ const (
 
 // Event names for the mail engine's event→template binding.
 const (
-	EventAdminInvite = "admin_invite"
-	EventUserInvite  = "user_invite"
+	EventAdminInvite                 = "admin_invite"
+	EventUserInvite                  = "user_invite"
+	EventAppRegistrationNotification = "app_registration_notification"
 )
 
 // RedirectTarget is the optional per-activation hint that tells the

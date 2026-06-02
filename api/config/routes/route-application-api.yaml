@@ -26,6 +26,13 @@ routes:
         method: GET
         executor: AppApiRegistrationFieldsHandler
         security: public
+      # Registration submission — public, no auth. Accepts form values,
+      # creates or maps the user, triggers activation or notification email.
+      # See plan/application-registration-submit/plan.md.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/register
+        method: POST
+        executor: AppApiRegisterHandler
+        security: public
       # Signed-in workspace-application user's own profile. Auth
       # is the user's RS256 access token; the handler verifies
       # the token itself (security: public here tells the framework

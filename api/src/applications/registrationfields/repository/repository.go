@@ -105,6 +105,7 @@ func (r *Repository) ListFieldsForApp(appID string) ([]entity.Field, error) {
 		        f.source, f.profile_field_id, f.required_override,
 		        f.name, f.label, f.description, f.data_type, f.is_required,
 		        f.min_value, f.max_value, f.options_json, f.regex,
+		        f.system_field_name,
 		        f.created_at, f.updated_at
 		 FROM application_registration_fields f
 		 JOIN application_registration_steps s ON s.id = f.step_id
@@ -208,14 +209,15 @@ func (r *Repository) ReplaceForApp(appID string, steps []entity.Step, fields []e
 			 (id, application_id, step_id, order_index, source,
 			  profile_field_id, required_override, name, label,
 			  description, data_type, is_required, min_value, max_value,
-			  options_json, regex, created_at, updated_at)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			  options_json, regex, system_field_name, created_at, updated_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			f.ID, appID, f.StepID, f.OrderIndex, string(f.Source),
 			nullableString(f.ProfileFieldID),
 			nullableBool(f.RequiredOverride),
 			f.Name, f.Label, f.Description, f.DataType, f.IsRequired,
 			nullableInt(f.MinValue), nullableInt(f.MaxValue),
 			defaultString(f.OptionsJSON, "[]"), f.Regex,
+			nullableString(f.SystemFieldName),
 			now, now,
 		); err != nil {
 			return fmt.Errorf("registrationfields: insert field %q: %w", f.ID, err)
@@ -282,7 +284,7 @@ type scanner interface {
 func scanField(s scanner) (entity.Field, error) {
 	var f entity.Field
 	var source string
-	var profileID, name, label, dataType sql.NullString
+	var profileID, name, label, dataType, systemFieldName sql.NullString
 	var requiredOverride sql.NullBool
 	var minV, maxV sql.NullInt64
 	var created, updated sql.NullString
@@ -292,6 +294,7 @@ func scanField(s scanner) (entity.Field, error) {
 		&source, &profileID, &requiredOverride,
 		&name, &label, &f.Description, &dataType, &f.IsRequired,
 		&minV, &maxV, &f.OptionsJSON, &f.Regex,
+		&systemFieldName,
 		&created, &updated,
 	)
 	if err != nil {
@@ -322,6 +325,10 @@ func scanField(s scanner) (entity.Field, error) {
 	if maxV.Valid {
 		v := int(maxV.Int64)
 		f.MaxValue = &v
+	}
+	if systemFieldName.Valid {
+		v := systemFieldName.String
+		f.SystemFieldName = &v
 	}
 	if created.Valid {
 		if t, perr := parseTime(created.String); perr == nil {

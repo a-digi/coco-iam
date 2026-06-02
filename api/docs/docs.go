@@ -471,6 +471,57 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/a/{orgSlug}/{wsSlug}/{appSlug}/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "app-public"
+                ],
+                "summary": "Submit application registration",
+                "parameters": [
+                    {
+                        "description": "Registration field values",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/entity.RegisterSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/a/{orgSlug}/{wsSlug}/{appSlug}/registration-fields": {
             "get": {
                 "produces": [
@@ -8377,6 +8428,25 @@ const docTemplate = `{
                 "is_active": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "entity.RegisterRequest": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "entity.RegisterSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
                 }
             }
         },

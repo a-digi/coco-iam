@@ -282,6 +282,18 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.RegisterRequest:
+    properties:
+      fields:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  entity.RegisterSuccess:
+    properties:
+      message:
+        type: string
+    type: object
   entity.UpdateUserRequest:
     properties:
       email:
@@ -1071,6 +1083,39 @@ paths:
       summary: Upload profile file
       tags:
       - app-profile-me
+  /a/{orgSlug}/{wsSlug}/{appSlug}/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Registration field values
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/entity.RegisterSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      summary: Submit application registration
+      tags:
+      - app-public
   /a/{orgSlug}/{wsSlug}/{appSlug}/registration-fields:
     get:
       produces:

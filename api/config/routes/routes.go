@@ -31,6 +31,7 @@ import (
 	apicred_public "github.com/a-digi/coco-iam/src/applications/apicredentials/public"
 	regfields_admin "github.com/a-digi/coco-iam/src/applications/registrationfields/admin"
 	regfields_public "github.com/a-digi/coco-iam/src/applications/registrationfields/public"
+	regfields_submit "github.com/a-digi/coco-iam/src/applications/registrationfields/submit"
 	userprofile "github.com/a-digi/coco-iam/src/applications/userprofile"
 	profilefields "github.com/a-digi/coco-iam/src/applications/profilefields"
 	app_keys "github.com/a-digi/coco-iam/src/applications/keys"
@@ -941,7 +942,9 @@ func Init(ctx serverdi.Context) {
 		"AppOAuthClientsDeleteHandler": &oauthserver_admin.DeleteHandler{},
 		// Registration schema — public endpoint + admin management.
 		// See plan/application-registration-fields/plan.md.
-		"AppApiRegistrationFieldsHandler":      &regfields_public.RegistrationFieldsHandler{},
+		"AppApiRegistrationFieldsHandler": &regfields_public.RegistrationFieldsHandler{},
+		// Registration submission — See plan/application-registration-submit/plan.md.
+		"AppApiRegisterHandler": &regfields_submit.RegisterHandler{},
 		// User-facing profile: /a/{o}/{w}/{a}/profile/me — see
 		// plan/app-user-profile-me/plan.md + the SOLID / test
 		// refactor at plan/app-user-profile-me-testability/plan.md.
