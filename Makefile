@@ -40,7 +40,7 @@ swag-gen:
 	cp api/docs/swagger.json api/src/swagger/static/swagger.json
 
 .PHONY: build-linux
-build-linux:
+build-linux: swag-gen
 	@mkdir -p versions
 	# Cross-compile to linux/$(DEPLOY_GOARCH). mattn/go-sqlite3
 	# needs CGO, so we need a Linux C compiler on the Mac host.
