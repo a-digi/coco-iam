@@ -944,7 +944,8 @@ func Init(ctx serverdi.Context) {
 		// See plan/application-registration-fields/plan.md.
 		"AppApiRegistrationFieldsHandler": &regfields_public.RegistrationFieldsHandler{},
 		// Registration submission — See plan/application-registration-submit/plan.md.
-		"AppApiRegisterHandler": &regfields_submit.RegisterHandler{},
+		"AppApiRegisterHandler":      &regfields_submit.RegisterHandler{},
+		"AppApiRegisterCheckHandler": &regfields_submit.CheckHandler{},
 		// User-facing profile: /a/{o}/{w}/{a}/profile/me — see
 		// plan/app-user-profile-me/plan.md + the SOLID / test
 		// refactor at plan/app-user-profile-me-testability/plan.md.

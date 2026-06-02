@@ -33,6 +33,12 @@ routes:
         method: POST
         executor: AppApiRegisterHandler
         security: public
+      # Registration field availability check — public, no auth.
+      # Reports whether an email/username is already taken in the org.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/register/check
+        method: POST
+        executor: AppApiRegisterCheckHandler
+        security: public
       # Signed-in workspace-application user's own profile. Auth
       # is the user's RS256 access token; the handler verifies
       # the token itself (security: public here tells the framework

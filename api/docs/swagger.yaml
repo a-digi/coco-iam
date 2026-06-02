@@ -154,6 +154,20 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.CheckRequest:
+    properties:
+      email:
+        type: string
+      username:
+        type: string
+    type: object
+  entity.CheckResponse:
+    properties:
+      email:
+        $ref: '#/definitions/entity.FieldAvailability'
+      username:
+        $ref: '#/definitions/entity.FieldAvailability'
+    type: object
   entity.CreateOrgUserRequest:
     properties:
       email:
@@ -219,6 +233,11 @@ definitions:
         $ref: '#/definitions/entity.CreateUserResponse'
       success:
         example: true
+        type: boolean
+    type: object
+  entity.FieldAvailability:
+    properties:
+      available:
         type: boolean
     type: object
   entity.IdentityFieldDef:
@@ -1137,6 +1156,39 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorBody'
       summary: Submit application registration
+      tags:
+      - app-public
+  /a/{orgSlug}/{wsSlug}/{appSlug}/register/check:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Fields to check
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.CheckResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      summary: Check registration field availability
       tags:
       - app-public
   /a/{orgSlug}/{wsSlug}/{appSlug}/registration-fields:

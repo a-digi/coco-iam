@@ -511,6 +511,57 @@
                 }
             }
         },
+        "/a/{orgSlug}/{wsSlug}/{appSlug}/register/check": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "app-public"
+                ],
+                "summary": "Check registration field availability",
+                "parameters": [
+                    {
+                        "description": "Fields to check",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.CheckRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.CheckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/a/{orgSlug}/{wsSlug}/{appSlug}/registration-fields": {
             "get": {
                 "produces": [
@@ -8251,6 +8302,28 @@
                 }
             }
         },
+        "entity.CheckRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.CheckResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "$ref": "#/definitions/entity.FieldAvailability"
+                },
+                "username": {
+                    "$ref": "#/definitions/entity.FieldAvailability"
+                }
+            }
+        },
         "entity.CreateOrgUserRequest": {
             "type": "object",
             "properties": {
@@ -8346,6 +8419,14 @@
                 "success": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "entity.FieldAvailability": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean"
                 }
             }
         },
