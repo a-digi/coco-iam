@@ -19,7 +19,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/mail"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/a-digi/coco-iam/src/activation"
@@ -75,7 +77,7 @@ func (h *RegisterHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 
-	allow, err := loadRegistrationAllowed(reqCtx, info.ID)
+	allow, _, err := loadRegistrationConfig(reqCtx, info.ID)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, "failed to read registration config")
 		return
@@ -94,10 +96,14 @@ func (h *RegisterHandler) ServeHTTP(reqCtx request.RequestContext) {
 		body.Fields = map[string]string{}
 	}
 
-	email := body.Fields["email"]
-	username := body.Fields["username"]
+	email := strings.TrimSpace(body.Fields["email"])
+	username := strings.TrimSpace(body.Fields["username"])
 	if email == "" || username == "" {
 		response.ErrorResponse(w, http.StatusBadRequest, "email and username are required")
+		return
+	}
+	if _, err := mail.ParseAddress(email); err != nil {
+		response.ErrorResponse(w, http.StatusBadRequest, "invalid email address")
 		return
 	}
 
@@ -404,36 +410,41 @@ func sendNotificationEmail(ctx interface{}, email, username, loginURL string) {
 	})
 }
 
-// loadRegistrationAllowed reads allow_registration from the applications row
-// in the per-org users.db. Returns false without error when the app is missing.
-func loadRegistrationAllowed(reqCtx request.RequestContext, appID string) (bool, error) {
+// loadRegistrationConfig reads allow_registration and registration_type from
+// the applications row in the per-org users.db. Returns (false, "", nil) when
+// the app row is missing — callers treat that as "registration disabled".
+func loadRegistrationConfig(reqCtx request.RequestContext, appID string) (bool, string, error) {
 	bag, ok := reqCtx.GetDI().(bagGetter)
 	if !ok {
-		return false, errors.New("register: DI not a bagGetter")
+		return false, "", errors.New("register: DI not a bagGetter")
 	}
 	raw, ok := bag.Get(users_dbregistry.ContextBagKey)
 	if !ok {
-		return false, errors.New("register: users registry not in DI")
+		return false, "", errors.New("register: users registry not in DI")
 	}
 	reg, ok := raw.(*users_dbregistry.OrgUserDBRegistry)
 	if !ok {
-		return false, errors.New("register: users registry type mismatch")
+		return false, "", errors.New("register: users registry type mismatch")
 	}
 	orgDB, _, err := orgrouter.OrgDBForApp(reg, appID)
 	if err != nil {
-		return false, nil
+		return false, "", nil
 	}
 	var allow bool
+	var regType string
 	err = orgDB.QueryRow(
-		`SELECT allow_registration FROM applications WHERE id = ? LIMIT 1`, appID,
-	).Scan(&allow)
+		`SELECT allow_registration, registration_type FROM applications WHERE id = ? LIMIT 1`, appID,
+	).Scan(&allow, &regType)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
+			return false, "", nil
 		}
-		return false, err
+		return false, "", err
 	}
-	return allow, nil
+	if regType == "" {
+		regType = "legacy"
+	}
+	return allow, regType, nil
 }
 
 // -- slug parsing -------------------------------------------------------
