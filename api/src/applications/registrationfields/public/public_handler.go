@@ -17,6 +17,7 @@ import (
 	"net/http"
 
 	"github.com/a-digi/coco-iam/src/applications/loginpage"
+	regfields_entity "github.com/a-digi/coco-iam/src/applications/registrationfields/entity"
 	"github.com/a-digi/coco-iam/src/applications/registrationfields/repository"
 	"github.com/a-digi/coco-iam/src/applications/registrationfields/service"
 	profile_dbregistry "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
@@ -38,13 +39,17 @@ const genericNotFound = "not found"
 type RegistrationFieldsHandler struct{}
 
 type response200 struct {
-	RegistrationType string                    `json:"registration_type"`
-	Steps            []service.StepWithFields `json:"steps"`
+	RegistrationType string                         `json:"registration_type"`
+	IdentityFields   []regfields_entity.IdentityFieldDef `json:"identity_fields"`
+	Steps            []service.StepWithFields       `json:"steps"`
 }
 
 // @Summary     Get public registration fields
 // @Tags        app-public
 // @Produce     json
+// @Success     200  {object}  regfields_entity.RegistrationFieldsSuccess
+// @Failure     404  {object}  response.ErrorBody
+// @Failure     500  {object}  response.ErrorBody
 // @Router      /a/{orgSlug}/{wsSlug}/{appSlug}/registration-fields [get]
 func (h *RegistrationFieldsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
@@ -114,6 +119,7 @@ func (h *RegistrationFieldsHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 	response.SuccessResponse(w, http.StatusOK, response200{
 		RegistrationType: regType,
+		IdentityFields:   identityFieldsFor(regType),
 		Steps:            steps,
 	})
 }
@@ -187,6 +193,24 @@ func splitSegments(path string) []string {
 		}
 	}
 	return out
+}
+
+// -- identity fields ----------------------------------------------------
+
+// identityFieldsFor returns the fixed identity fields required by the
+// given registration type. For "legacy" (and the empty-string default)
+// those are always email and username — the user sets a password later
+// via the activation link.
+func identityFieldsFor(regType string) []regfields_entity.IdentityFieldDef {
+	switch regType {
+	case "legacy", "":
+		return []regfields_entity.IdentityFieldDef{
+			{Name: "email", Label: "Email address", DataType: "email", IsRequired: true},
+			{Name: "username", Label: "Username", DataType: "text", IsRequired: true},
+		}
+	default:
+		return []regfields_entity.IdentityFieldDef{}
+	}
 }
 
 // -- DI resolvers ------------------------------------------------------

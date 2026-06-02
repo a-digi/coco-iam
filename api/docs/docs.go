@@ -531,7 +531,26 @@ const docTemplate = `{
                     "app-public"
                 ],
                 "summary": "Get public registration fields",
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.RegistrationFieldsSuccess"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
             }
         },
         "/a/{orgSlug}/{wsSlug}/{appSlug}/security-key": {
@@ -8341,6 +8360,23 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.IdentityFieldDef": {
+            "type": "object",
+            "properties": {
+                "data_type": {
+                    "type": "string"
+                },
+                "is_required": {
+                    "type": "boolean"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.OAuthErrorResponse": {
             "type": "object",
             "properties": {
@@ -8447,6 +8483,24 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.RegistrationFieldsSuccess": {
+            "type": "object",
+            "properties": {
+                "identity_fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.IdentityFieldDef"
+                    }
+                },
+                "registration_type": {
+                    "type": "string"
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {}
                 }
             }
         },

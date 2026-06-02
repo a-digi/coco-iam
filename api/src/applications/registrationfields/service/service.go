@@ -21,18 +21,19 @@ import (
 // the merged view of a registration row and (when source='profile')
 // the profile_fields row it points at.
 type EffectiveField struct {
-	ID             string   `json:"id"`
-	Name           string   `json:"name"`
-	Label          string   `json:"label"`
-	Description    string   `json:"description,omitempty"`
-	DataType       string   `json:"data_type"`
-	IsRequired     bool     `json:"is_required"`
-	MinValue       *int     `json:"min_value,omitempty"`
-	MaxValue       *int     `json:"max_value,omitempty"`
-	Options        []string `json:"options,omitempty"`
-	Regex          string   `json:"regex,omitempty"`
-	Source         string   `json:"source"`
-	ProfileFieldID string   `json:"profile_field_id,omitempty"`
+	ID              string   `json:"id"`
+	Name            string   `json:"name"`
+	Label           string   `json:"label"`
+	Description     string   `json:"description,omitempty"`
+	DataType        string   `json:"data_type"`
+	IsRequired      bool     `json:"is_required"`
+	MinValue        *int     `json:"min_value,omitempty"`
+	MaxValue        *int     `json:"max_value,omitempty"`
+	Options         []string `json:"options,omitempty"`
+	Regex           string   `json:"regex,omitempty"`
+	Source          string   `json:"source"`
+	ProfileFieldID  string   `json:"profile_field_id,omitempty"`
+	SystemFieldName string   `json:"system_field_name,omitempty"`
 	// StepID is set by the grouping pass, not the resolver.
 	StepID string `json:"-"`
 }
@@ -111,11 +112,44 @@ func ResolveEffective(f entity.Field, linked *repository.ProfileField) (Effectiv
 			ProfileFieldID: linked.ID,
 			StepID:         f.StepID,
 		}, true
+
+	case entity.FieldSourceSystem:
+		name := ""
+		if f.SystemFieldName != nil {
+			name = *f.SystemFieldName
+		}
+		if name == "" {
+			return EffectiveField{}, false
+		}
+		label, dataType := systemFieldMeta(name)
+		return EffectiveField{
+			ID:              f.ID,
+			Name:            name,
+			Label:           label,
+			DataType:        dataType,
+			IsRequired:      true,
+			Source:          string(entity.FieldSourceSystem),
+			SystemFieldName: name,
+			StepID:          f.StepID,
+		}, true
 	}
 	// Unknown source — treated as orphan. Shouldn't happen in
 	// practice because the repository rejects invalid sources on
 	// write.
 	return EffectiveField{}, false
+}
+
+// systemFieldMeta returns the display label and data type for a known
+// system field name. Used when resolving source='system' rows.
+func systemFieldMeta(name string) (label, dataType string) {
+	switch name {
+	case "email":
+		return "Email address", "email"
+	case "username":
+		return "Username", "text"
+	default:
+		return name, "text"
+	}
 }
 
 // GroupIntoSteps bundles resolved fields under their parent step.
