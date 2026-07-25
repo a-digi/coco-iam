@@ -1,0 +1,20 @@
+[
+    {
+        "id": "observe",
+        "description": "Observability: metrics, agents, and archived historical data.",
+        "scopes": [
+            {
+                "id": "observe:view",
+                "description": "Allows reading metrics and agent status."
+            },
+            {
+                "id": "observe:manage",
+                "description": "Allows creating, editing, and deleting agents and generating API credentials."
+            },
+            {
+                "id": "observe:archive",
+                "description": "Allows querying archived (historical) databases."
+            }
+        ]
+    }
+]

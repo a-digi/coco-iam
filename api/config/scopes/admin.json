@@ -228,7 +228,43 @@
                         "description": "Allows viewing the recent failed tasks table."
                     }
                 ]
+            },
+            {
+                "id": "admin:orgs:users:acl",
+                "description": "Allows managing ACL role assignments on organization users, from the admin console.",
+                "scopes": [
+                    {
+                        "id": "admin:orgs:users:acl:read",
+                        "description": "Allows reading organization user ACL role assignments."
+                    },
+                    {
+                        "id": "admin:orgs:users:acl:write",
+                        "description": "Allows creating or modifying organization user ACL role assignments."
+                    },
+                    {
+                        "id": "admin:orgs:users:acl:delete",
+                        "description": "Allows deleting organization user ACL role assignments."
+                    }
+                ]
+            },
+            {
+                "id": "admin:settings:user_rules",
+                "description": "Allows managing organization user validation rules (username, email, password policy).",
+                "scopes": [
+                    {
+                        "id": "admin:settings:user_rules:read",
+                        "description": "Allows reading user validation rule settings."
+                    },
+                    {
+                        "id": "admin:settings:user_rules:write",
+                        "description": "Allows updating user validation rule settings."
+                    }
+                ]
             }
         ]
+    },
+    {
+        "id": "super:admin",
+        "description": "Full administrative access. Satisfies every scope check across the entire API \u2014 grant with caution."
     }
 ]

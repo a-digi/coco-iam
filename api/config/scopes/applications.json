@@ -79,7 +79,7 @@
                     },
                     {
                         "id": "applications:keys:read_private",
-                        "description": "Allows viewing the private key PEM. Holders of this scope can sign tokens on behalf of the application — keep strictly limited."
+                        "description": "Allows viewing the private key PEM. Holders of this scope can sign tokens on behalf of the application \u2014 keep strictly limited."
                     }
                 ]
             },
@@ -144,6 +144,16 @@
                     {
                         "id": "applications:analytics:pending_recoveries:read",
                         "description": "Allows viewing the application's pending password-recovery count widget."
+                    }
+                ]
+            },
+            {
+                "id": "applications:oauth",
+                "description": "Allows managing external IdP OAuth provider configuration (Google, GitHub, Microsoft) for an application's login page.",
+                "scopes": [
+                    {
+                        "id": "applications:oauth:read",
+                        "description": "Allows reading an application's configured OAuth providers."
                     }
                 ]
             }
