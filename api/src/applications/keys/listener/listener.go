@@ -3,9 +3,10 @@
 //
 //  1. Ensure an RSA signing keypair is on disk (so the app can mint
 //     tokens on day one).
-//  2. Seed the nine default `users:` / `groups:` / `acl:` scope rows
-//     into `application_scopes` so admins can assign them from the
-//     existing ACL form without any manual pre-setup step.
+//  2. Seed the twelve default `users:` / `groups:` / `acl:` /
+//     `scopes:` scope rows into `application_scopes` so admins can
+//     assign them from the existing ACL form without any manual
+//     pre-setup step.
 package listener
 
 import (
@@ -36,6 +37,9 @@ var defaultApplicationScopes = []struct {
 	{"acl:read", "Read ACL assignments for users and groups."},
 	{"acl:write", "Create and modify ACL assignments."},
 	{"acl:delete", "Soft-delete ACL assignments."},
+	{"scopes:read", "Read this application's scope catalog."},
+	{"scopes:write", "Create and modify this application's scope catalog."},
+	{"scopes:delete", "Soft-delete scopes from this application's catalog."},
 }
 
 // EnsureOnCreate resolves the keys service from DI at invocation time

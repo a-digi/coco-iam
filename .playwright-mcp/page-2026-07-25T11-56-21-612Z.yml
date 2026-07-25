@@ -1,0 +1,68 @@
+- generic [ref=f3e3]:
+  - generic [ref=f3e5]:
+    - button "Close sidebar" [ref=f3e7]
+    - generic [ref=f3e12]:
+      - generic "Toggle dark mode" [ref=f3e13] [cursor=pointer]
+      - button "andet.tafa" [ref=f3e18]
+  - generic [ref=f3e25]:
+    - complementary [ref=f3e26]:
+      - generic [ref=f3e32]:
+        - generic [ref=f3e33]: coco-iam
+        - generic [ref=f3e34]: Identity & Access
+      - complementary [ref=f3e35]:
+        - navigation [ref=f3e36]:
+          - list [ref=f3e37]:
+            - listitem [ref=f3e38]:
+              - link "Dashboard" [ref=f3e40] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=f3e43]:
+              - link "Organizations" [ref=f3e45] [cursor=pointer]:
+                - /url: /organizations
+            - listitem [ref=f3e48]:
+              - generic [ref=f3e49]:
+                - button "Admin" [ref=f3e50]
+                - button "Toggle Admin" [ref=f3e53]
+    - generic [ref=f3e56]:
+      - navigation "Breadcrumb" [ref=f3e57]:
+        - link "Home" [ref=f3e58] [cursor=pointer]:
+          - /url: /
+        - link "Workspaces" [ref=f3e63] [cursor=pointer]:
+          - /url: /workspaces
+        - generic [ref=f3e66]: Applications
+      - main [ref=f3e67]:
+        - generic [ref=f3e68]:
+          - 'link "Workspace: booking" [ref=f3e72] [cursor=pointer]':
+            - /url: /workspaces/edit/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd
+          - generic [ref=f3e73]:
+            - heading "Applications" [level=1] [ref=f3e74]
+            - button "Create Application" [ref=f3e75] [cursor=pointer]
+          - textbox "Search by title, client ID or description" [ref=f3e77]
+          - generic [ref=f3e78]:
+            - generic [ref=f3e81]:
+              - generic [ref=f3e82]: SC
+              - generic [ref=f3e84]:
+                - link "scopes-public-api-test" [ref=f3e85] [cursor=pointer]:
+                  - /url: /workspaces/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd/applications/edit/699be307-3093-4f37-9347-f869955c6e95
+                - generic [ref=f3e86]:
+                  - generic [ref=f3e87]: ID
+                  - generic "scopes-public-api-test" [ref=f3e88]
+                - generic [ref=f3e89]:
+                  - generic [ref=f3e90]: Created 25/07/2026
+                  - generic [ref=f3e91]:
+                    - link "Edit" [ref=f3e92] [cursor=pointer]:
+                      - /url: /workspaces/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd/applications/edit/699be307-3093-4f37-9347-f869955c6e95
+                    - button "Delete" [ref=f3e96] [cursor=pointer]
+            - generic [ref=f3e102]:
+              - generic [ref=f3e103]: HE
+              - generic [ref=f3e105]:
+                - link "hello" [ref=f3e106] [cursor=pointer]:
+                  - /url: /workspaces/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd/applications/edit/b9e5e0c9-2e55-4259-be9e-70268c3ccb44
+                - generic [ref=f3e107]:
+                  - generic [ref=f3e108]: ID
+                  - generic "hello" [ref=f3e109]
+                - generic [ref=f3e110]:
+                  - generic [ref=f3e111]: Created 28/04/2026
+                  - generic [ref=f3e112]:
+                    - link "Edit" [ref=f3e113] [cursor=pointer]:
+                      - /url: /workspaces/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd/applications/edit/b9e5e0c9-2e55-4259-be9e-70268c3ccb44
+                    - button "Delete" [ref=f3e117] [cursor=pointer]

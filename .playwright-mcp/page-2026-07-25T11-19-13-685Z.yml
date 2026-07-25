@@ -1,0 +1,64 @@
+- generic [ref=f4e3]:
+  - generic [ref=f4e5]:
+    - button "Close sidebar" [ref=f4e7]
+    - generic [ref=f4e12]:
+      - generic "Toggle dark mode" [ref=f4e13] [cursor=pointer]
+      - button "andet.tafa" [ref=f4e18]
+  - generic [ref=f4e25]:
+    - complementary [ref=f4e26]:
+      - generic [ref=f4e32]:
+        - generic [ref=f4e33]: coco-iam
+        - generic [ref=f4e34]: Identity & Access
+      - complementary [ref=f4e35]:
+        - navigation [ref=f4e36]:
+          - list [ref=f4e37]:
+            - listitem [ref=f4e38]:
+              - link "Dashboard" [ref=f4e40] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=f4e43]:
+              - link "Organizations" [ref=f4e45] [cursor=pointer]:
+                - /url: /organizations
+            - listitem [ref=f4e48]:
+              - generic [ref=f4e49]:
+                - button "Admin" [ref=f4e50]
+                - button "Toggle Admin" [ref=f4e53]
+    - generic [ref=f4e56]:
+      - navigation "Breadcrumb" [ref=f4e57]:
+        - link "Home" [ref=f4e58] [cursor=pointer]:
+          - /url: /
+        - link "Workspaces" [ref=f4e63] [cursor=pointer]:
+          - /url: /workspaces
+        - generic [ref=f4e66]: Applications
+        - generic [ref=f4e184]: Create
+      - main [ref=f4e67]:
+        - generic [ref=f4e185]:
+          - 'link "Workspace: booking" [ref=f4e189] [cursor=pointer]':
+            - /url: /workspaces/edit/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd
+          - heading "Create Application" [level=1] [ref=f4e190]
+          - generic [ref=f4e191]:
+            - generic [ref=f4e192]:
+              - generic [ref=f4e193]:
+                - generic [ref=f4e194]: Title
+                - textbox "Title" [ref=f4e195]
+              - generic [ref=f4e196]:
+                - generic [ref=f4e197]: Client ID
+                - textbox "Client ID" [ref=f4e198]:
+                  - /placeholder: auto-generated from title
+                - paragraph [ref=f4e199]: Unique identifier, lowercase, no spaces.
+              - generic [ref=f4e200]:
+                - generic [ref=f4e201]: Description
+                - textbox "Description" [ref=f4e202]
+            - generic [ref=f4e203]:
+              - generic [ref=f4e205] [cursor=pointer]:
+                - checkbox "Is Active" [checked] [ref=f4e207]
+                - generic [ref=f4e210]: Is Active
+              - generic [ref=f4e212] [cursor=pointer]:
+                - checkbox "Allow password recovery" [checked] [ref=f4e214]
+                - generic [ref=f4e217]: Allow password recovery
+              - generic [ref=f4e219] [cursor=pointer]:
+                - checkbox "Allow registration" [ref=f4e221]
+                - generic [ref=f4e224]: Allow registration
+            - generic [ref=f4e225]:
+              - button "Create Application" [ref=f4e226] [cursor=pointer]
+              - link "Cancel" [ref=f4e227] [cursor=pointer]:
+                - /url: /workspaces/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd/applications

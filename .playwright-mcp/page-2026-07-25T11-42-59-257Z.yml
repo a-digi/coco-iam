@@ -1,0 +1,1572 @@
+- generic [ref=f8e3]:
+  - generic [ref=f8e6]:
+    - img "Swagger UI" [ref=f8e8]
+    - generic [ref=f8e9]:
+      - textbox [ref=f8e10]: /api/v1/docs/openapi.json
+      - button "Explore" [ref=f8e11] [cursor=pointer]
+  - generic [ref=f8e13]:
+    - generic [ref=f8e18]:
+      - heading [level=2]
+      - link "/api/v1/docs/openapi.json" [ref=f8e19] [cursor=pointer]:
+        - /url: /api/v1/docs/openapi.json
+    - generic [ref=f8e23]:
+      - generic [ref=f8e25]:
+        - heading [level=3] [ref=f8e26] [cursor=pointer]:
+          - link "system" [ref=f8e27]:
+            - /url: "#/system"
+          - button "Collapse operation" [expanded] [ref=f8e28]
+        - button "get /" [ref=f8e36] [cursor=pointer]:
+          - generic [ref=f8e37]: GET
+          - link / [ref=f8e39]:
+            - /url: "#/system/get_"
+          - generic [ref=f8e40]: Health check
+      - generic [ref=f8e44]:
+        - heading [level=3] [ref=f8e45] [cursor=pointer]:
+          - link "oauth" [ref=f8e46]:
+            - /url: "#/oauth"
+          - button "Collapse operation" [expanded] [ref=f8e47]
+        - generic [ref=f8e51]:
+          - 'button "get /a/{orgSlug}/{wsSlug}/{appSlug}/.well-known/openid-configuration" [ref=f8e55] [cursor=pointer]':
+            - generic [ref=f8e56]: GET
+            - link [ref=f8e58]:
+              - /url: "#/oauth/get_a__orgSlug___wsSlug___appSlug___well_known_openid_configuration"
+            - generic [ref=f8e60]: OpenID Connect discovery document
+          - 'button "get /a/{orgSlug}/{wsSlug}/{appSlug}/oauth/authorize" [ref=f8e66] [cursor=pointer]':
+            - generic [ref=f8e67]: GET
+            - link [ref=f8e69]:
+              - /url: "#/oauth/get_a__orgSlug___wsSlug___appSlug__oauth_authorize"
+            - generic [ref=f8e71]: OAuth authorize endpoint
+          - 'button "post /a/{orgSlug}/{wsSlug}/{appSlug}/oauth/authorize" [ref=f8e77] [cursor=pointer]':
+            - generic [ref=f8e78]: POST
+            - link [ref=f8e80]:
+              - /url: "#/oauth/post_a__orgSlug___wsSlug___appSlug__oauth_authorize"
+            - generic [ref=f8e82]: OAuth authorize endpoint
+          - 'button "post /{orgSlug}/{wsSlug}/{appSlug}/oauth/introspect" [ref=f8e88] [cursor=pointer]':
+            - generic [ref=f8e89]: POST
+            - link [ref=f8e91]:
+              - /url: "#/oauth/post__orgSlug___wsSlug___appSlug__oauth_introspect"
+            - generic [ref=f8e93]: OAuth introspect endpoint
+          - 'button "post /{orgSlug}/{wsSlug}/{appSlug}/oauth/revoke" [ref=f8e99] [cursor=pointer]':
+            - generic [ref=f8e100]: POST
+            - link [ref=f8e102]:
+              - /url: "#/oauth/post__orgSlug___wsSlug___appSlug__oauth_revoke"
+            - generic [ref=f8e104]: OAuth revoke endpoint
+          - 'button "post /{orgSlug}/{wsSlug}/{appSlug}/oauth/token" [ref=f8e110] [cursor=pointer]':
+            - generic [ref=f8e111]: POST
+            - link [ref=f8e113]:
+              - /url: "#/oauth/post__orgSlug___wsSlug___appSlug__oauth_token"
+            - generic [ref=f8e115]: OAuth token endpoint
+          - generic [ref=f8e120] [cursor=pointer]:
+            - 'button "get /{orgSlug}/{wsSlug}/{appSlug}/oauth/userinfo" [ref=f8e121]':
+              - generic [ref=f8e122]: GET
+              - link [ref=f8e124]:
+                - /url: "#/oauth/get__orgSlug___wsSlug___appSlug__oauth_userinfo"
+              - generic [ref=f8e126]: OAuth userinfo endpoint
+            - button "authorization button unlocked" [ref=f8e129]
+          - generic [ref=f8e134] [cursor=pointer]:
+            - 'button "post /{orgSlug}/{wsSlug}/{appSlug}/oauth/userinfo" [ref=f8e135]':
+              - generic [ref=f8e136]: POST
+              - link [ref=f8e138]:
+                - /url: "#/oauth/post__orgSlug___wsSlug___appSlug__oauth_userinfo"
+              - generic [ref=f8e140]: OAuth userinfo endpoint
+            - button "authorization button unlocked" [ref=f8e143]
+      - generic [ref=f8e147]:
+        - heading [level=3] [ref=f8e148] [cursor=pointer]:
+          - link "app-profile-me" [ref=f8e149]:
+            - /url: "#/app-profile-me"
+          - button "Collapse operation" [expanded] [ref=f8e150]
+        - generic [ref=f8e154]:
+          - 'button "get /a/{orgSlug}/{wsSlug}/{appSlug}/profile/fields" [ref=f8e158] [cursor=pointer]':
+            - generic [ref=f8e159]: GET
+            - link [ref=f8e161]:
+              - /url: "#/app-profile-me/get_a__orgSlug___wsSlug___appSlug__profile_fields"
+            - generic [ref=f8e163]: Get organization profile field schema
+          - 'button "put /a/{orgSlug}/{wsSlug}/{appSlug}/profile/fields" [ref=f8e169] [cursor=pointer]':
+            - generic [ref=f8e170]: PUT
+            - link [ref=f8e172]:
+              - /url: "#/app-profile-me/put_a__orgSlug___wsSlug___appSlug__profile_fields"
+            - generic [ref=f8e174]: Save user profile fields
+          - 'button "get /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me" [ref=f8e180] [cursor=pointer]':
+            - generic [ref=f8e181]: GET
+            - link [ref=f8e183]:
+              - /url: "#/app-profile-me/get_a__orgSlug___wsSlug___appSlug__profile_me"
+            - generic [ref=f8e185]: Get current user profile
+          - 'button "patch /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me" [ref=f8e191] [cursor=pointer]':
+            - generic [ref=f8e192]: PATCH
+            - link [ref=f8e194]:
+              - /url: "#/app-profile-me/patch_a__orgSlug___wsSlug___appSlug__profile_me"
+            - generic [ref=f8e196]: Patch current user profile
+          - 'button "get /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/files/{fieldName}" [ref=f8e202] [cursor=pointer]':
+            - generic [ref=f8e203]: GET
+            - link [ref=f8e205]:
+              - /url: "#/app-profile-me/get_a__orgSlug___wsSlug___appSlug__profile_me_files__fieldName_"
+            - generic [ref=f8e207]: Serve profile file
+          - 'button "post /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/files/{fieldName}" [ref=f8e213] [cursor=pointer]':
+            - generic [ref=f8e214]: POST
+            - link [ref=f8e216]:
+              - /url: "#/app-profile-me/post_a__orgSlug___wsSlug___appSlug__profile_me_files__fieldName_"
+            - generic [ref=f8e218]: Upload profile file
+          - 'button "delete /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/files/{fieldName}" [ref=f8e224] [cursor=pointer]':
+            - generic [ref=f8e225]: DELETE
+            - link [ref=f8e227]:
+              - /url: "#/app-profile-me/delete_a__orgSlug___wsSlug___appSlug__profile_me_files__fieldName_"
+            - generic [ref=f8e229]: Delete profile file
+      - generic [ref=f8e233]:
+        - heading [level=3] [ref=f8e234] [cursor=pointer]:
+          - link "app-oauth-consents" [ref=f8e235]:
+            - /url: "#/app-oauth-consents"
+          - button "Collapse operation" [expanded] [ref=f8e236]
+        - generic [ref=f8e240]:
+          - 'button "get /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/consents" [ref=f8e244] [cursor=pointer]':
+            - generic [ref=f8e245]: GET
+            - link [ref=f8e247]:
+              - /url: "#/app-oauth-consents/get_a__orgSlug___wsSlug___appSlug__profile_me_consents"
+            - generic [ref=f8e249]: List user OAuth consents
+          - 'button "delete /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/consents/{clientRowId}" [ref=f8e255] [cursor=pointer]':
+            - generic [ref=f8e256]: DELETE
+            - link [ref=f8e258]:
+              - /url: "#/app-oauth-consents/delete_a__orgSlug___wsSlug___appSlug__profile_me_consents__clientRowId_"
+            - generic [ref=f8e260]: Revoke user OAuth consent
+      - generic [ref=f8e264]:
+        - heading [level=3] [ref=f8e265] [cursor=pointer]:
+          - link "app-public" [ref=f8e266]:
+            - /url: "#/app-public"
+          - button "Collapse operation" [expanded] [ref=f8e267]
+        - generic [ref=f8e271]:
+          - 'button "post /a/{orgSlug}/{wsSlug}/{appSlug}/register" [ref=f8e275] [cursor=pointer]':
+            - generic [ref=f8e276]: POST
+            - link [ref=f8e278]:
+              - /url: "#/app-public/post_a__orgSlug___wsSlug___appSlug__register"
+            - generic [ref=f8e280]: Submit application registration
+          - 'button "post /a/{orgSlug}/{wsSlug}/{appSlug}/register/check" [ref=f8e286] [cursor=pointer]':
+            - generic [ref=f8e287]: POST
+            - link [ref=f8e289]:
+              - /url: "#/app-public/post_a__orgSlug___wsSlug___appSlug__register_check"
+            - generic [ref=f8e291]: Check registration field availability
+          - 'button "get /a/{orgSlug}/{wsSlug}/{appSlug}/registration-fields" [ref=f8e297] [cursor=pointer]':
+            - generic [ref=f8e298]: GET
+            - link [ref=f8e300]:
+              - /url: "#/app-public/get_a__orgSlug___wsSlug___appSlug__registration_fields"
+            - generic [ref=f8e302]: Get public registration fields
+          - 'button "get /p/applications/assets/{assetId}" [ref=f8e308] [cursor=pointer]':
+            - generic [ref=f8e309]: GET
+            - link [ref=f8e311]:
+              - /url: "#/app-public/get_p_applications_assets__assetId_"
+            - generic [ref=f8e313]: Serve public login template asset
+          - button "get /public/applications/login-template" [ref=f8e319] [cursor=pointer]:
+            - generic [ref=f8e320]: GET
+            - link [ref=f8e322]:
+              - /url: "#/app-public/get_public_applications_login_template"
+            - generic [ref=f8e324]: Get public login template config
+      - generic [ref=f8e328]:
+        - heading [level=3] [ref=f8e329] [cursor=pointer]:
+          - link "app-security-keys" [ref=f8e330]:
+            - /url: "#/app-security-keys"
+          - button "Collapse operation" [expanded] [ref=f8e331]
+        - generic [ref=f8e335]:
+          - 'button "get /a/{orgSlug}/{wsSlug}/{appSlug}/security-key" [ref=f8e339] [cursor=pointer]':
+            - generic [ref=f8e340]: GET
+            - link [ref=f8e342]:
+              - /url: "#/app-security-keys/get_a__orgSlug___wsSlug___appSlug__security_key"
+            - generic [ref=f8e344]: Get public security keys for an application
+          - 'button "get /a/{orgSlug}/{wsSlug}/{appSlug}/security-key/private" [ref=f8e350] [cursor=pointer]':
+            - generic [ref=f8e351]: GET
+            - link [ref=f8e353]:
+              - /url: "#/app-security-keys/get_a__orgSlug___wsSlug___appSlug__security_key_private"
+            - generic [ref=f8e355]: Get private security key for an application
+      - generic [ref=f8e359]:
+        - heading [level=3] [ref=f8e360] [cursor=pointer]:
+          - link "account" [ref=f8e361]:
+            - /url: "#/account"
+          - button "Collapse operation" [expanded] [ref=f8e362]
+        - generic [ref=f8e366]:
+          - generic [ref=f8e369] [cursor=pointer]:
+            - button "post /account/password/change" [ref=f8e370]:
+              - generic [ref=f8e371]: POST
+              - link [ref=f8e373]:
+                - /url: "#/account/post_account_password_change"
+              - generic [ref=f8e375]: Change password
+            - button "authorization button unlocked" [ref=f8e378]
+          - generic [ref=f8e383] [cursor=pointer]:
+            - button "post /account/password/verify" [ref=f8e384]:
+              - generic [ref=f8e385]: POST
+              - link [ref=f8e387]:
+                - /url: "#/account/post_account_password_verify"
+              - generic [ref=f8e389]: Verify current password
+            - button "authorization button unlocked" [ref=f8e392]
+          - generic [ref=f8e397] [cursor=pointer]:
+            - button "get /account/user-rules" [ref=f8e398]:
+              - generic [ref=f8e399]: GET
+              - link [ref=f8e401]:
+                - /url: "#/account/get_account_user_rules"
+              - generic [ref=f8e403]: Get account user rules
+            - button "authorization button unlocked" [ref=f8e406]
+      - generic [ref=f8e410]:
+        - heading [level=3] [ref=f8e411] [cursor=pointer]:
+          - link "activation" [ref=f8e412]:
+            - /url: "#/activation"
+          - button "Collapse operation" [expanded] [ref=f8e413]
+        - generic [ref=f8e417]:
+          - button "post /activation/activate" [ref=f8e421] [cursor=pointer]:
+            - generic [ref=f8e422]: POST
+            - link [ref=f8e424]:
+              - /url: "#/activation/post_activation_activate"
+            - generic [ref=f8e426]: Activate account
+          - button "post /activation/verify" [ref=f8e432] [cursor=pointer]:
+            - generic [ref=f8e433]: POST
+            - link [ref=f8e435]:
+              - /url: "#/activation/post_activation_verify"
+            - generic [ref=f8e437]: Verify activation token
+          - generic [ref=f8e442] [cursor=pointer]:
+            - 'button "post /admin/activation/admin/{id}/resend" [ref=f8e443]':
+              - generic [ref=f8e444]: POST
+              - link [ref=f8e446]:
+                - /url: "#/activation/post_admin_activation_admin__id__resend"
+              - generic [ref=f8e448]: Resend admin activation email
+            - button "authorization button unlocked" [ref=f8e451]
+          - generic [ref=f8e456] [cursor=pointer]:
+            - 'button "post /admin/activation/user/{id}/resend" [ref=f8e457]':
+              - generic [ref=f8e458]: POST
+              - link [ref=f8e460]:
+                - /url: "#/activation/post_admin_activation_user__id__resend"
+              - generic [ref=f8e462]: Resend org user activation email
+            - button "authorization button unlocked" [ref=f8e465]
+          - generic [ref=f8e470] [cursor=pointer]:
+            - button "post /auth/change-password" [ref=f8e471]:
+              - generic [ref=f8e472]: POST
+              - link [ref=f8e474]:
+                - /url: "#/activation/post_auth_change_password"
+              - generic [ref=f8e476]: Force password change
+            - button "authorization button unlocked" [ref=f8e479]
+      - generic [ref=f8e483]:
+        - heading [level=3] [ref=f8e484] [cursor=pointer]:
+          - link "admin-acl" [ref=f8e485]:
+            - /url: "#/admin-acl"
+          - button "Collapse operation" [expanded] [ref=f8e486]
+        - generic [ref=f8e493] [cursor=pointer]:
+          - button "get /admin/acl/scopes" [ref=f8e494]:
+            - generic [ref=f8e495]: GET
+            - link [ref=f8e497]:
+              - /url: "#/admin-acl/get_admin_acl_scopes"
+            - generic [ref=f8e499]: List ACL scopes
+          - button "authorization button unlocked" [ref=f8e502]
+      - generic [ref=f8e506]:
+        - heading [level=3] [ref=f8e507] [cursor=pointer]:
+          - link "admin-dashboard" [ref=f8e508]:
+            - /url: "#/admin-dashboard"
+          - button "Collapse operation" [expanded] [ref=f8e509]
+        - generic [ref=f8e513]:
+          - generic [ref=f8e516] [cursor=pointer]:
+            - button "get /admin/dashboard/failed-tasks" [ref=f8e517]:
+              - generic [ref=f8e518]: GET
+              - link [ref=f8e520]:
+                - /url: "#/admin-dashboard/get_admin_dashboard_failed_tasks"
+              - generic [ref=f8e522]: Get failed tasks
+            - button "authorization button unlocked" [ref=f8e525]
+          - generic [ref=f8e530] [cursor=pointer]:
+            - button "get /admin/dashboard/queue" [ref=f8e531]:
+              - generic [ref=f8e532]: GET
+              - link [ref=f8e534]:
+                - /url: "#/admin-dashboard/get_admin_dashboard_queue"
+              - generic [ref=f8e536]: Get queue breakdown
+            - button "authorization button unlocked" [ref=f8e539]
+          - generic [ref=f8e544] [cursor=pointer]:
+            - button "get /admin/dashboard/recent-users" [ref=f8e545]:
+              - generic [ref=f8e546]: GET
+              - link [ref=f8e548]:
+                - /url: "#/admin-dashboard/get_admin_dashboard_recent_users"
+              - generic [ref=f8e550]: Get recent users
+            - button "authorization button unlocked" [ref=f8e553]
+          - generic [ref=f8e558] [cursor=pointer]:
+            - button "get /admin/dashboard/registrations" [ref=f8e559]:
+              - generic [ref=f8e560]: GET
+              - link [ref=f8e562]:
+                - /url: "#/admin-dashboard/get_admin_dashboard_registrations"
+              - generic [ref=f8e564]: Get organisation registrations breakdown
+            - button "authorization button unlocked" [ref=f8e567]
+          - generic [ref=f8e572] [cursor=pointer]:
+            - button "get /admin/dashboard/stats" [ref=f8e573]:
+              - generic [ref=f8e574]: GET
+              - link [ref=f8e576]:
+                - /url: "#/admin-dashboard/get_admin_dashboard_stats"
+              - generic [ref=f8e578]: Get dashboard stats
+            - button "authorization button unlocked" [ref=f8e581]
+          - generic [ref=f8e586] [cursor=pointer]:
+            - button "get /admin/dashboard/top-orgs" [ref=f8e587]:
+              - generic [ref=f8e588]: GET
+              - link [ref=f8e590]:
+                - /url: "#/admin-dashboard/get_admin_dashboard_top_orgs"
+              - generic [ref=f8e592]: Get top organisations by user count
+            - button "authorization button unlocked" [ref=f8e595]
+      - generic [ref=f8e599]:
+        - heading [level=3] [ref=f8e600] [cursor=pointer]:
+          - link "admin-mail" [ref=f8e601]:
+            - /url: "#/admin-mail"
+          - button "Collapse operation" [expanded] [ref=f8e602]
+        - generic [ref=f8e606]:
+          - generic [ref=f8e609] [cursor=pointer]:
+            - button "get /admin/mail/accounts" [ref=f8e610]:
+              - generic [ref=f8e611]: GET
+              - link [ref=f8e613]:
+                - /url: "#/admin-mail/get_admin_mail_accounts"
+              - generic [ref=f8e615]: List mail accounts
+            - button "authorization button unlocked" [ref=f8e618]
+          - generic [ref=f8e623] [cursor=pointer]:
+            - button "post /admin/mail/accounts" [ref=f8e624]:
+              - generic [ref=f8e625]: POST
+              - link [ref=f8e627]:
+                - /url: "#/admin-mail/post_admin_mail_accounts"
+              - generic [ref=f8e629]: Create a mail account
+            - button "authorization button unlocked" [ref=f8e632]
+          - generic [ref=f8e637] [cursor=pointer]:
+            - 'button "get /admin/mail/accounts/{id}" [ref=f8e638]':
+              - generic [ref=f8e639]: GET
+              - link [ref=f8e641]:
+                - /url: "#/admin-mail/get_admin_mail_accounts__id_"
+              - generic [ref=f8e643]: Get a mail account
+            - button "authorization button unlocked" [ref=f8e646]
+          - generic [ref=f8e651] [cursor=pointer]:
+            - 'button "delete /admin/mail/accounts/{id}" [ref=f8e652]':
+              - generic [ref=f8e653]: DELETE
+              - link [ref=f8e655]:
+                - /url: "#/admin-mail/delete_admin_mail_accounts__id_"
+              - generic [ref=f8e657]: Delete a mail account
+            - button "authorization button unlocked" [ref=f8e660]
+          - generic [ref=f8e665] [cursor=pointer]:
+            - 'button "patch /admin/mail/accounts/{id}" [ref=f8e666]':
+              - generic [ref=f8e667]: PATCH
+              - link [ref=f8e669]:
+                - /url: "#/admin-mail/patch_admin_mail_accounts__id_"
+              - generic [ref=f8e671]: Update a mail account
+            - button "authorization button unlocked" [ref=f8e674]
+          - generic [ref=f8e679] [cursor=pointer]:
+            - 'button "post /admin/mail/accounts/{id}/activate" [ref=f8e680]':
+              - generic [ref=f8e681]: POST
+              - link [ref=f8e683]:
+                - /url: "#/admin-mail/post_admin_mail_accounts__id__activate"
+              - generic [ref=f8e685]: Activate a mail account
+            - button "authorization button unlocked" [ref=f8e688]
+          - generic [ref=f8e693] [cursor=pointer]:
+            - 'button "post /admin/mail/accounts/{id}/test" [ref=f8e694]':
+              - generic [ref=f8e695]: POST
+              - link [ref=f8e697]:
+                - /url: "#/admin-mail/post_admin_mail_accounts__id__test"
+              - generic [ref=f8e699]: Test a mail account
+            - button "authorization button unlocked" [ref=f8e702]
+          - generic [ref=f8e707] [cursor=pointer]:
+            - button "get /admin/mail/outbound" [ref=f8e708]:
+              - generic [ref=f8e709]: GET
+              - link [ref=f8e711]:
+                - /url: "#/admin-mail/get_admin_mail_outbound"
+              - generic [ref=f8e713]: List outbound mail
+            - button "authorization button unlocked" [ref=f8e716]
+          - generic [ref=f8e721] [cursor=pointer]:
+            - 'button "get /admin/mail/outbound/{id}" [ref=f8e722]':
+              - generic [ref=f8e723]: GET
+              - link [ref=f8e725]:
+                - /url: "#/admin-mail/get_admin_mail_outbound__id_"
+              - generic [ref=f8e727]: Get outbound mail detail
+            - button "authorization button unlocked" [ref=f8e730]
+          - generic [ref=f8e735] [cursor=pointer]:
+            - 'button "post /admin/mail/outbound/{id}/retry" [ref=f8e736]':
+              - generic [ref=f8e737]: POST
+              - link [ref=f8e739]:
+                - /url: "#/admin-mail/post_admin_mail_outbound__id__retry"
+              - generic [ref=f8e741]: Retry a failed outbound mail
+            - button "authorization button unlocked" [ref=f8e744]
+          - generic [ref=f8e749] [cursor=pointer]:
+            - button "get /admin/mail/settings" [ref=f8e750]:
+              - generic [ref=f8e751]: GET
+              - link [ref=f8e753]:
+                - /url: "#/admin-mail/get_admin_mail_settings"
+              - generic [ref=f8e755]: Get mail settings
+            - button "authorization button unlocked" [ref=f8e758]
+          - generic [ref=f8e763] [cursor=pointer]:
+            - button "patch /admin/mail/settings" [ref=f8e764]:
+              - generic [ref=f8e765]: PATCH
+              - link [ref=f8e767]:
+                - /url: "#/admin-mail/patch_admin_mail_settings"
+              - generic [ref=f8e769]: Update mail settings
+            - button "authorization button unlocked" [ref=f8e772]
+          - generic [ref=f8e777] [cursor=pointer]:
+            - button "get /admin/mail/settings/events" [ref=f8e778]:
+              - generic [ref=f8e779]: GET
+              - link [ref=f8e781]:
+                - /url: "#/admin-mail/get_admin_mail_settings_events"
+              - generic [ref=f8e783]: List mail settings event catalog
+            - button "authorization button unlocked" [ref=f8e786]
+          - generic [ref=f8e791] [cursor=pointer]:
+            - button "post /admin/mail/settings/test" [ref=f8e792]:
+              - generic [ref=f8e793]: POST
+              - link [ref=f8e795]:
+                - /url: "#/admin-mail/post_admin_mail_settings_test"
+              - generic [ref=f8e797]: Send a test mail via settings
+            - button "authorization button unlocked" [ref=f8e800]
+          - generic [ref=f8e805] [cursor=pointer]:
+            - button "get /admin/mail/status" [ref=f8e806]:
+              - generic [ref=f8e807]: GET
+              - link [ref=f8e809]:
+                - /url: "#/admin-mail/get_admin_mail_status"
+              - generic [ref=f8e811]: Get mail orchestrator status
+            - button "authorization button unlocked" [ref=f8e814]
+          - generic [ref=f8e819] [cursor=pointer]:
+            - button "post /admin/mail/test" [ref=f8e820]:
+              - generic [ref=f8e821]: POST
+              - link [ref=f8e823]:
+                - /url: "#/admin-mail/post_admin_mail_test"
+              - generic [ref=f8e825]: Send a test mail
+            - button "authorization button unlocked" [ref=f8e828]
+      - generic [ref=f8e832]:
+        - heading [level=3] [ref=f8e833] [cursor=pointer]:
+          - link "admin-mail-templates" [ref=f8e834]:
+            - /url: "#/admin-mail-templates"
+          - button "Collapse operation" [expanded] [ref=f8e835]
+        - generic [ref=f8e839]:
+          - generic [ref=f8e842] [cursor=pointer]:
+            - button "get /admin/mail/template-starters" [ref=f8e843]:
+              - generic [ref=f8e844]: GET
+              - link [ref=f8e846]:
+                - /url: "#/admin-mail-templates/get_admin_mail_template_starters"
+              - generic [ref=f8e848]: List mail template starters
+            - button "authorization button unlocked" [ref=f8e851]
+          - generic [ref=f8e856] [cursor=pointer]:
+            - button "get /admin/mail/templates" [ref=f8e857]:
+              - generic [ref=f8e858]: GET
+              - link [ref=f8e860]:
+                - /url: "#/admin-mail-templates/get_admin_mail_templates"
+              - generic [ref=f8e862]: List mail templates
+            - button "authorization button unlocked" [ref=f8e865]
+          - generic [ref=f8e870] [cursor=pointer]:
+            - button "post /admin/mail/templates" [ref=f8e871]:
+              - generic [ref=f8e872]: POST
+              - link [ref=f8e874]:
+                - /url: "#/admin-mail-templates/post_admin_mail_templates"
+              - generic [ref=f8e876]: Create a mail template
+            - button "authorization button unlocked" [ref=f8e879]
+          - generic [ref=f8e884] [cursor=pointer]:
+            - 'button "get /admin/mail/templates/{id}" [ref=f8e885]':
+              - generic [ref=f8e886]: GET
+              - link [ref=f8e888]:
+                - /url: "#/admin-mail-templates/get_admin_mail_templates__id_"
+              - generic [ref=f8e890]: Get a mail template
+            - button "authorization button unlocked" [ref=f8e893]
+          - generic [ref=f8e898] [cursor=pointer]:
+            - 'button "delete /admin/mail/templates/{id}" [ref=f8e899]':
+              - generic [ref=f8e900]: DELETE
+              - link [ref=f8e902]:
+                - /url: "#/admin-mail-templates/delete_admin_mail_templates__id_"
+              - generic [ref=f8e904]: Delete a mail template
+            - button "authorization button unlocked" [ref=f8e907]
+          - generic [ref=f8e912] [cursor=pointer]:
+            - 'button "patch /admin/mail/templates/{id}" [ref=f8e913]':
+              - generic [ref=f8e914]: PATCH
+              - link [ref=f8e916]:
+                - /url: "#/admin-mail-templates/patch_admin_mail_templates__id_"
+              - generic [ref=f8e918]: Update a mail template
+            - button "authorization button unlocked" [ref=f8e921]
+      - generic [ref=f8e925]:
+        - heading [level=3] [ref=f8e926] [cursor=pointer]:
+          - link "admin-me" [ref=f8e927]:
+            - /url: "#/admin-me"
+          - button "Collapse operation" [expanded] [ref=f8e928]
+        - generic [ref=f8e932]:
+          - generic [ref=f8e935] [cursor=pointer]:
+            - button "get /admin/me/acl" [ref=f8e936]:
+              - generic [ref=f8e937]: GET
+              - link [ref=f8e939]:
+                - /url: "#/admin-me/get_admin_me_acl"
+              - generic [ref=f8e941]: Get current admin user ACL
+            - button "authorization button unlocked" [ref=f8e944]
+          - generic [ref=f8e949] [cursor=pointer]:
+            - button "get /admin/me/admin_groups" [ref=f8e950]:
+              - generic [ref=f8e951]: GET
+              - link [ref=f8e953]:
+                - /url: "#/admin-me/get_admin_me_admin_groups"
+              - generic [ref=f8e955]: Get current admin user groups
+            - button "authorization button unlocked" [ref=f8e958]
+          - generic [ref=f8e963] [cursor=pointer]:
+            - button "get /admin/users/me" [ref=f8e964]:
+              - generic [ref=f8e965]: GET
+              - link [ref=f8e967]:
+                - /url: "#/admin-me/get_admin_users_me"
+              - generic [ref=f8e969]: Get current admin user
+            - button "authorization button unlocked" [ref=f8e972]
+          - generic [ref=f8e977] [cursor=pointer]:
+            - button "patch /admin/users/me" [ref=f8e978]:
+              - generic [ref=f8e979]: PATCH
+              - link [ref=f8e981]:
+                - /url: "#/admin-me/patch_admin_users_me"
+              - generic [ref=f8e983]: Update current admin user profile
+            - button "authorization button unlocked" [ref=f8e986]
+          - generic [ref=f8e991] [cursor=pointer]:
+            - button "post /admin/users/me/avatar" [ref=f8e992]:
+              - generic [ref=f8e993]: POST
+              - link [ref=f8e995]:
+                - /url: "#/admin-me/post_admin_users_me_avatar"
+              - generic [ref=f8e997]: Upload admin user avatar
+            - button "authorization button unlocked" [ref=f8e1000]
+          - generic [ref=f8e1005] [cursor=pointer]:
+            - button "delete /admin/users/me/avatar" [ref=f8e1006]:
+              - generic [ref=f8e1007]: DELETE
+              - link [ref=f8e1009]:
+                - /url: "#/admin-me/delete_admin_users_me_avatar"
+              - generic [ref=f8e1011]: Delete admin user avatar
+            - button "authorization button unlocked" [ref=f8e1014]
+          - generic [ref=f8e1019] [cursor=pointer]:
+            - button "get /admin/users/me/password-notification" [ref=f8e1020]:
+              - generic [ref=f8e1021]: GET
+              - link [ref=f8e1023]:
+                - /url: "#/admin-me/get_admin_users_me_password_notification"
+              - generic [ref=f8e1025]: Get password notification preferences
+            - button "authorization button unlocked" [ref=f8e1028]
+          - generic [ref=f8e1033] [cursor=pointer]:
+            - button "put /admin/users/me/password-notification" [ref=f8e1034]:
+              - generic [ref=f8e1035]: PUT
+              - link [ref=f8e1037]:
+                - /url: "#/admin-me/put_admin_users_me_password_notification"
+              - generic [ref=f8e1039]: Update password notification preferences
+            - button "authorization button unlocked" [ref=f8e1042]
+      - generic [ref=f8e1046]:
+        - heading [level=3] [ref=f8e1047] [cursor=pointer]:
+          - link "auth" [ref=f8e1048]:
+            - /url: "#/auth"
+          - button "Collapse operation" [expanded] [ref=f8e1049]
+        - button "post /admin/oauth/renew" [ref=f8e1057] [cursor=pointer]:
+          - generic [ref=f8e1058]: POST
+          - link [ref=f8e1060]:
+            - /url: "#/auth/post_admin_oauth_renew"
+          - generic [ref=f8e1062]: Renew OAuth token
+      - generic [ref=f8e1066]:
+        - heading [level=3] [ref=f8e1067] [cursor=pointer]:
+          - link "admin-observe" [ref=f8e1068]:
+            - /url: "#/admin-observe"
+          - button "Collapse operation" [expanded] [ref=f8e1069]
+        - generic [ref=f8e1073]:
+          - generic [ref=f8e1076] [cursor=pointer]:
+            - button "get /admin/observe/agents" [ref=f8e1077]:
+              - generic [ref=f8e1078]: GET
+              - link [ref=f8e1080]:
+                - /url: "#/admin-observe/get_admin_observe_agents"
+              - generic [ref=f8e1082]: Manage observe agents
+            - button "authorization button unlocked" [ref=f8e1085]
+          - generic [ref=f8e1090] [cursor=pointer]:
+            - button "post /admin/observe/agents" [ref=f8e1091]:
+              - generic [ref=f8e1092]: POST
+              - link [ref=f8e1094]:
+                - /url: "#/admin-observe/post_admin_observe_agents"
+              - generic [ref=f8e1096]: Manage observe agents
+            - button "authorization button unlocked" [ref=f8e1099]
+          - generic [ref=f8e1104] [cursor=pointer]:
+            - 'button "delete /admin/observe/agents/{id}" [ref=f8e1105]':
+              - generic [ref=f8e1106]: DELETE
+              - link [ref=f8e1108]:
+                - /url: "#/admin-observe/delete_admin_observe_agents__id_"
+              - generic [ref=f8e1110]: Manage observe agents
+            - button "authorization button unlocked" [ref=f8e1113]
+          - generic [ref=f8e1118] [cursor=pointer]:
+            - 'button "patch /admin/observe/agents/{id}" [ref=f8e1119]':
+              - generic [ref=f8e1120]: PATCH
+              - link [ref=f8e1122]:
+                - /url: "#/admin-observe/patch_admin_observe_agents__id_"
+              - generic [ref=f8e1124]: Manage observe agents
+            - button "authorization button unlocked" [ref=f8e1127]
+          - generic [ref=f8e1132] [cursor=pointer]:
+            - 'button "get /admin/observe/agents/{id}/download" [ref=f8e1133]':
+              - generic [ref=f8e1134]: GET
+              - link [ref=f8e1136]:
+                - /url: "#/admin-observe/get_admin_observe_agents__id__download"
+              - generic [ref=f8e1138]: Download agent binary
+            - button "authorization button unlocked" [ref=f8e1141]
+          - generic [ref=f8e1146] [cursor=pointer]:
+            - button "get /admin/observe/metrics" [ref=f8e1147]:
+              - generic [ref=f8e1148]: GET
+              - link [ref=f8e1150]:
+                - /url: "#/admin-observe/get_admin_observe_metrics"
+              - generic [ref=f8e1152]: Query metrics
+            - button "authorization button unlocked" [ref=f8e1155]
+          - generic [ref=f8e1160] [cursor=pointer]:
+            - button "get /admin/observe/metrics/latest" [ref=f8e1161]:
+              - generic [ref=f8e1162]: GET
+              - link [ref=f8e1164]:
+                - /url: "#/admin-observe/get_admin_observe_metrics_latest"
+              - generic [ref=f8e1166]: Query latest metrics
+            - button "authorization button unlocked" [ref=f8e1169]
+          - generic [ref=f8e1174] [cursor=pointer]:
+            - button "get /admin/observe/metrics/raw" [ref=f8e1175]:
+              - generic [ref=f8e1176]: GET
+              - link [ref=f8e1178]:
+                - /url: "#/admin-observe/get_admin_observe_metrics_raw"
+              - generic [ref=f8e1180]: Query raw metrics
+            - button "authorization button unlocked" [ref=f8e1183]
+          - button "post /admin/observe/push" [ref=f8e1189] [cursor=pointer]:
+            - generic [ref=f8e1190]: POST
+            - link [ref=f8e1192]:
+              - /url: "#/admin-observe/post_admin_observe_push"
+            - generic [ref=f8e1194]: Push metrics
+      - generic [ref=f8e1198]:
+        - heading [level=3] [ref=f8e1199] [cursor=pointer]:
+          - link "org-users" [ref=f8e1200]:
+            - /url: "#/org-users"
+          - button "Collapse operation" [expanded] [ref=f8e1201]
+        - generic [ref=f8e1205]:
+          - generic [ref=f8e1208] [cursor=pointer]:
+            - button "get /admin/organization_users" [ref=f8e1209]:
+              - generic [ref=f8e1210]: GET
+              - link [ref=f8e1212]:
+                - /url: "#/org-users/get_admin_organization_users"
+              - generic [ref=f8e1214]: List or get organization users
+            - button "authorization button unlocked" [ref=f8e1217]
+          - generic [ref=f8e1222] [cursor=pointer]:
+            - button "post /admin/organization_users" [ref=f8e1223]:
+              - generic [ref=f8e1224]: POST
+              - link [ref=f8e1226]:
+                - /url: "#/org-users/post_admin_organization_users"
+              - generic [ref=f8e1228]: Create organization user
+            - button "authorization button unlocked" [ref=f8e1231]
+          - generic [ref=f8e1236] [cursor=pointer]:
+            - 'button "get /admin/organization_users/{id}" [ref=f8e1237]':
+              - generic [ref=f8e1238]: GET
+              - link [ref=f8e1240]:
+                - /url: "#/org-users/get_admin_organization_users__id_"
+              - generic [ref=f8e1242]: List or get organization users
+            - button "authorization button unlocked" [ref=f8e1245]
+          - generic [ref=f8e1250] [cursor=pointer]:
+            - 'button "delete /admin/organization_users/{id}" [ref=f8e1251]':
+              - generic [ref=f8e1252]: DELETE
+              - link [ref=f8e1254]:
+                - /url: "#/org-users/delete_admin_organization_users__id_"
+              - generic [ref=f8e1256]: Delete organization user
+            - button "authorization button unlocked" [ref=f8e1259]
+          - generic [ref=f8e1264] [cursor=pointer]:
+            - 'button "patch /admin/organization_users/{id}" [ref=f8e1265]':
+              - generic [ref=f8e1266]: PATCH
+              - link [ref=f8e1268]:
+                - /url: "#/org-users/patch_admin_organization_users__id_"
+              - generic [ref=f8e1270]: Update organization user
+            - button "authorization button unlocked" [ref=f8e1273]
+          - generic [ref=f8e1278] [cursor=pointer]:
+            - 'button "post /organizations/organization_users/{id}/resend-activation" [ref=f8e1279]':
+              - generic [ref=f8e1280]: POST
+              - link [ref=f8e1282]:
+                - /url: "#/org-users/post_organizations_organization_users__id__resend_activation"
+              - generic [ref=f8e1284]: Resend organization user activation email
+            - button "authorization button unlocked" [ref=f8e1287]
+          - generic [ref=f8e1292] [cursor=pointer]:
+            - 'button "get /organizations/organizations/{id}/users/{userId}/profile" [ref=f8e1293]':
+              - generic [ref=f8e1294]: GET
+              - link [ref=f8e1296]:
+                - /url: "#/org-users/get_organizations_organizations__id__users__userId__profile"
+              - generic [ref=f8e1298]: Get organization user profile
+            - button "authorization button unlocked" [ref=f8e1301]
+          - generic [ref=f8e1306] [cursor=pointer]:
+            - 'button "put /organizations/organizations/{id}/users/{userId}/profile" [ref=f8e1307]':
+              - generic [ref=f8e1308]: PUT
+              - link [ref=f8e1310]:
+                - /url: "#/org-users/put_organizations_organizations__id__users__userId__profile"
+              - generic [ref=f8e1312]: Upsert organization user profile
+            - button "authorization button unlocked" [ref=f8e1315]
+      - generic [ref=f8e1319]:
+        - heading [level=3] [ref=f8e1320] [cursor=pointer]:
+          - link "admin-queue" [ref=f8e1321]:
+            - /url: "#/admin-queue"
+          - button "Collapse operation" [expanded] [ref=f8e1322]
+        - generic [ref=f8e1326]:
+          - generic [ref=f8e1329] [cursor=pointer]:
+            - button "get /admin/queue/queue_tasks" [ref=f8e1330]:
+              - generic [ref=f8e1331]: GET
+              - link [ref=f8e1333]:
+                - /url: "#/admin-queue/get_admin_queue_queue_tasks"
+              - generic [ref=f8e1335]: List queue tasks
+            - button "authorization button unlocked" [ref=f8e1338]
+          - generic [ref=f8e1343] [cursor=pointer]:
+            - 'button "get /admin/queue/queue_tasks/{id}" [ref=f8e1344]':
+              - generic [ref=f8e1345]: GET
+              - link [ref=f8e1347]:
+                - /url: "#/admin-queue/get_admin_queue_queue_tasks__id_"
+              - generic [ref=f8e1349]: Get queue task
+            - button "authorization button unlocked" [ref=f8e1352]
+          - generic [ref=f8e1357] [cursor=pointer]:
+            - button "get /admin/queue/queues" [ref=f8e1358]:
+              - generic [ref=f8e1359]: GET
+              - link [ref=f8e1361]:
+                - /url: "#/admin-queue/get_admin_queue_queues"
+              - generic [ref=f8e1363]: List queue statistics
+            - button "authorization button unlocked" [ref=f8e1366]
+          - generic [ref=f8e1371] [cursor=pointer]:
+            - button "post /admin/queue/queues" [ref=f8e1372]:
+              - generic [ref=f8e1373]: POST
+              - link [ref=f8e1375]:
+                - /url: "#/admin-queue/post_admin_queue_queues"
+              - generic [ref=f8e1377]: Create a queue
+            - button "authorization button unlocked" [ref=f8e1380]
+          - generic [ref=f8e1385] [cursor=pointer]:
+            - 'button "post /admin/queue/retry/{id}" [ref=f8e1386]':
+              - generic [ref=f8e1387]: POST
+              - link [ref=f8e1389]:
+                - /url: "#/admin-queue/post_admin_queue_retry__id_"
+              - generic [ref=f8e1391]: Retry failed task
+            - button "authorization button unlocked" [ref=f8e1394]
+          - generic [ref=f8e1399] [cursor=pointer]:
+            - 'button "get /admin/queue/tasks/{id}/payload" [ref=f8e1400]':
+              - generic [ref=f8e1401]: GET
+              - link [ref=f8e1403]:
+                - /url: "#/admin-queue/get_admin_queue_tasks__id__payload"
+              - generic [ref=f8e1405]: Get task payload
+            - button "authorization button unlocked" [ref=f8e1408]
+      - generic [ref=f8e1412]:
+        - heading [level=3] [ref=f8e1413] [cursor=pointer]:
+          - link "admin-settings" [ref=f8e1414]:
+            - /url: "#/admin-settings"
+          - button "Collapse operation" [expanded] [ref=f8e1415]
+        - generic [ref=f8e1419]:
+          - generic [ref=f8e1422] [cursor=pointer]:
+            - button "get /admin/settings/general" [ref=f8e1423]:
+              - generic [ref=f8e1424]: GET
+              - link [ref=f8e1426]:
+                - /url: "#/admin-settings/get_admin_settings_general"
+              - generic [ref=f8e1428]: Get general settings
+            - button "authorization button unlocked" [ref=f8e1431]
+          - generic [ref=f8e1436] [cursor=pointer]:
+            - button "patch /admin/settings/general" [ref=f8e1437]:
+              - generic [ref=f8e1438]: PATCH
+              - link [ref=f8e1440]:
+                - /url: "#/admin-settings/patch_admin_settings_general"
+              - generic [ref=f8e1442]: Update general settings
+            - button "authorization button unlocked" [ref=f8e1445]
+          - generic [ref=f8e1450] [cursor=pointer]:
+            - button "get /admin/settings/user-rules" [ref=f8e1451]:
+              - generic [ref=f8e1452]: GET
+              - link [ref=f8e1454]:
+                - /url: "#/admin-settings/get_admin_settings_user_rules"
+              - generic [ref=f8e1456]: Get admin user rules
+            - button "authorization button unlocked" [ref=f8e1459]
+          - generic [ref=f8e1464] [cursor=pointer]:
+            - button "patch /admin/settings/user-rules" [ref=f8e1465]:
+              - generic [ref=f8e1466]: PATCH
+              - link [ref=f8e1468]:
+                - /url: "#/admin-settings/patch_admin_settings_user_rules"
+              - generic [ref=f8e1470]: Update admin user rules
+            - button "authorization button unlocked" [ref=f8e1473]
+      - generic [ref=f8e1477]:
+        - heading [level=3] [ref=f8e1478] [cursor=pointer]:
+          - link "admin-users" [ref=f8e1479]:
+            - /url: "#/admin-users"
+          - button "Collapse operation" [expanded] [ref=f8e1480]
+        - generic [ref=f8e1484]:
+          - generic [ref=f8e1487] [cursor=pointer]:
+            - button "post /admin/users" [ref=f8e1488]:
+              - generic [ref=f8e1489]: POST
+              - link [ref=f8e1491]:
+                - /url: "#/admin-users/post_admin_users"
+              - generic [ref=f8e1493]: Create admin user
+            - button "authorization button unlocked" [ref=f8e1496]
+          - generic [ref=f8e1501] [cursor=pointer]:
+            - 'button "delete /admin/users/{id}" [ref=f8e1502]':
+              - generic [ref=f8e1503]: DELETE
+              - link [ref=f8e1505]:
+                - /url: "#/admin-users/delete_admin_users__id_"
+              - generic [ref=f8e1507]: Delete admin user
+            - button "authorization button unlocked" [ref=f8e1510]
+          - generic [ref=f8e1515] [cursor=pointer]:
+            - 'button "patch /admin/users/{id}" [ref=f8e1516]':
+              - generic [ref=f8e1517]: PATCH
+              - link [ref=f8e1519]:
+                - /url: "#/admin-users/patch_admin_users__id_"
+              - generic [ref=f8e1521]: Update admin user
+            - button "authorization button unlocked" [ref=f8e1524]
+      - generic [ref=f8e1528]:
+        - heading [level=3] [ref=f8e1529] [cursor=pointer]:
+          - link "applications" [ref=f8e1530]:
+            - /url: "#/applications"
+          - button "Collapse operation" [expanded] [ref=f8e1531]
+        - generic [ref=f8e1535]:
+          - generic [ref=f8e1538] [cursor=pointer]:
+            - button "get /applications/applications" [ref=f8e1539]:
+              - generic [ref=f8e1540]: GET
+              - link [ref=f8e1542]:
+                - /url: "#/applications/get_applications_applications"
+              - generic [ref=f8e1544]: Manage applications (CRUD)
+            - button "authorization button unlocked" [ref=f8e1547]
+          - generic [ref=f8e1552] [cursor=pointer]:
+            - button "post /applications/applications" [ref=f8e1553]:
+              - generic [ref=f8e1554]: POST
+              - link [ref=f8e1556]:
+                - /url: "#/applications/post_applications_applications"
+              - generic [ref=f8e1558]: Manage applications (CRUD)
+            - button "authorization button unlocked" [ref=f8e1561]
+          - generic [ref=f8e1566] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}" [ref=f8e1567]':
+              - generic [ref=f8e1568]: GET
+              - link [ref=f8e1570]:
+                - /url: "#/applications/get_applications_applications__id_"
+              - generic [ref=f8e1572]: Manage applications (CRUD)
+            - button "authorization button unlocked" [ref=f8e1575]
+          - generic [ref=f8e1580] [cursor=pointer]:
+            - 'button "delete /applications/applications/{id}" [ref=f8e1581]':
+              - generic [ref=f8e1582]: DELETE
+              - link [ref=f8e1584]:
+                - /url: "#/applications/delete_applications_applications__id_"
+              - generic [ref=f8e1586]: Manage applications (CRUD)
+            - button "authorization button unlocked" [ref=f8e1589]
+          - generic [ref=f8e1594] [cursor=pointer]:
+            - 'button "patch /applications/applications/{id}" [ref=f8e1595]':
+              - generic [ref=f8e1596]: PATCH
+              - link [ref=f8e1598]:
+                - /url: "#/applications/patch_applications_applications__id_"
+              - generic [ref=f8e1600]: Manage applications (CRUD)
+            - button "authorization button unlocked" [ref=f8e1603]
+          - generic [ref=f8e1608] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/scopes/export" [ref=f8e1609]':
+              - generic [ref=f8e1610]: GET
+              - link [ref=f8e1612]:
+                - /url: "#/applications/get_applications_applications__id__scopes_export"
+              - generic [ref=f8e1614]: Export application scopes
+            - button "authorization button unlocked" [ref=f8e1617]
+          - generic [ref=f8e1622] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/scopes/import" [ref=f8e1623]':
+              - generic [ref=f8e1624]: POST
+              - link [ref=f8e1626]:
+                - /url: "#/applications/post_applications_applications__id__scopes_import"
+              - generic [ref=f8e1628]: Import application scopes
+            - button "authorization button unlocked" [ref=f8e1631]
+          - generic [ref=f8e1636] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/slugs" [ref=f8e1637]':
+              - generic [ref=f8e1638]: GET
+              - link [ref=f8e1640]:
+                - /url: "#/applications/get_applications_applications__id__slugs"
+              - generic [ref=f8e1642]: Get application slugs
+            - button "authorization button unlocked" [ref=f8e1645]
+      - generic [ref=f8e1649]:
+        - heading [level=3] [ref=f8e1650] [cursor=pointer]:
+          - link "app-analytics" [ref=f8e1651]:
+            - /url: "#/app-analytics"
+          - button "Collapse operation" [expanded] [ref=f8e1652]
+        - generic [ref=f8e1656]:
+          - generic [ref=f8e1659] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/analytics/groups-count" [ref=f8e1660]':
+              - generic [ref=f8e1661]: GET
+              - link [ref=f8e1663]:
+                - /url: "#/app-analytics/get_applications_applications__id__analytics_groups_count"
+              - generic [ref=f8e1665]: Get groups count for an application
+            - button "authorization button unlocked" [ref=f8e1668]
+          - generic [ref=f8e1673] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/analytics/pending-recoveries" [ref=f8e1674]':
+              - generic [ref=f8e1675]: GET
+              - link [ref=f8e1677]:
+                - /url: "#/app-analytics/get_applications_applications__id__analytics_pending_recoveries"
+              - generic [ref=f8e1679]: Get pending recoveries count for an application
+            - button "authorization button unlocked" [ref=f8e1682]
+          - generic [ref=f8e1687] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/analytics/recent-grants" [ref=f8e1688]':
+              - generic [ref=f8e1689]: GET
+              - link [ref=f8e1691]:
+                - /url: "#/app-analytics/get_applications_applications__id__analytics_recent_grants"
+              - generic [ref=f8e1693]: Get recent grants for an application
+            - button "authorization button unlocked" [ref=f8e1696]
+          - generic [ref=f8e1701] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/analytics/scopes-count" [ref=f8e1702]':
+              - generic [ref=f8e1703]: GET
+              - link [ref=f8e1705]:
+                - /url: "#/app-analytics/get_applications_applications__id__analytics_scopes_count"
+              - generic [ref=f8e1707]: Get scopes count for an application
+            - button "authorization button unlocked" [ref=f8e1710]
+          - generic [ref=f8e1715] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/analytics/users-count" [ref=f8e1716]':
+              - generic [ref=f8e1717]: GET
+              - link [ref=f8e1719]:
+                - /url: "#/app-analytics/get_applications_applications__id__analytics_users_count"
+              - generic [ref=f8e1721]: Get users count for an application
+            - button "authorization button unlocked" [ref=f8e1724]
+      - generic [ref=f8e1728]:
+        - heading [level=3] [ref=f8e1729] [cursor=pointer]:
+          - link "app-api-credentials" [ref=f8e1730]:
+            - /url: "#/app-api-credentials"
+          - button "Collapse operation" [expanded] [ref=f8e1731]
+        - generic [ref=f8e1735]:
+          - generic [ref=f8e1738] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/api-credentials" [ref=f8e1739]':
+              - generic [ref=f8e1740]: GET
+              - link [ref=f8e1742]:
+                - /url: "#/app-api-credentials/get_applications_applications__id__api_credentials"
+              - generic [ref=f8e1744]: List API credentials for an application
+            - button "authorization button unlocked" [ref=f8e1747]
+          - generic [ref=f8e1752] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/api-credentials" [ref=f8e1753]':
+              - generic [ref=f8e1754]: POST
+              - link [ref=f8e1756]:
+                - /url: "#/app-api-credentials/post_applications_applications__id__api_credentials"
+              - generic [ref=f8e1758]: Create an API credential for an application
+            - button "authorization button unlocked" [ref=f8e1761]
+          - generic [ref=f8e1766] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/api-credentials/{credId}/revoke" [ref=f8e1767]':
+              - generic [ref=f8e1768]: POST
+              - link [ref=f8e1770]:
+                - /url: "#/app-api-credentials/post_applications_applications__id__api_credentials__credId__revoke"
+              - generic [ref=f8e1772]: Revoke an API credential
+            - button "authorization button unlocked" [ref=f8e1775]
+      - generic [ref=f8e1779]:
+        - heading [level=3] [ref=f8e1780] [cursor=pointer]:
+          - link "app-keys" [ref=f8e1781]:
+            - /url: "#/app-keys"
+          - button "Collapse operation" [expanded] [ref=f8e1782]
+        - generic [ref=f8e1786]:
+          - generic [ref=f8e1789] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/keys" [ref=f8e1790]':
+              - generic [ref=f8e1791]: GET
+              - link [ref=f8e1793]:
+                - /url: "#/app-keys/get_applications_applications__id__keys"
+              - generic [ref=f8e1795]: List application keys
+            - button "authorization button unlocked" [ref=f8e1798]
+          - generic [ref=f8e1803] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/keys/activate-pending" [ref=f8e1804]':
+              - generic [ref=f8e1805]: POST
+              - link [ref=f8e1807]:
+                - /url: "#/app-keys/post_applications_applications__id__keys_activate_pending"
+              - generic [ref=f8e1809]: Activate the pending key for an application
+            - button "authorization button unlocked" [ref=f8e1812]
+          - generic [ref=f8e1817] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/keys/discard-pending" [ref=f8e1818]':
+              - generic [ref=f8e1819]: POST
+              - link [ref=f8e1821]:
+                - /url: "#/app-keys/post_applications_applications__id__keys_discard_pending"
+              - generic [ref=f8e1823]: Discard the pending key for an application
+            - button "authorization button unlocked" [ref=f8e1826]
+          - generic [ref=f8e1831] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/keys/regenerate" [ref=f8e1832]':
+              - generic [ref=f8e1833]: POST
+              - link [ref=f8e1835]:
+                - /url: "#/app-keys/post_applications_applications__id__keys_regenerate"
+              - generic [ref=f8e1837]: Regenerate application keys
+            - button "authorization button unlocked" [ref=f8e1840]
+          - generic [ref=f8e1845] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/keys/{keyId}/deactivate" [ref=f8e1846]':
+              - generic [ref=f8e1847]: POST
+              - link [ref=f8e1849]:
+                - /url: "#/app-keys/post_applications_applications__id__keys__keyId__deactivate"
+              - generic [ref=f8e1851]: Deactivate a key for an application
+            - button "authorization button unlocked" [ref=f8e1854]
+          - 'button "get /applications/{id}/.well-known/jwks.json" [ref=f8e1860] [cursor=pointer]':
+            - generic [ref=f8e1861]: GET
+            - link [ref=f8e1863]:
+              - /url: "#/app-keys/get_applications__id___well_known_jwks_json"
+            - generic [ref=f8e1865]: Get public JWKS for an application
+      - generic [ref=f8e1869]:
+        - heading [level=3] [ref=f8e1870] [cursor=pointer]:
+          - link "app-login-template" [ref=f8e1871]:
+            - /url: "#/app-login-template"
+          - button "Collapse operation" [expanded] [ref=f8e1872]
+        - generic [ref=f8e1876]:
+          - generic [ref=f8e1879] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/login-settings" [ref=f8e1880]':
+              - generic [ref=f8e1881]: GET
+              - link [ref=f8e1883]:
+                - /url: "#/app-login-template/get_applications_applications__id__login_settings"
+              - generic [ref=f8e1885]: Get login page settings
+            - button "authorization button unlocked" [ref=f8e1888]
+          - generic [ref=f8e1893] [cursor=pointer]:
+            - 'button "patch /applications/applications/{id}/login-settings" [ref=f8e1894]':
+              - generic [ref=f8e1895]: PATCH
+              - link [ref=f8e1897]:
+                - /url: "#/app-login-template/patch_applications_applications__id__login_settings"
+              - generic [ref=f8e1899]: Update login page settings
+            - button "authorization button unlocked" [ref=f8e1902]
+          - generic [ref=f8e1907] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/login-template/assets" [ref=f8e1908]':
+              - generic [ref=f8e1909]: GET
+              - link [ref=f8e1911]:
+                - /url: "#/app-login-template/get_applications_applications__id__login_template_assets"
+              - generic [ref=f8e1913]: List login template assets
+            - button "authorization button unlocked" [ref=f8e1916]
+          - generic [ref=f8e1921] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/login-template/assets" [ref=f8e1922]':
+              - generic [ref=f8e1923]: POST
+              - link [ref=f8e1925]:
+                - /url: "#/app-login-template/post_applications_applications__id__login_template_assets"
+              - generic [ref=f8e1927]: Upload login template asset
+            - button "authorization button unlocked" [ref=f8e1930]
+          - generic [ref=f8e1935] [cursor=pointer]:
+            - 'button "delete /applications/applications/{id}/login-template/assets/{assetId}" [ref=f8e1936]':
+              - generic [ref=f8e1937]: DELETE
+              - link [ref=f8e1939]:
+                - /url: "#/app-login-template/delete_applications_applications__id__login_template_assets__assetId_"
+              - generic [ref=f8e1941]: Delete login template asset
+            - button "authorization button unlocked" [ref=f8e1944]
+      - generic [ref=f8e1948]:
+        - heading [level=3] [ref=f8e1949] [cursor=pointer]:
+          - link "app-media" [ref=f8e1950]:
+            - /url: "#/app-media"
+          - button "Collapse operation" [expanded] [ref=f8e1951]
+        - generic [ref=f8e1955]:
+          - generic [ref=f8e1958] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/media" [ref=f8e1959]':
+              - generic [ref=f8e1960]: GET
+              - link [ref=f8e1962]:
+                - /url: "#/app-media/get_applications_applications__id__media"
+              - generic [ref=f8e1964]: List media for an application
+            - button "authorization button unlocked" [ref=f8e1967]
+          - generic [ref=f8e1972] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/media/files" [ref=f8e1973]':
+              - generic [ref=f8e1974]: POST
+              - link [ref=f8e1976]:
+                - /url: "#/app-media/post_applications_applications__id__media_files"
+              - generic [ref=f8e1978]: Upload a file to an application
+            - button "authorization button unlocked" [ref=f8e1981]
+          - generic [ref=f8e1986] [cursor=pointer]:
+            - 'button "delete /applications/applications/{id}/media/files/{fileId}" [ref=f8e1987]':
+              - generic [ref=f8e1988]: DELETE
+              - link [ref=f8e1990]:
+                - /url: "#/app-media/delete_applications_applications__id__media_files__fileId_"
+              - generic [ref=f8e1992]: Delete a file from an application
+            - button "authorization button unlocked" [ref=f8e1995]
+          - generic [ref=f8e2000] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/media/folders" [ref=f8e2001]':
+              - generic [ref=f8e2002]: POST
+              - link [ref=f8e2004]:
+                - /url: "#/app-media/post_applications_applications__id__media_folders"
+              - generic [ref=f8e2006]: Create a media folder for an application
+            - button "authorization button unlocked" [ref=f8e2009]
+          - generic [ref=f8e2014] [cursor=pointer]:
+            - 'button "delete /applications/applications/{id}/media/folders/{folderId}" [ref=f8e2015]':
+              - generic [ref=f8e2016]: DELETE
+              - link [ref=f8e2018]:
+                - /url: "#/app-media/delete_applications_applications__id__media_folders__folderId_"
+              - generic [ref=f8e2020]: Delete a media folder from an application
+            - button "authorization button unlocked" [ref=f8e2023]
+      - generic [ref=f8e2027]:
+        - heading [level=3] [ref=f8e2028] [cursor=pointer]:
+          - link "app-oauth-clients" [ref=f8e2029]:
+            - /url: "#/app-oauth-clients"
+          - button "Collapse operation" [expanded] [ref=f8e2030]
+        - generic [ref=f8e2034]:
+          - generic [ref=f8e2037] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/oauth-clients" [ref=f8e2038]':
+              - generic [ref=f8e2039]: GET
+              - link [ref=f8e2041]:
+                - /url: "#/app-oauth-clients/get_applications_applications__id__oauth_clients"
+              - generic [ref=f8e2043]: List OAuth clients for an application
+            - button "authorization button unlocked" [ref=f8e2046]
+          - generic [ref=f8e2051] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/oauth-clients" [ref=f8e2052]':
+              - generic [ref=f8e2053]: POST
+              - link [ref=f8e2055]:
+                - /url: "#/app-oauth-clients/post_applications_applications__id__oauth_clients"
+              - generic [ref=f8e2057]: Create an OAuth client for an application
+            - button "authorization button unlocked" [ref=f8e2060]
+          - generic [ref=f8e2065] [cursor=pointer]:
+            - 'button "delete /applications/applications/{id}/oauth-clients/{clientRowId}" [ref=f8e2066]':
+              - generic [ref=f8e2067]: DELETE
+              - link [ref=f8e2069]:
+                - /url: "#/app-oauth-clients/delete_applications_applications__id__oauth_clients__clientRowId_"
+              - generic [ref=f8e2071]: Delete an OAuth client from an application
+            - button "authorization button unlocked" [ref=f8e2074]
+          - generic [ref=f8e2079] [cursor=pointer]:
+            - 'button "patch /applications/applications/{id}/oauth-clients/{clientRowId}" [ref=f8e2080]':
+              - generic [ref=f8e2081]: PATCH
+              - link [ref=f8e2083]:
+                - /url: "#/app-oauth-clients/patch_applications_applications__id__oauth_clients__clientRowId_"
+              - generic [ref=f8e2085]: Update an OAuth client for an application
+            - button "authorization button unlocked" [ref=f8e2088]
+          - generic [ref=f8e2093] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/oauth-clients/{clientRowId}/rotate-secret" [ref=f8e2094]':
+              - generic [ref=f8e2095]: POST
+              - link [ref=f8e2097]:
+                - /url: "#/app-oauth-clients/post_applications_applications__id__oauth_clients__clientRowId__rotate_secret"
+              - generic [ref=f8e2099]: Rotate the secret for an OAuth client
+            - button "authorization button unlocked" [ref=f8e2102]
+      - generic [ref=f8e2106]:
+        - heading [level=3] [ref=f8e2107] [cursor=pointer]:
+          - link "app-oauth-providers" [ref=f8e2108]:
+            - /url: "#/app-oauth-providers"
+          - button "Collapse operation" [expanded] [ref=f8e2109]
+        - generic [ref=f8e2113]:
+          - generic [ref=f8e2116] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/oauth-providers" [ref=f8e2117]':
+              - generic [ref=f8e2118]: GET
+              - link [ref=f8e2120]:
+                - /url: "#/app-oauth-providers/get_applications_applications__id__oauth_providers"
+              - generic [ref=f8e2122]: List OAuth providers for an application
+            - button "authorization button unlocked" [ref=f8e2125]
+          - generic [ref=f8e2130] [cursor=pointer]:
+            - 'button "post /applications/applications/{id}/oauth-providers" [ref=f8e2131]':
+              - generic [ref=f8e2132]: POST
+              - link [ref=f8e2134]:
+                - /url: "#/app-oauth-providers/post_applications_applications__id__oauth_providers"
+              - generic [ref=f8e2136]: Create an OAuth provider for an application
+            - button "authorization button unlocked" [ref=f8e2139]
+          - generic [ref=f8e2144] [cursor=pointer]:
+            - 'button "delete /applications/applications/{id}/oauth-providers/{providerId}" [ref=f8e2145]':
+              - generic [ref=f8e2146]: DELETE
+              - link [ref=f8e2148]:
+                - /url: "#/app-oauth-providers/delete_applications_applications__id__oauth_providers__providerId_"
+              - generic [ref=f8e2150]: Delete an OAuth provider from an application
+            - button "authorization button unlocked" [ref=f8e2153]
+          - generic [ref=f8e2158] [cursor=pointer]:
+            - 'button "patch /applications/applications/{id}/oauth-providers/{providerId}" [ref=f8e2159]':
+              - generic [ref=f8e2160]: PATCH
+              - link [ref=f8e2162]:
+                - /url: "#/app-oauth-providers/patch_applications_applications__id__oauth_providers__providerId_"
+              - generic [ref=f8e2164]: Update an OAuth provider for an application
+            - button "authorization button unlocked" [ref=f8e2167]
+      - generic [ref=f8e2171]:
+        - heading [level=3] [ref=f8e2172] [cursor=pointer]:
+          - link "app-registration-fields" [ref=f8e2173]:
+            - /url: "#/app-registration-fields"
+          - button "Collapse operation" [expanded] [ref=f8e2174]
+        - generic [ref=f8e2178]:
+          - generic [ref=f8e2181] [cursor=pointer]:
+            - 'button "get /applications/applications/{id}/registration-fields" [ref=f8e2182]':
+              - generic [ref=f8e2183]: GET
+              - link [ref=f8e2185]:
+                - /url: "#/app-registration-fields/get_applications_applications__id__registration_fields"
+              - generic [ref=f8e2187]: List registration fields
+            - button "authorization button unlocked" [ref=f8e2190]
+          - generic [ref=f8e2195] [cursor=pointer]:
+            - 'button "put /applications/applications/{id}/registration-fields" [ref=f8e2196]':
+              - generic [ref=f8e2197]: PUT
+              - link [ref=f8e2199]:
+                - /url: "#/app-registration-fields/put_applications_applications__id__registration_fields"
+              - generic [ref=f8e2201]: Replace registration fields
+            - button "authorization button unlocked" [ref=f8e2204]
+      - generic [ref=f8e2208]:
+        - heading [level=3] [ref=f8e2209] [cursor=pointer]:
+          - link "app-auth" [ref=f8e2210]:
+            - /url: "#/app-auth"
+          - button "Collapse operation" [expanded] [ref=f8e2211]
+        - generic [ref=f8e2215]:
+          - button "post /applications/authenticate" [ref=f8e2219] [cursor=pointer]:
+            - generic [ref=f8e2220]: POST
+            - link [ref=f8e2222]:
+              - /url: "#/app-auth/post_applications_authenticate"
+            - generic [ref=f8e2224]: Authenticate application user
+          - button "post /applications/renew" [ref=f8e2230] [cursor=pointer]:
+            - generic [ref=f8e2231]: POST
+            - link [ref=f8e2233]:
+              - /url: "#/app-auth/post_applications_renew"
+            - generic [ref=f8e2235]: Renew application tokens
+          - button "post /public/applications/auth-methods" [ref=f8e2241] [cursor=pointer]:
+            - generic [ref=f8e2242]: POST
+            - link [ref=f8e2244]:
+              - /url: "#/app-auth/post_public_applications_auth_methods"
+            - generic [ref=f8e2246]: Get available authentication methods
+      - generic [ref=f8e2250]:
+        - heading [level=3] [ref=f8e2251] [cursor=pointer]:
+          - link "org-profile-fields" [ref=f8e2252]:
+            - /url: "#/org-profile-fields"
+          - button "Collapse operation" [expanded] [ref=f8e2253]
+        - generic [ref=f8e2257]:
+          - generic [ref=f8e2260] [cursor=pointer]:
+            - 'button "get /organizations/organizations/{id}/profile-fields" [ref=f8e2261]':
+              - generic [ref=f8e2262]: GET
+              - link [ref=f8e2264]:
+                - /url: "#/org-profile-fields/get_organizations_organizations__id__profile_fields"
+              - generic [ref=f8e2266]: List organization profile fields
+            - button "authorization button unlocked" [ref=f8e2269]
+          - generic [ref=f8e2274] [cursor=pointer]:
+            - 'button "post /organizations/organizations/{id}/profile-fields" [ref=f8e2275]':
+              - generic [ref=f8e2276]: POST
+              - link [ref=f8e2278]:
+                - /url: "#/org-profile-fields/post_organizations_organizations__id__profile_fields"
+              - generic [ref=f8e2280]: Create organization profile field
+            - button "authorization button unlocked" [ref=f8e2283]
+          - generic [ref=f8e2288] [cursor=pointer]:
+            - 'button "post /organizations/organizations/{id}/profile-fields/reorder" [ref=f8e2289]':
+              - generic [ref=f8e2290]: POST
+              - link [ref=f8e2292]:
+                - /url: "#/org-profile-fields/post_organizations_organizations__id__profile_fields_reorder"
+              - generic [ref=f8e2294]: Reorder organization profile fields
+            - button "authorization button unlocked" [ref=f8e2297]
+          - generic [ref=f8e2302] [cursor=pointer]:
+            - 'button "delete /organizations/organizations/{id}/profile-fields/{fieldId}" [ref=f8e2303]':
+              - generic [ref=f8e2304]: DELETE
+              - link [ref=f8e2306]:
+                - /url: "#/org-profile-fields/delete_organizations_organizations__id__profile_fields__fieldId_"
+              - generic [ref=f8e2308]: Delete organization profile field
+            - button "authorization button unlocked" [ref=f8e2311]
+          - generic [ref=f8e2316] [cursor=pointer]:
+            - 'button "patch /organizations/organizations/{id}/profile-fields/{fieldId}" [ref=f8e2317]':
+              - generic [ref=f8e2318]: PATCH
+              - link [ref=f8e2320]:
+                - /url: "#/org-profile-fields/patch_organizations_organizations__id__profile_fields__fieldId_"
+              - generic [ref=f8e2322]: Update organization profile field
+            - button "authorization button unlocked" [ref=f8e2325]
+      - generic [ref=f8e2329]:
+        - heading [level=3] [ref=f8e2330] [cursor=pointer]:
+          - link "org-settings" [ref=f8e2331]:
+            - /url: "#/org-settings"
+          - button "Collapse operation" [expanded] [ref=f8e2332]
+        - generic [ref=f8e2336]:
+          - generic [ref=f8e2339] [cursor=pointer]:
+            - 'button "get /organizations/organizations/{id}/settings/general" [ref=f8e2340]':
+              - generic [ref=f8e2341]: GET
+              - link [ref=f8e2343]:
+                - /url: "#/org-settings/get_organizations_organizations__id__settings_general"
+              - generic [ref=f8e2345]: Get organization general settings
+            - button "authorization button unlocked" [ref=f8e2348]
+          - generic [ref=f8e2353] [cursor=pointer]:
+            - 'button "patch /organizations/organizations/{id}/settings/general" [ref=f8e2354]':
+              - generic [ref=f8e2355]: PATCH
+              - link [ref=f8e2357]:
+                - /url: "#/org-settings/patch_organizations_organizations__id__settings_general"
+              - generic [ref=f8e2359]: Update organization general settings
+            - button "authorization button unlocked" [ref=f8e2362]
+          - generic [ref=f8e2367] [cursor=pointer]:
+            - 'button "get /organizations/organizations/{id}/user-rules" [ref=f8e2368]':
+              - generic [ref=f8e2369]: GET
+              - link [ref=f8e2371]:
+                - /url: "#/org-settings/get_organizations_organizations__id__user_rules"
+              - generic [ref=f8e2373]: Get organization user rules
+            - button "authorization button unlocked" [ref=f8e2376]
+          - generic [ref=f8e2381] [cursor=pointer]:
+            - 'button "patch /organizations/organizations/{id}/user-rules" [ref=f8e2382]':
+              - generic [ref=f8e2383]: PATCH
+              - link [ref=f8e2385]:
+                - /url: "#/org-settings/patch_organizations_organizations__id__user_rules"
+              - generic [ref=f8e2387]: Update organization user rules
+            - button "authorization button unlocked" [ref=f8e2390]
+      - generic [ref=f8e2394]:
+        - heading [level=3] [ref=f8e2395] [cursor=pointer]:
+          - link "admin-avatars" [ref=f8e2396]:
+            - /url: "#/admin-avatars"
+          - button "Collapse operation" [expanded] [ref=f8e2397]
+        - 'button "get /p/admin-avatars/{adminUserId}" [ref=f8e2405] [cursor=pointer]':
+          - generic [ref=f8e2406]: GET
+          - link [ref=f8e2408]:
+            - /url: "#/admin-avatars/get_p_admin_avatars__adminUserId_"
+          - generic [ref=f8e2410]: Serve admin user avatar (public)
+      - generic [ref=f8e2414]:
+        - heading [level=3] [ref=f8e2415] [cursor=pointer]:
+          - link "app-recovery" [ref=f8e2416]:
+            - /url: "#/app-recovery"
+          - button "Collapse operation" [expanded] [ref=f8e2417]
+        - generic [ref=f8e2421]:
+          - button "post /public/applications/recover/request" [ref=f8e2425] [cursor=pointer]:
+            - generic [ref=f8e2426]: POST
+            - link [ref=f8e2428]:
+              - /url: "#/app-recovery/post_public_applications_recover_request"
+            - generic [ref=f8e2430]: Request password recovery
+          - button "post /public/applications/recover/reset" [ref=f8e2436] [cursor=pointer]:
+            - generic [ref=f8e2437]: POST
+            - link [ref=f8e2439]:
+              - /url: "#/app-recovery/post_public_applications_recover_reset"
+            - generic [ref=f8e2441]: Reset password via recovery token
+      - generic [ref=f8e2445]:
+        - heading [level=3] [ref=f8e2446] [cursor=pointer]:
+          - link "public-api" [ref=f8e2447]:
+            - /url: "#/public-api"
+          - button "Collapse operation" [expanded] [ref=f8e2448]
+        - generic [ref=f8e2452]:
+          - 'button "get /public/applications/{id}/groups" [ref=f8e2456] [cursor=pointer]':
+            - generic [ref=f8e2457]: GET
+            - link [ref=f8e2459]:
+              - /url: "#/public-api/get_public_applications__id__groups"
+            - generic [ref=f8e2461]: List groups for an application
+          - 'button "post /public/applications/{id}/groups" [ref=f8e2467] [cursor=pointer]':
+            - generic [ref=f8e2468]: POST
+            - link [ref=f8e2470]:
+              - /url: "#/public-api/post_public_applications__id__groups"
+            - generic [ref=f8e2472]: Create a group for an application
+          - 'button "get /public/applications/{id}/groups/{groupId}" [ref=f8e2478] [cursor=pointer]':
+            - generic [ref=f8e2479]: GET
+            - link [ref=f8e2481]:
+              - /url: "#/public-api/get_public_applications__id__groups__groupId_"
+            - generic [ref=f8e2483]: Get a group by ID
+          - 'button "delete /public/applications/{id}/groups/{groupId}" [ref=f8e2489] [cursor=pointer]':
+            - generic [ref=f8e2490]: DELETE
+            - link [ref=f8e2492]:
+              - /url: "#/public-api/delete_public_applications__id__groups__groupId_"
+            - generic [ref=f8e2494]: Delete a group (soft)
+          - 'button "patch /public/applications/{id}/groups/{groupId}" [ref=f8e2500] [cursor=pointer]':
+            - generic [ref=f8e2501]: PATCH
+            - link [ref=f8e2503]:
+              - /url: "#/public-api/patch_public_applications__id__groups__groupId_"
+            - generic [ref=f8e2505]: Patch a group
+          - 'button "get /public/applications/{id}/groups/{groupId}/acl" [ref=f8e2511] [cursor=pointer]':
+            - generic [ref=f8e2512]: GET
+            - link [ref=f8e2514]:
+              - /url: "#/public-api/get_public_applications__id__groups__groupId__acl"
+            - generic [ref=f8e2516]: Get a group's ACL
+          - 'button "put /public/applications/{id}/groups/{groupId}/acl" [ref=f8e2522] [cursor=pointer]':
+            - generic [ref=f8e2523]: PUT
+            - link [ref=f8e2525]:
+              - /url: "#/public-api/put_public_applications__id__groups__groupId__acl"
+            - generic [ref=f8e2527]: Replace a group's ACL
+          - 'button "delete /public/applications/{id}/groups/{groupId}/acl" [ref=f8e2533] [cursor=pointer]':
+            - generic [ref=f8e2534]: DELETE
+            - link [ref=f8e2536]:
+              - /url: "#/public-api/delete_public_applications__id__groups__groupId__acl"
+            - generic [ref=f8e2538]: Delete a group's ACL (soft)
+          - 'button "get /public/applications/{id}/groups/{groupId}/members" [ref=f8e2544] [cursor=pointer]':
+            - generic [ref=f8e2545]: GET
+            - link [ref=f8e2547]:
+              - /url: "#/public-api/get_public_applications__id__groups__groupId__members"
+            - generic [ref=f8e2549]: List members of a group
+          - 'button "post /public/applications/{id}/groups/{groupId}/members" [ref=f8e2555] [cursor=pointer]':
+            - generic [ref=f8e2556]: POST
+            - link [ref=f8e2558]:
+              - /url: "#/public-api/post_public_applications__id__groups__groupId__members"
+            - generic [ref=f8e2560]: Add a member to a group
+          - 'button "delete /public/applications/{id}/groups/{groupId}/members/{userId}" [ref=f8e2566] [cursor=pointer]':
+            - generic [ref=f8e2567]: DELETE
+            - link [ref=f8e2569]:
+              - /url: "#/public-api/delete_public_applications__id__groups__groupId__members__userId_"
+            - generic [ref=f8e2571]: Remove a member from a group
+          - 'button "get /public/applications/{id}/me/password-notification" [ref=f8e2577] [cursor=pointer]':
+            - generic [ref=f8e2578]: GET
+            - link [ref=f8e2580]:
+              - /url: "#/public-api/get_public_applications__id__me_password_notification"
+            - generic [ref=f8e2582]: Get password notification preferences for the authenticated user
+          - 'button "put /public/applications/{id}/me/password-notification" [ref=f8e2588] [cursor=pointer]':
+            - generic [ref=f8e2589]: PUT
+            - link [ref=f8e2591]:
+              - /url: "#/public-api/put_public_applications__id__me_password_notification"
+            - generic [ref=f8e2593]: Replace password notification preferences for the authenticated user
+          - generic [ref=f8e2597]:
+            - 'button "get /public/applications/{id}/scopes" [expanded] [active] [ref=f8e2599] [cursor=pointer]':
+              - generic [ref=f8e2600]: GET
+              - link [ref=f8e2602]:
+                - /url: "#/public-api/get_public_applications__id__scopes"
+              - generic [ref=f8e2604]: List scopes for an application
+            - generic [ref=f8e3145]:
+              - generic [ref=f8e3146]:
+                - generic [ref=f8e3147]:
+                  - heading "Parameters" [level=4] [ref=f8e3149]
+                  - button "Try it out" [ref=f8e3151] [cursor=pointer]
+                - table [ref=f8e3154]:
+                  - rowgroup [ref=f8e3155]:
+                    - row [ref=f8e3156]:
+                      - columnheader "Name" [ref=f8e3157]
+                      - columnheader "Description" [ref=f8e3158]
+                  - rowgroup [ref=f8e3159]:
+                    - row [ref=f8e3160]:
+                      - cell "id *required string (path)" [ref=f8e3161]:
+                        - generic [ref=f8e3162]: id *required
+                        - generic [ref=f8e3163]: string
+                        - generic [ref=f8e3164]: (path)
+                      - cell [ref=f8e3165]:
+                        - paragraph [ref=f8e3167]: Application ID
+                        - textbox "id" [disabled] [ref=f8e3168]
+              - generic [ref=f8e3170]:
+                - generic [ref=f8e3171]:
+                  - heading "Responses" [level=4] [ref=f8e3172]
+                  - generic [ref=f8e3173]:
+                    - generic [ref=f8e3174]: Response content type
+                    - combobox "Response content type" [ref=f8e3176]:
+                      - option "application/json" [selected]
+                - region [ref=f8e3178]:
+                  - rowgroup [ref=f8e3179]:
+                    - row [ref=f8e3180]:
+                      - cell "Code" [ref=f8e3181]
+                      - cell "Description" [ref=f8e3182]
+                  - rowgroup [ref=f8e3183]:
+                    - row [ref=f8e3184]:
+                      - cell "200" [ref=f8e3185]
+                      - cell [ref=f8e3186]:
+                        - paragraph [ref=f8e3189]: OK
+                        - generic [ref=f8e3190]:
+                          - tablist [ref=f8e3191]:
+                            - tab "Example Value" [selected] [ref=f8e3192] [cursor=pointer]
+                            - tab "Model" [ref=f8e3193] [cursor=pointer]
+                          - tabpanel "Example Value" [ref=f8e3194]:
+                            - code [ref=f8e3198]: "\"string\""
+                    - row [ref=f8e3199]:
+                      - cell "400" [ref=f8e3200]
+                      - cell [ref=f8e3201]:
+                        - paragraph [ref=f8e3204]: Bad Request
+                        - generic [ref=f8e3205]:
+                          - tablist [ref=f8e3206]:
+                            - tab "Example Value" [selected] [ref=f8e3207] [cursor=pointer]
+                            - tab "Model" [ref=f8e3208] [cursor=pointer]
+                          - tabpanel "Example Value" [ref=f8e3209]:
+                            - code [ref=f8e3213]: "{ \"additionalProp1\": {} }"
+                    - row [ref=f8e3214]:
+                      - cell "401" [ref=f8e3215]
+                      - cell [ref=f8e3216]:
+                        - paragraph [ref=f8e3219]: Unauthorized
+                        - generic [ref=f8e3220]:
+                          - tablist [ref=f8e3221]:
+                            - tab "Example Value" [selected] [ref=f8e3222] [cursor=pointer]
+                            - tab "Model" [ref=f8e3223] [cursor=pointer]
+                          - tabpanel "Example Value" [ref=f8e3224]:
+                            - code [ref=f8e3228]: "{ \"additionalProp1\": {} }"
+                    - row [ref=f8e3229]:
+                      - cell "403" [ref=f8e3230]
+                      - cell [ref=f8e3231]:
+                        - paragraph [ref=f8e3234]: Forbidden
+                        - generic [ref=f8e3235]:
+                          - tablist [ref=f8e3236]:
+                            - tab "Example Value" [selected] [ref=f8e3237] [cursor=pointer]
+                            - tab "Model" [ref=f8e3238] [cursor=pointer]
+                          - tabpanel "Example Value" [ref=f8e3239]:
+                            - code [ref=f8e3243]: "{ \"additionalProp1\": {} }"
+                    - row [ref=f8e3244]:
+                      - cell "500" [ref=f8e3245]
+                      - cell [ref=f8e3246]:
+                        - paragraph [ref=f8e3249]: Internal Server Error
+                        - generic [ref=f8e3250]:
+                          - tablist [ref=f8e3251]:
+                            - tab "Example Value" [selected] [ref=f8e3252] [cursor=pointer]
+                            - tab "Model" [ref=f8e3253] [cursor=pointer]
+                          - tabpanel "Example Value" [ref=f8e3254]:
+                            - code [ref=f8e3258]: "{ \"additionalProp1\": {} }"
+          - 'button "post /public/applications/{id}/scopes" [ref=f8e2610] [cursor=pointer]':
+            - generic [ref=f8e2611]: POST
+            - link [ref=f8e2613]:
+              - /url: "#/public-api/post_public_applications__id__scopes"
+            - generic [ref=f8e2615]: Create a scope for an application
+          - 'button "get /public/applications/{id}/scopes/{scopeId}" [ref=f8e2621] [cursor=pointer]':
+            - generic [ref=f8e2622]: GET
+            - link [ref=f8e2624]:
+              - /url: "#/public-api/get_public_applications__id__scopes__scopeId_"
+            - generic [ref=f8e2626]: Get a scope by ID
+          - 'button "delete /public/applications/{id}/scopes/{scopeId}" [ref=f8e2632] [cursor=pointer]':
+            - generic [ref=f8e2633]: DELETE
+            - link [ref=f8e2635]:
+              - /url: "#/public-api/delete_public_applications__id__scopes__scopeId_"
+            - generic [ref=f8e2637]: Delete a scope (soft)
+          - 'button "patch /public/applications/{id}/scopes/{scopeId}" [ref=f8e2643] [cursor=pointer]':
+            - generic [ref=f8e2644]: PATCH
+            - link [ref=f8e2646]:
+              - /url: "#/public-api/patch_public_applications__id__scopes__scopeId_"
+            - generic [ref=f8e2648]: Patch a scope
+          - 'button "get /public/applications/{id}/users" [ref=f8e2654] [cursor=pointer]':
+            - generic [ref=f8e2655]: GET
+            - link [ref=f8e2657]:
+              - /url: "#/public-api/get_public_applications__id__users"
+            - generic [ref=f8e2659]: List users for an application
+          - 'button "post /public/applications/{id}/users" [ref=f8e2665] [cursor=pointer]':
+            - generic [ref=f8e2666]: POST
+            - link [ref=f8e2668]:
+              - /url: "#/public-api/post_public_applications__id__users"
+            - generic [ref=f8e2670]: Create a user for an application
+          - 'button "get /public/applications/{id}/users/{userId}" [ref=f8e2676] [cursor=pointer]':
+            - generic [ref=f8e2677]: GET
+            - link [ref=f8e2679]:
+              - /url: "#/public-api/get_public_applications__id__users__userId_"
+            - generic [ref=f8e2681]: Get a user by ID
+          - 'button "delete /public/applications/{id}/users/{userId}" [ref=f8e2687] [cursor=pointer]':
+            - generic [ref=f8e2688]: DELETE
+            - link [ref=f8e2690]:
+              - /url: "#/public-api/delete_public_applications__id__users__userId_"
+            - generic [ref=f8e2692]: Delete a user (soft)
+          - 'button "patch /public/applications/{id}/users/{userId}" [ref=f8e2698] [cursor=pointer]':
+            - generic [ref=f8e2699]: PATCH
+            - link [ref=f8e2701]:
+              - /url: "#/public-api/patch_public_applications__id__users__userId_"
+            - generic [ref=f8e2703]: Patch a user
+          - 'button "get /public/applications/{id}/users/{userId}/acl" [ref=f8e2709] [cursor=pointer]':
+            - generic [ref=f8e2710]: GET
+            - link [ref=f8e2712]:
+              - /url: "#/public-api/get_public_applications__id__users__userId__acl"
+            - generic [ref=f8e2714]: Get a user's ACL
+          - 'button "put /public/applications/{id}/users/{userId}/acl" [ref=f8e2720] [cursor=pointer]':
+            - generic [ref=f8e2721]: PUT
+            - link [ref=f8e2723]:
+              - /url: "#/public-api/put_public_applications__id__users__userId__acl"
+            - generic [ref=f8e2725]: Replace a user's ACL
+          - 'button "delete /public/applications/{id}/users/{userId}/acl" [ref=f8e2731] [cursor=pointer]':
+            - generic [ref=f8e2732]: DELETE
+            - link [ref=f8e2734]:
+              - /url: "#/public-api/delete_public_applications__id__users__userId__acl"
+            - generic [ref=f8e2736]: Delete a user's ACL (soft)
+          - 'button "post /public/applications/{id}/users/{userId}/password" [ref=f8e2742] [cursor=pointer]':
+            - generic [ref=f8e2743]: POST
+            - link [ref=f8e2745]:
+              - /url: "#/public-api/post_public_applications__id__users__userId__password"
+            - generic [ref=f8e2747]: Set a user's password
+      - generic [ref=f8e2751]:
+        - heading [level=3] [ref=f8e2752] [cursor=pointer]:
+          - link "general" [ref=f8e2753]:
+            - /url: "#/general"
+          - button "Collapse operation" [expanded] [ref=f8e2754]
+        - button "get /public/general" [ref=f8e2762] [cursor=pointer]:
+          - generic [ref=f8e2763]: GET
+          - link [ref=f8e2765]:
+            - /url: "#/general/get_public_general"
+          - generic [ref=f8e2767]: Get public general settings
+      - generic [ref=f8e2771]:
+        - heading [level=3] [ref=f8e2772] [cursor=pointer]:
+          - link "recovery" [ref=f8e2773]:
+            - /url: "#/recovery"
+          - button "Collapse operation" [expanded] [ref=f8e2774]
+        - generic [ref=f8e2778]:
+          - button "post /recovery/request" [ref=f8e2782] [cursor=pointer]:
+            - generic [ref=f8e2783]: POST
+            - link [ref=f8e2785]:
+              - /url: "#/recovery/post_recovery_request"
+            - generic [ref=f8e2787]: Request password recovery
+          - button "post /recovery/reset" [ref=f8e2793] [cursor=pointer]:
+            - generic [ref=f8e2794]: POST
+            - link [ref=f8e2796]:
+              - /url: "#/recovery/post_recovery_reset"
+            - generic [ref=f8e2798]: Reset password
+          - button "post /recovery/verify" [ref=f8e2804] [cursor=pointer]:
+            - generic [ref=f8e2805]: POST
+            - link [ref=f8e2807]:
+              - /url: "#/recovery/post_recovery_verify"
+            - generic [ref=f8e2809]: Verify recovery token
+      - generic [ref=f8e2813]:
+        - heading [level=3] [ref=f8e2814] [cursor=pointer]:
+          - link "workspaces" [ref=f8e2815]:
+            - /url: "#/workspaces"
+          - button "Collapse operation" [expanded] [ref=f8e2816]
+        - generic [ref=f8e2823] [cursor=pointer]:
+          - 'button "get /workspaces/workspaces/{id}/stats" [ref=f8e2824]':
+            - generic [ref=f8e2825]: GET
+            - link [ref=f8e2827]:
+              - /url: "#/workspaces/get_workspaces_workspaces__id__stats"
+            - generic [ref=f8e2829]: Get workspace stats
+          - button "authorization button unlocked" [ref=f8e2832]
+    - generic [ref=f8e2837]:
+      - heading [level=4] [ref=f8e2838] [cursor=pointer]:
+        - button "Models" [expanded] [ref=f8e2839]
+      - generic [ref=f8e2843]:
+        - button "activation_entity.ActivateRequest" [ref=f8e2846] [cursor=pointer]
+        - button "activation_entity.ActivateResponse" [ref=f8e2852] [cursor=pointer]
+        - button "activation_entity.ActivateSuccess" [ref=f8e2858] [cursor=pointer]
+        - button "activation_entity.ChangePasswordRequest" [ref=f8e2864] [cursor=pointer]
+        - button "activation_entity.ChangePasswordResponse" [ref=f8e2870] [cursor=pointer]
+        - button "activation_entity.ChangePasswordSuccess" [ref=f8e2876] [cursor=pointer]
+        - button "activation_entity.VerifyRequest" [ref=f8e2882] [cursor=pointer]
+        - button "activation_entity.VerifyResponse" [ref=f8e2888] [cursor=pointer]
+        - button "activation_entity.VerifySuccess" [ref=f8e2894] [cursor=pointer]
+        - button "entity.ActivationEcho" [ref=f8e2900] [cursor=pointer]
+        - button "entity.Application" [ref=f8e2906] [cursor=pointer]
+        - button "entity.ApplicationRequest" [ref=f8e2912] [cursor=pointer]
+        - button "entity.ApplicationSuccess" [ref=f8e2918] [cursor=pointer]
+        - button "entity.CheckRequest" [ref=f8e2924] [cursor=pointer]
+        - button "entity.CheckResponse" [ref=f8e2930] [cursor=pointer]
+        - button "entity.CreateOrgUserRequest" [ref=f8e2936] [cursor=pointer]
+        - button "entity.CreateOrgUserResponse" [ref=f8e2942] [cursor=pointer]
+        - button "entity.CreateOrgUserSuccess" [ref=f8e2948] [cursor=pointer]
+        - button "entity.CreateUserRequest" [ref=f8e2954] [cursor=pointer]
+        - button "entity.CreateUserResponse" [ref=f8e2960] [cursor=pointer]
+        - button "entity.CreateUserSuccess" [ref=f8e2966] [cursor=pointer]
+        - button "entity.FieldAvailability" [ref=f8e2972] [cursor=pointer]
+        - button "entity.IdentityFieldDef" [ref=f8e2978] [cursor=pointer]
+        - button "entity.OAuthErrorResponse" [ref=f8e2984] [cursor=pointer]
+        - button "entity.OrgActivationEcho" [ref=f8e2990] [cursor=pointer]
+        - button "entity.OrgUserListSuccess" [ref=f8e2996] [cursor=pointer]
+        - button "entity.OrgUserResponse" [ref=f8e3002] [cursor=pointer]
+        - button "entity.OrgUserSuccess" [ref=f8e3008] [cursor=pointer]
+        - button "entity.PatchOrgUserRequest" [ref=f8e3014] [cursor=pointer]
+        - button "entity.RegisterRequest" [ref=f8e3020] [cursor=pointer]
+        - button "entity.RegisterSuccess" [ref=f8e3026] [cursor=pointer]
+        - button "entity.RegistrationFieldsSuccess" [ref=f8e3032] [cursor=pointer]
+        - button "entity.UpdateUserRequest" [ref=f8e3038] [cursor=pointer]
+        - button "entity.UserSuccess" [ref=f8e3044] [cursor=pointer]
+        - button "github_com_a-digi_coco-iam_src_admin_users_entity.User" [ref=f8e3050] [cursor=pointer]
+        - button "github_com_a-digi_coco-iam_src_organizations_users_entity.User" [ref=f8e3056] [cursor=pointer]
+        - button "model.TokenResponse" [ref=f8e3062] [cursor=pointer]
+        - button "model.UserInfo" [ref=f8e3068] [cursor=pointer]
+        - button "oauthserver.DiscoveryMetadata" [ref=f8e3074] [cursor=pointer]
+        - button "oauthserver.IntrospectionResponse" [ref=f8e3080] [cursor=pointer]
+        - button "oauthserver.TokenResponse" [ref=f8e3086] [cursor=pointer]
+        - button "profilefields.GetProfileFieldsResponse" [ref=f8e3092] [cursor=pointer]
+        - button "profilefields.ProfileFieldSchema" [ref=f8e3098] [cursor=pointer]
+        - button "profilefields.PutProfileFieldsResponse" [ref=f8e3104] [cursor=pointer]
+        - button "response.ErrorBody" [ref=f8e3110] [cursor=pointer]
+        - button "userprofile.FieldWithValue" [ref=f8e3116] [cursor=pointer]
+        - button "userrules.EmailRules" [ref=f8e3122] [cursor=pointer]
+        - button "userrules.PasswordRules" [ref=f8e3128] [cursor=pointer]
+        - button "userrules.RuleSet" [ref=f8e3134] [cursor=pointer]
+        - button "userrules.UsernameRules" [ref=f8e3140] [cursor=pointer]

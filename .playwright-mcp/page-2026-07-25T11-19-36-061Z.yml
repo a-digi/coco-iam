@@ -1,0 +1,106 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e3]:
+    - generic [ref=f4e5]:
+      - button "Close sidebar" [ref=f4e7]
+      - generic [ref=f4e12]:
+        - generic "Toggle dark mode" [ref=f4e13] [cursor=pointer]
+        - button "andet.tafa" [ref=f4e18]
+    - generic [ref=f4e25]:
+      - complementary [ref=f4e26]:
+        - generic [ref=f4e32]:
+          - generic [ref=f4e33]: coco-iam
+          - generic [ref=f4e34]: Identity & Access
+        - complementary [ref=f4e35]:
+          - navigation [ref=f4e36]:
+            - list [ref=f4e37]:
+              - listitem [ref=f4e38]:
+                - link "Dashboard" [ref=f4e40] [cursor=pointer]:
+                  - /url: /dashboard
+              - listitem [ref=f4e43]:
+                - link "Organizations" [ref=f4e45] [cursor=pointer]:
+                  - /url: /organizations
+              - listitem [ref=f4e48]:
+                - generic [ref=f4e49]:
+                  - button "Admin" [ref=f4e50]
+                  - button "Toggle Admin" [ref=f4e53]
+      - generic [ref=f4e56]:
+        - navigation "Breadcrumb" [ref=f4e57]:
+          - link "Home" [ref=f4e58] [cursor=pointer]:
+            - /url: /
+          - link "Workspaces" [ref=f4e63] [cursor=pointer]:
+            - /url: /workspaces
+          - generic [ref=f4e66]: Applications
+          - generic [ref=f4e184]: Manage
+        - main [ref=f4e67]:
+          - generic [ref=f4e228]:
+            - generic [ref=f4e230]:
+              - generic [ref=f4e231]:
+                - 'link "Workspace: booking" [ref=f4e232] [cursor=pointer]':
+                  - /url: /workspaces/edit/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd
+                - generic [ref=f4e233]: ›
+                - generic [ref=f4e234]: Application
+              - generic [ref=f4e235]:
+                - heading "scopes-public-api-test" [level=2] [ref=f4e236]
+                - generic [ref=f4e237]: scopes-public-api-test
+              - link "← Back to applications" [ref=f4e239] [cursor=pointer]:
+                - /url: /workspaces/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd/applications
+            - heading "Manage Application" [level=1] [ref=f4e240]
+            - generic [ref=f4e242]:
+              - complementary [ref=f4e243]:
+                - navigation "Sections" [ref=f4e244]:
+                  - button "Detail" [ref=f4e246]
+                  - button "Edit" [ref=f4e248]
+                  - button "Authentication" [expanded] [ref=f4e249]
+                  - generic [ref=f4e254]:
+                    - button "Authentication" [ref=f4e256]
+                    - button "OAuth Clients" [ref=f4e258]
+                    - button "Security" [ref=f4e260]
+                    - button "API Credentials" [ref=f4e262]
+                  - button "Access" [expanded] [ref=f4e263]
+                  - generic [ref=f4e268]:
+                    - button "Scopes" [ref=f4e270]
+                    - button "Users" [ref=f4e272]
+                    - button "Registration" [ref=f4e274]
+                  - button "Branding" [expanded] [ref=f4e275]
+                  - generic [ref=f4e280]:
+                    - button "Template" [ref=f4e282]
+                    - button "Media" [ref=f4e284]
+              - main [ref=f4e285]:
+                - generic [ref=f4e286]:
+                  - generic [ref=f4e288]:
+                    - generic [ref=f4e289]: no logo
+                    - generic [ref=f4e290]:
+                      - heading "scopes-public-api-test" [level=2] [ref=f4e291]
+                      - generic [ref=f4e292]: scopes-public-api-test
+                      - generic [ref=f4e293]:
+                        - generic [ref=f4e294]: Active
+                        - generic [ref=f4e295]: Recovery allowed
+                        - generic [ref=f4e296]: Registration disabled
+                        - generic [ref=f4e297]: Created 25/07/2026
+                  - generic [ref=f4e298]:
+                    - generic [ref=f4e299]:
+                      - heading "Users on ACL" [level=3] [ref=f4e300]
+                      - generic [ref=f4e301]:
+                        - generic [ref=f4e302]: "0"
+                        - generic [ref=f4e303]: 0 active
+                    - generic [ref=f4e304]:
+                      - heading "Groups on ACL" [level=3] [ref=f4e305]
+                      - generic [ref=f4e306]:
+                        - generic [ref=f4e307]: "0"
+                        - generic [ref=f4e308]: 0 active
+                    - generic [ref=f4e309]:
+                      - heading "Exposed Scopes" [level=3] [ref=f4e310]
+                      - generic [ref=f4e311]:
+                        - generic [ref=f4e312]: "0"
+                        - generic [ref=f4e313]: 0 active
+                    - generic [ref=f4e314]:
+                      - heading "Pending Recoveries" [level=3] [ref=f4e315]
+                      - generic [ref=f4e316]:
+                        - generic [ref=f4e317]: "0"
+                        - generic [ref=f4e318]: active tokens
+                  - generic [ref=f4e319]:
+                    - heading "Recent Grants" [level=3] [ref=f4e320]
+                    - generic [ref=f4e321]: No users granted access yet.
+  - alert [ref=f4e323]:
+    - generic [ref=f4e326]: Application scopes-public-api-test created successfully!
+    - button "Close" [ref=f4e327]

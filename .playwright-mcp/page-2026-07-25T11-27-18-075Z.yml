@@ -1,0 +1,84 @@
+- generic [ref=f5e3]:
+  - generic [ref=f5e5]:
+    - button "Close sidebar" [ref=f5e7]
+    - generic [ref=f5e12]:
+      - generic "Toggle dark mode" [ref=f5e13] [cursor=pointer]
+      - button "andet.tafa" [ref=f5e18]
+  - generic [ref=f5e25]:
+    - complementary [ref=f5e26]:
+      - generic [ref=f5e32]:
+        - generic [ref=f5e33]: coco-iam
+        - generic [ref=f5e34]: Identity & Access
+      - complementary [ref=f5e35]:
+        - navigation [ref=f5e36]:
+          - list [ref=f5e37]:
+            - listitem [ref=f5e38]:
+              - link "Dashboard" [ref=f5e40] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=f5e43]:
+              - link "Organizations" [ref=f5e45] [cursor=pointer]:
+                - /url: /organizations
+            - listitem [ref=f5e48]:
+              - generic [ref=f5e49]:
+                - button "Admin" [ref=f5e50]
+                - button "Toggle Admin" [ref=f5e53]
+    - generic [ref=f5e56]:
+      - navigation "Breadcrumb" [ref=f5e57]:
+        - link "Home" [ref=f5e58] [cursor=pointer]:
+          - /url: /
+        - link "Workspaces" [ref=f5e63] [cursor=pointer]:
+          - /url: /workspaces
+        - generic [ref=f5e66]: Applications
+        - generic [ref=f5e69]: Manage
+      - main [ref=f5e70]:
+        - generic [ref=f5e71]:
+          - generic [ref=f5e73]:
+            - generic [ref=f5e76]:
+              - 'link "Workspace: booking" [ref=f5e77] [cursor=pointer]':
+                - /url: /workspaces/edit/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd
+              - generic [ref=f5e78]: ›
+              - generic [ref=f5e79]: Application
+            - generic [ref=f5e80]:
+              - heading "scopes-public-api-test" [level=2] [ref=f5e81]
+              - generic [ref=f5e82]: scopes-public-api-test
+            - link "← Back to applications" [ref=f5e84] [cursor=pointer]:
+              - /url: /workspaces/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd/applications
+          - heading "Manage Application" [level=1] [ref=f5e74]
+          - generic [ref=f5e85]:
+            - complementary [ref=f5e86]:
+              - navigation "Sections" [ref=f5e87]:
+                - button "Detail" [ref=f5e89]
+                - button "Edit" [ref=f5e91]
+                - button "Authentication" [expanded] [ref=f5e92]
+                - generic [ref=f5e97]:
+                  - button "Authentication" [ref=f5e99]
+                  - button "OAuth Clients" [ref=f5e101]
+                  - button "Security" [ref=f5e103]
+                  - button "API Credentials" [ref=f5e105]
+                - button "Access" [expanded] [ref=f5e106]
+                - generic [ref=f5e111]:
+                  - button "Scopes" [ref=f5e113]
+                  - button "Users" [ref=f5e115]
+                  - button "Registration" [ref=f5e117]
+                - button "Branding" [expanded] [ref=f5e118]
+                - generic [ref=f5e123]:
+                  - button "Template" [ref=f5e125]
+                  - button "Media" [ref=f5e127]
+            - main [ref=f5e128]:
+              - generic [ref=f5e165]:
+                - generic [ref=f5e167]:
+                  - heading "Application Users" [level=4] [ref=f5e168]
+                  - paragraph [ref=f5e169]: Users assigned to this application and their scope subsets. Only users from organizations linked to this workspace are eligible.
+                - generic [ref=f5e175]:
+                  - generic [ref=f5e176]:
+                    - heading "Add a user" [level=5] [ref=f5e177]
+                    - button "Close" [ref=f5e178] [cursor=pointer]
+                  - textbox "Search by username or email..." [ref=f5e183]
+                  - table [ref=f5e185]:
+                    - rowgroup [ref=f5e186]:
+                      - row [ref=f5e187]:
+                        - cell "andet01" [ref=f5e188]
+                        - cell "tafa.andet+001@googlemail.com" [ref=f5e189]
+                        - cell [ref=f5e190]:
+                          - button "Add" [ref=f5e191] [cursor=pointer]
+                - paragraph [ref=f5e174]: No users assigned.

@@ -1,0 +1,76 @@
+- generic [ref=f1e3]:
+  - generic [ref=f1e5]:
+    - button "Close sidebar" [ref=f1e7]
+    - generic [ref=f1e12]:
+      - generic "Toggle dark mode" [ref=f1e13] [cursor=pointer]
+      - button "andet.tafa" [ref=f1e18]
+  - generic [ref=f1e25]:
+    - complementary [ref=f1e26]:
+      - generic [ref=f1e32]:
+        - generic [ref=f1e33]: coco-iam
+        - generic [ref=f1e34]: Identity & Access
+      - complementary [ref=f1e35]:
+        - navigation [ref=f1e36]:
+          - list [ref=f1e37]:
+            - listitem [ref=f1e38]:
+              - link "Dashboard" [ref=f1e40] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=f1e43]:
+              - link "Organizations" [ref=f1e45] [cursor=pointer]:
+                - /url: /organizations
+            - listitem [ref=f1e48]:
+              - generic [ref=f1e49]:
+                - button "Admin" [ref=f1e50]
+                - button "Toggle Admin" [ref=f1e53]
+    - generic [ref=f1e56]:
+      - navigation "Breadcrumb" [ref=f1e57]:
+        - link "Home" [ref=f1e58] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f1e63]: Dashboard
+      - main [ref=f1e64]:
+        - generic [ref=f1e65]:
+          - generic [ref=f1e66]:
+            - generic [ref=f1e68]:
+              - generic [ref=f1e71]: Admin Users
+              - generic [ref=f1e72]: "2"
+            - generic [ref=f1e74]:
+              - generic [ref=f1e77]: Org Users
+              - generic [ref=f1e78]: "1"
+            - generic [ref=f1e80]:
+              - generic [ref=f1e83]: Organizations
+              - generic [ref=f1e84]: "1"
+            - generic [ref=f1e86]:
+              - generic [ref=f1e89]: Workspaces
+              - generic [ref=f1e90]: "1"
+            - generic [ref=f1e92]:
+              - generic [ref=f1e95]: Applications
+              - generic [ref=f1e96]: "1"
+          - generic [ref=f1e97]:
+            - generic [ref=f1e99]:
+              - heading "Organization Registrations" [level=3] [ref=f1e100]
+              - generic [ref=f1e103]:
+                - button "Weekday" [ref=f1e104]
+                - button "Month" [ref=f1e105]
+                - button "Year" [ref=f1e106]
+            - heading "Queue Status" [level=3] [ref=f1e109]
+          - generic [ref=f1e112]:
+            - heading "Top Organizations by Users" [level=3] [ref=f1e115]
+            - generic [ref=f1e118]:
+              - heading "Recent Users" [level=3] [ref=f1e119]
+              - table [ref=f1e120]:
+                - rowgroup [ref=f1e121]:
+                  - row [ref=f1e122]:
+                    - columnheader "Username" [ref=f1e123]
+                    - columnheader "Created" [ref=f1e124]
+                - rowgroup [ref=f1e125]:
+                  - row [ref=f1e126]:
+                    - cell [ref=f1e127]:
+                      - link "andet.tafa" [ref=f1e128] [cursor=pointer]:
+                        - /url: /admin/users/edit/6b12ba0b-6b36-4a94-bce4-6ba3615b1f85
+                    - cell "18/05/2026" [ref=f1e129]
+                  - row [ref=f1e130]:
+                    - cell [ref=f1e131]:
+                      - link "andet.test" [ref=f1e132] [cursor=pointer]:
+                        - /url: /admin/users/edit/38b1d9ee-e6e0-4d32-9495-358a48bc8ecc
+                    - cell "28/04/2026" [ref=f1e133]
+            - heading "Recent Failed Tasks" [level=3] [ref=f1e136]

@@ -94,6 +94,27 @@ routes:
             method: DELETE
             executor: PublicApiGroupAclDeleteHandler
             security: public
+          # --- Scopes ---
+          - path: /{id}/scopes
+            method: GET
+            executor: PublicApiScopesListHandler
+            security: public
+          - path: /{id}/scopes
+            method: POST
+            executor: PublicApiScopesCreateHandler
+            security: public
+          - path: /{id}/scopes/{scopeId}
+            method: GET
+            executor: PublicApiScopesGetHandler
+            security: public
+          - path: /{id}/scopes/{scopeId}
+            method: PATCH
+            executor: PublicApiScopesPatchHandler
+            security: public
+          - path: /{id}/scopes/{scopeId}
+            method: DELETE
+            executor: PublicApiScopesDeleteHandler
+            security: public
           # --- User me: password notification prefs ---
           - path: /{id}/me/password-notification
             method: GET

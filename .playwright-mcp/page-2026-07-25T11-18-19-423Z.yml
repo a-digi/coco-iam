@@ -1,0 +1,70 @@
+- generic [ref=f3e3]:
+  - generic [ref=f3e5]:
+    - button "Close sidebar" [ref=f3e7]
+    - generic [ref=f3e12]:
+      - generic "Toggle dark mode" [ref=f3e13] [cursor=pointer]
+      - button "andet.tafa" [ref=f3e18]
+  - generic [ref=f3e25]:
+    - complementary [ref=f3e26]:
+      - generic [ref=f3e32]:
+        - generic [ref=f3e33]: coco-iam
+        - generic [ref=f3e34]: Identity & Access
+      - complementary [ref=f3e35]:
+        - navigation [ref=f3e36]:
+          - list [ref=f3e37]:
+            - listitem [ref=f3e38]:
+              - link "Dashboard" [ref=f3e40] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=f3e43]:
+              - link "Organizations" [ref=f3e45] [cursor=pointer]:
+                - /url: /organizations
+            - listitem [ref=f3e48]:
+              - generic [ref=f3e49]:
+                - button "Admin" [ref=f3e50]
+                - button "Toggle Admin" [ref=f3e53]
+    - generic [ref=f3e56]:
+      - navigation "Breadcrumb" [ref=f3e57]:
+        - link "Home" [ref=f3e58] [cursor=pointer]:
+          - /url: /
+        - link "Organizations" [ref=f3e63] [cursor=pointer]:
+          - /url: /organizations
+        - generic [ref=f3e66]: Manage
+      - main [ref=f3e67]:
+        - generic [ref=f3e68]:
+          - link "Back to organizations" [ref=f3e69] [cursor=pointer]:
+            - /url: /organizations
+          - generic [ref=f3e75]:
+            - generic [ref=f3e76]: Organization
+            - heading "test" [level=2] [ref=f3e77]
+          - generic [ref=f3e78]:
+            - complementary [ref=f3e79]:
+              - navigation "Sections" [ref=f3e80]:
+                - button "Details" [ref=f3e82]
+                - button "Workspaces" [ref=f3e84]
+                - button "Users" [expanded] [ref=f3e85]
+                - generic [ref=f3e90]:
+                  - button "User rules" [ref=f3e92]
+                  - button "Profile fields" [ref=f3e94]
+                  - link "Manage Users" [ref=f3e96] [cursor=pointer]:
+                    - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/users
+                  - link "Manage Groups" [ref=f3e98] [cursor=pointer]:
+                    - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/groups
+            - main [ref=f3e99]:
+              - generic [ref=f3e100]:
+                - generic [ref=f3e101]:
+                  - generic [ref=f3e102]:
+                    - generic [ref=f3e103]: Title
+                    - textbox "Title" [ref=f3e104]: test
+                  - generic [ref=f3e105]:
+                    - generic [ref=f3e106]: Organization ID
+                    - textbox "Organization ID" [ref=f3e107]:
+                      - /placeholder: auto-generated from title
+                      - text: test
+                    - paragraph [ref=f3e108]: Globally unique, lowercase, hyphens, no spaces.
+                  - generic [ref=f3e109]:
+                    - generic [ref=f3e110]: Description
+                    - textbox "Description" [ref=f3e111]
+                - generic [ref=f3e114] [cursor=pointer]:
+                  - checkbox "Is Active" [checked] [ref=f3e116]
+                  - generic [ref=f3e119]: Is Active
+                - button "Update Organization" [ref=f3e121] [cursor=pointer]

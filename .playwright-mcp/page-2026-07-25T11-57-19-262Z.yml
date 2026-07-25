@@ -1,0 +1,68 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e3]:
+    - generic [ref=f4e5]:
+      - button "Close sidebar" [ref=f4e7]
+      - generic [ref=f4e12]:
+        - generic "Toggle dark mode" [ref=f4e13] [cursor=pointer]
+        - button "andet.tafa" [ref=f4e18]
+    - generic [ref=f4e25]:
+      - complementary [ref=f4e26]:
+        - generic [ref=f4e32]:
+          - generic [ref=f4e33]: coco-iam
+          - generic [ref=f4e34]: Identity & Access
+        - complementary [ref=f4e35]:
+          - navigation [ref=f4e36]:
+            - list [ref=f4e37]:
+              - listitem [ref=f4e38]:
+                - link "Dashboard" [ref=f4e40] [cursor=pointer]:
+                  - /url: /dashboard
+              - listitem [ref=f4e43]:
+                - link "Organizations" [ref=f4e45] [cursor=pointer]:
+                  - /url: /organizations
+              - listitem [ref=f4e48]:
+                - generic [ref=f4e49]:
+                  - button "Admin" [ref=f4e50]
+                  - button "Toggle Admin" [ref=f4e53]
+      - generic [ref=f4e56]:
+        - navigation "Breadcrumb" [ref=f4e57]:
+          - link "Home" [ref=f4e58] [cursor=pointer]:
+            - /url: /
+          - link "Organizations" [ref=f4e63] [cursor=pointer]:
+            - /url: /organizations
+          - generic [ref=f4e66]: Users
+        - main [ref=f4e67]:
+          - generic [ref=f4e68]:
+            - link "Back to organization" [ref=f4e69] [cursor=pointer]:
+              - /url: /organizations/edit/1bcef6ce-2e87-4b7a-8466-3e0199cae163
+            - generic [ref=f4e75]:
+              - generic [ref=f4e76]: Organization
+              - heading "test" [level=2] [ref=f4e77]
+            - generic [ref=f4e78]:
+              - heading "Organization Users" [level=1] [ref=f4e79]
+              - button "Create User" [ref=f4e80] [cursor=pointer]
+            - generic [ref=f4e81]:
+              - button "Filter settings" [ref=f4e83]
+              - generic [ref=f4e152]:
+                - generic [ref=f4e153]: AN
+                - generic [ref=f4e155]:
+                  - link "andet01" [ref=f4e156] [cursor=pointer]:
+                    - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/users/edit/ef365c74-8766-4585-d709-b7144a8f84e9
+                  - generic "tafa.andet+001@googlemail.com" [ref=f4e160]
+                  - generic [ref=f4e161]:
+                    - generic [ref=f4e162]: Created 27/04/2026
+                    - generic [ref=f4e163]:
+                      - link "Edit" [ref=f4e164] [cursor=pointer]:
+                        - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/users/edit/ef365c74-8766-4585-d709-b7144a8f84e9
+                      - button "Delete" [ref=f4e168] [cursor=pointer]
+              - generic [ref=f4e133]:
+                - generic [ref=f4e134]: 1–1 of 1
+                - generic [ref=f4e136]:
+                  - generic [ref=f4e137]: Show
+                  - combobox "Show" [ref=f4e138]:
+                    - option "12"
+                    - option "24" [selected]
+                    - option "48"
+                    - option "96"
+  - alert [ref=f4e173]:
+    - generic [ref=f4e176]: User scopes-test-user deleted successfully!
+    - button "Close" [ref=f4e177]

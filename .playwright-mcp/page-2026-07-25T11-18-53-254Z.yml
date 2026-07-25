@@ -1,0 +1,75 @@
+- generic [ref=f3e3]:
+  - generic [ref=f3e5]:
+    - button "Close sidebar" [ref=f3e7]
+    - generic [ref=f3e12]:
+      - generic "Toggle dark mode" [ref=f3e13] [cursor=pointer]
+      - button "andet.tafa" [ref=f3e18]
+  - generic [ref=f3e25]:
+    - complementary [ref=f3e26]:
+      - generic [ref=f3e32]:
+        - generic [ref=f3e33]: coco-iam
+        - generic [ref=f3e34]: Identity & Access
+      - complementary [ref=f3e35]:
+        - navigation [ref=f3e36]:
+          - list [ref=f3e37]:
+            - listitem [ref=f3e38]:
+              - link "Dashboard" [ref=f3e40] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=f3e43]:
+              - link "Organizations" [ref=f3e45] [cursor=pointer]:
+                - /url: /organizations
+            - listitem [ref=f3e48]:
+              - generic [ref=f3e49]:
+                - button "Admin" [ref=f3e50]
+                - button "Toggle Admin" [ref=f3e53]
+    - generic [ref=f3e56]:
+      - navigation "Breadcrumb" [ref=f3e57]:
+        - link "Home" [ref=f3e58] [cursor=pointer]:
+          - /url: /
+        - link "Organizations" [ref=f3e63] [cursor=pointer]:
+          - /url: /organizations
+        - generic [ref=f3e66]: Manage
+      - main [ref=f3e67]:
+        - generic [ref=f3e68]:
+          - link "Back to organizations" [ref=f3e69] [cursor=pointer]:
+            - /url: /organizations
+          - generic [ref=f3e75]:
+            - generic [ref=f3e76]: Organization
+            - heading "test" [level=2] [ref=f3e77]
+          - generic [ref=f3e78]:
+            - complementary [ref=f3e79]:
+              - navigation "Sections" [ref=f3e80]:
+                - button "Details" [ref=f3e82]
+                - button "Workspaces" [active] [ref=f3e84]
+                - button "Users" [expanded] [ref=f3e85]
+                - generic [ref=f3e90]:
+                  - button "User rules" [ref=f3e92]
+                  - button "Profile fields" [ref=f3e94]
+                  - link "Manage Users" [ref=f3e96] [cursor=pointer]:
+                    - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/users
+                  - link "Manage Groups" [ref=f3e98] [cursor=pointer]:
+                    - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/groups
+            - main [ref=f3e99]:
+              - generic [ref=f3e122]:
+                - generic [ref=f3e123]:
+                  - generic [ref=f3e124]:
+                    - heading "Organization Workspaces" [level=4] [ref=f3e125]
+                    - paragraph [ref=f3e126]: Workspaces that belong to this organization.
+                  - button "Create Workspace" [ref=f3e127] [cursor=pointer]
+                - generic [ref=f3e129]:
+                  - button "Filter Einstellungen" [ref=f3e131]
+                  - table [ref=f3e136]:
+                    - rowgroup [ref=f3e137]:
+                      - row [ref=f3e138]:
+                        - columnheader "Title" [ref=f3e139]
+                        - columnheader "Description" [ref=f3e140]
+                        - columnheader "Action" [ref=f3e141]
+                    - rowgroup [ref=f3e142]:
+                      - row [ref=f3e143]:
+                        - cell "booking" [ref=f3e144]
+                        - cell [ref=f3e145]
+                        - cell [ref=f3e146]:
+                          - generic [ref=f3e147]:
+                            - link "Edit" [ref=f3e148] [cursor=pointer]:
+                              - /url: /workspaces/edit/8ccf9bb5-6af2-45d8-90d2-47133bbb03dd
+                            - button "Delete" [ref=f3e152] [cursor=pointer]

@@ -1,0 +1,30 @@
+- generic [ref=f6e3]:
+  - generic [ref=f6e5]:
+    - button "Close sidebar" [ref=f6e7]
+    - generic [ref=f6e12]:
+      - generic "Toggle dark mode" [ref=f6e13] [cursor=pointer]
+      - button "andet.tafa" [ref=f6e18]
+  - generic [ref=f6e25]:
+    - complementary [ref=f6e26]:
+      - generic [ref=f6e32]:
+        - generic [ref=f6e33]: coco-iam
+        - generic [ref=f6e34]: Identity & Access
+      - complementary [ref=f6e35]:
+        - navigation [ref=f6e36]:
+          - list [ref=f6e37]:
+            - listitem [ref=f6e38]:
+              - link "Dashboard" [ref=f6e40] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=f6e43]:
+              - link "Organizations" [ref=f6e45] [cursor=pointer]:
+                - /url: /organizations
+            - listitem [ref=f6e48]:
+              - generic [ref=f6e49]:
+                - button "Admin" [ref=f6e50]
+                - button "Toggle Admin" [ref=f6e53]
+    - main [ref=f6e57]:
+      - generic [ref=f6e61]:
+        - heading "scopes-public-api-test" [level=1] [ref=f6e63]
+        - generic [ref=f6e69]:
+          - generic [ref=f6e70]: Not configured
+          - text: This login page is not fully configured yet. Please contact the administrator.

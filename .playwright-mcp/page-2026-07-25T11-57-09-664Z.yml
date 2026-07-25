@@ -1,0 +1,87 @@
+- generic [ref=f4e1]:
+  - generic [ref=f4e3]:
+    - generic [ref=f4e5]:
+      - button "Close sidebar" [ref=f4e7]
+      - generic [ref=f4e12]:
+        - generic "Toggle dark mode" [ref=f4e13] [cursor=pointer]
+        - button "andet.tafa" [ref=f4e18]
+    - generic [ref=f4e25]:
+      - complementary [ref=f4e26]:
+        - generic [ref=f4e32]:
+          - generic [ref=f4e33]: coco-iam
+          - generic [ref=f4e34]: Identity & Access
+        - complementary [ref=f4e35]:
+          - navigation [ref=f4e36]:
+            - list [ref=f4e37]:
+              - listitem [ref=f4e38]:
+                - link "Dashboard" [ref=f4e40] [cursor=pointer]:
+                  - /url: /dashboard
+              - listitem [ref=f4e43]:
+                - link "Organizations" [ref=f4e45] [cursor=pointer]:
+                  - /url: /organizations
+              - listitem [ref=f4e48]:
+                - generic [ref=f4e49]:
+                  - button "Admin" [ref=f4e50]
+                  - button "Toggle Admin" [ref=f4e53]
+      - generic [ref=f4e56]:
+        - navigation "Breadcrumb" [ref=f4e57]:
+          - link "Home" [ref=f4e58] [cursor=pointer]:
+            - /url: /
+          - link "Organizations" [ref=f4e63] [cursor=pointer]:
+            - /url: /organizations
+          - generic [ref=f4e66]: Users
+        - main [ref=f4e67]:
+          - generic [ref=f4e68]:
+            - link "Back to organization" [ref=f4e69] [cursor=pointer]:
+              - /url: /organizations/edit/1bcef6ce-2e87-4b7a-8466-3e0199cae163
+            - generic [ref=f4e75]:
+              - generic [ref=f4e76]: Organization
+              - heading "test" [level=2] [ref=f4e77]
+            - generic [ref=f4e78]:
+              - heading "Organization Users" [level=1] [ref=f4e79]
+              - button "Create User" [ref=f4e80] [cursor=pointer]
+            - generic [ref=f4e81]:
+              - button "Filter settings" [ref=f4e83]
+              - generic [ref=f4e86]:
+                - generic [ref=f4e90]:
+                  - generic [ref=f4e91]: SU
+                  - generic [ref=f4e93]:
+                    - link "scopes-test-user" [ref=f4e94] [cursor=pointer]:
+                      - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/users/edit/e95e3fb9-f9c7-bfd4-8f5b-d5bb3f4dee7a
+                    - generic "scopes-test-user@example.test" [ref=f4e98]
+                    - generic [ref=f4e99]:
+                      - generic [ref=f4e100]: Created 25/07/2026
+                      - generic [ref=f4e101]:
+                        - link "Edit" [ref=f4e102] [cursor=pointer]:
+                          - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/users/edit/e95e3fb9-f9c7-bfd4-8f5b-d5bb3f4dee7a
+                        - button "Delete" [active] [ref=f4e106] [cursor=pointer]
+                - generic [ref=f4e113]:
+                  - generic [ref=f4e114]: AN
+                  - generic [ref=f4e116]:
+                    - link "andet01" [ref=f4e117] [cursor=pointer]:
+                      - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/users/edit/ef365c74-8766-4585-d709-b7144a8f84e9
+                    - generic "tafa.andet+001@googlemail.com" [ref=f4e121]
+                    - generic [ref=f4e122]:
+                      - generic [ref=f4e123]: Created 27/04/2026
+                      - generic [ref=f4e124]:
+                        - link "Edit" [ref=f4e125] [cursor=pointer]:
+                          - /url: /organizations/1bcef6ce-2e87-4b7a-8466-3e0199cae163/users/edit/ef365c74-8766-4585-d709-b7144a8f84e9
+                        - button "Delete" [ref=f4e129] [cursor=pointer]
+              - generic [ref=f4e133]:
+                - generic [ref=f4e134]: 1–2 of 2
+                - generic [ref=f4e136]:
+                  - generic [ref=f4e137]: Show
+                  - combobox "Show" [ref=f4e138]:
+                    - option "12"
+                    - option "24" [selected]
+                    - option "48"
+                    - option "96"
+  - dialog [ref=f4e139]:
+    - generic [ref=f4e140]:
+      - generic [ref=f4e141]:
+        - heading "Delete User" [level=3] [ref=f4e142]
+        - button "Close" [ref=f4e143]
+      - generic [ref=f4e146]: Are you sure you want to delete "scopes-test-user"?
+      - generic [ref=f4e148]:
+        - button "Delete" [ref=f4e149] [cursor=pointer]
+        - button "Cancel" [ref=f4e150]

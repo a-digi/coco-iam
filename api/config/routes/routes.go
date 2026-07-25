@@ -984,6 +984,11 @@ func Init(ctx serverdi.Context) {
 		"PublicApiGroupAclGetHandler":    &publicapi_handler.GroupAclGetHandler{},
 		"PublicApiGroupAclPutHandler":    &publicapi_handler.GroupAclPutHandler{},
 		"PublicApiGroupAclDeleteHandler": &publicapi_handler.GroupAclDeleteHandler{},
+		"PublicApiScopesListHandler":     &publicapi_handler.ScopesListHandler{},
+		"PublicApiScopesGetHandler":      &publicapi_handler.ScopesGetHandler{},
+		"PublicApiScopesCreateHandler":   &publicapi_handler.ScopesCreateHandler{},
+		"PublicApiScopesPatchHandler":    &publicapi_handler.ScopesPatchHandler{},
+		"PublicApiScopesDeleteHandler":   &publicapi_handler.ScopesDeleteHandler{},
 		// Org user me: password notification preferences.
 		"PasswordNotificationGetHandler": &publicapi_handler.PasswordNotificationGetHandler{},
 		"PasswordNotificationPutHandler": &publicapi_handler.PasswordNotificationPutHandler{},
