@@ -1,3 +1,4 @@
+basePath: /api/v1
 definitions:
   activation_entity.ActivateRequest:
     properties:
@@ -725,8 +726,28 @@ definitions:
           type: string
         type: array
     type: object
+host: localhost:2026
 info:
   contact: {}
+  description: |-
+    Multi-tenant Identity and Access Management.
+
+    This API has two independent Bearer-token systems. Both use the same
+    `Authorization: Bearer <token>` header, but the tokens are NOT interchangeable:
+
+    - **Admin console** (every tag below not prefixed `public-app-`): an HS256 JWT
+    issued by the admin login flow, scoped via strings like `organizations:read`,
+    `applications:write`, `super:admin`. Manages organizations, workspaces,
+    applications, and admin users.
+
+    - **Per-application public API** (tags prefixed `public-app-`, routes under
+    `/public/applications/{id}/...`): an RS256 JWT signed with that *specific
+    application's own keypair*, scoped via that application's own
+    `application_user_acl.roles` (e.g. `users:read`, `scopes:write`). A token
+    minted for one application returns 401 against any other application's
+    `{id}` — these are end-user tokens for that one app, never admin credentials.
+  title: CoCo IAM API
+  version: "1.0"
 paths:
   /:
     get:
@@ -5061,7 +5082,7 @@ paths:
             type: object
       summary: List groups for an application
       tags:
-      - public-api
+      - public-app-groups
     post:
       consumes:
       - application/json
@@ -5104,7 +5125,7 @@ paths:
             type: object
       summary: Create a group for an application
       tags:
-      - public-api
+      - public-app-groups
   /public/applications/{id}/groups/{groupId}:
     delete:
       parameters:
@@ -5146,7 +5167,7 @@ paths:
             type: object
       summary: Delete a group (soft)
       tags:
-      - public-api
+      - public-app-groups
     get:
       parameters:
       - description: Application ID
@@ -5187,7 +5208,7 @@ paths:
             type: object
       summary: Get a group by ID
       tags:
-      - public-api
+      - public-app-groups
     patch:
       consumes:
       - application/json
@@ -5235,7 +5256,7 @@ paths:
             type: object
       summary: Patch a group
       tags:
-      - public-api
+      - public-app-groups
   /public/applications/{id}/groups/{groupId}/acl:
     delete:
       parameters:
@@ -5277,7 +5298,7 @@ paths:
             type: object
       summary: Delete a group's ACL (soft)
       tags:
-      - public-api
+      - public-app-group-acl
     get:
       parameters:
       - description: Application ID
@@ -5318,7 +5339,7 @@ paths:
             type: object
       summary: Get a group's ACL
       tags:
-      - public-api
+      - public-app-group-acl
     put:
       consumes:
       - application/json
@@ -5366,7 +5387,7 @@ paths:
             type: object
       summary: Replace a group's ACL
       tags:
-      - public-api
+      - public-app-group-acl
   /public/applications/{id}/groups/{groupId}/members:
     get:
       parameters:
@@ -5408,7 +5429,7 @@ paths:
             type: object
       summary: List members of a group
       tags:
-      - public-api
+      - public-app-group-members
     post:
       consumes:
       - application/json
@@ -5456,7 +5477,7 @@ paths:
             type: object
       summary: Add a member to a group
       tags:
-      - public-api
+      - public-app-group-members
   /public/applications/{id}/groups/{groupId}/members/{userId}:
     delete:
       parameters:
@@ -5503,7 +5524,7 @@ paths:
             type: object
       summary: Remove a member from a group
       tags:
-      - public-api
+      - public-app-group-members
   /public/applications/{id}/me/password-notification:
     get:
       parameters:
@@ -5540,7 +5561,7 @@ paths:
             type: object
       summary: Get password notification preferences for the authenticated user
       tags:
-      - public-api
+      - public-app-me
     put:
       consumes:
       - application/json
@@ -5583,7 +5604,7 @@ paths:
             type: object
       summary: Replace password notification preferences for the authenticated user
       tags:
-      - public-api
+      - public-app-me
   /public/applications/{id}/scopes:
     get:
       description: Requires application scope `scopes:read` (held via the caller's
@@ -5627,7 +5648,7 @@ paths:
       - BearerAuth: []
       summary: List scopes for an application
       tags:
-      - public-api
+      - public-app-scopes
     post:
       consumes:
       - application/json
@@ -5674,7 +5695,7 @@ paths:
       - BearerAuth: []
       summary: Create a scope for an application
       tags:
-      - public-api
+      - public-app-scopes
   /public/applications/{id}/scopes/{scopeId}:
     delete:
       description: Requires application scope `scopes:delete`. Sets is_active=false
@@ -5719,7 +5740,7 @@ paths:
       - BearerAuth: []
       summary: Delete a scope (soft)
       tags:
-      - public-api
+      - public-app-scopes
     get:
       description: Requires application scope `scopes:read`. Returns 404 both when
         the row doesn't exist and when it's outside the caller's resource-id allow-list
@@ -5763,7 +5784,7 @@ paths:
       - BearerAuth: []
       summary: Get a scope by ID
       tags:
-      - public-api
+      - public-app-scopes
     patch:
       consumes:
       - application/json
@@ -5814,7 +5835,7 @@ paths:
       - BearerAuth: []
       summary: Patch a scope
       tags:
-      - public-api
+      - public-app-scopes
   /public/applications/{id}/users:
     get:
       parameters:
@@ -5851,7 +5872,7 @@ paths:
             type: object
       summary: List users for an application
       tags:
-      - public-api
+      - public-app-users
     post:
       consumes:
       - application/json
@@ -5894,7 +5915,7 @@ paths:
             type: object
       summary: Create a user for an application
       tags:
-      - public-api
+      - public-app-users
   /public/applications/{id}/users/{userId}:
     delete:
       parameters:
@@ -5936,7 +5957,7 @@ paths:
             type: object
       summary: Delete a user (soft)
       tags:
-      - public-api
+      - public-app-users
     get:
       parameters:
       - description: Application ID
@@ -5977,7 +5998,7 @@ paths:
             type: object
       summary: Get a user by ID
       tags:
-      - public-api
+      - public-app-users
     patch:
       consumes:
       - application/json
@@ -6025,7 +6046,7 @@ paths:
             type: object
       summary: Patch a user
       tags:
-      - public-api
+      - public-app-users
   /public/applications/{id}/users/{userId}/acl:
     delete:
       parameters:
@@ -6067,7 +6088,7 @@ paths:
             type: object
       summary: Delete a user's ACL (soft)
       tags:
-      - public-api
+      - public-app-user-acl
     get:
       parameters:
       - description: Application ID
@@ -6108,7 +6129,7 @@ paths:
             type: object
       summary: Get a user's ACL
       tags:
-      - public-api
+      - public-app-user-acl
     put:
       consumes:
       - application/json
@@ -6156,7 +6177,7 @@ paths:
             type: object
       summary: Replace a user's ACL
       tags:
-      - public-api
+      - public-app-user-acl
   /public/applications/{id}/users/{userId}/password:
     post:
       consumes:
@@ -6205,7 +6226,7 @@ paths:
             type: object
       summary: Set a user's password
       tags:
-      - public-api
+      - public-app-users
   /public/applications/auth-methods:
     post:
       consumes:
@@ -6315,4 +6336,33 @@ paths:
       summary: Get workspace stats
       tags:
       - workspaces
+securityDefinitions:
+  BearerAuth:
+    description: Bearer <JWT token>. See the API description above — which JWT you
+      need depends on which tag the operation carries.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
+tags:
+- description: Manage an application's own end-users (create, list, patch, soft-delete,
+    set password). Requires that application's `users:*` scope.
+  name: public-app-users
+- description: Read or replace a single user's role assignment within an application.
+    Requires that application's `acl:*` scope.
+  name: public-app-user-acl
+- description: Manage user groups scoped to an application (create, list, patch, soft-delete).
+    Requires that application's `groups:*` scope.
+  name: public-app-groups
+- description: Add, remove, and list which users belong to an application's groups.
+    Requires that application's `groups:*` scope.
+  name: public-app-group-members
+- description: Read or replace a group's role assignment within an application. Requires
+    that application's `acl:*` scope.
+  name: public-app-group-acl
+- description: Manage an application's own scope catalog — the vocabulary of permissions
+    it exposes to its users. Requires that application's `scopes:*` scope.
+  name: public-app-scopes
+- description: Self-service preferences for the currently authenticated application
+    end-user (e.g. password-expiry notification settings).
+  name: public-app-me

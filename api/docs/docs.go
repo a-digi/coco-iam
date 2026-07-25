@@ -6366,7 +6366,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-groups"
                 ],
                 "summary": "List groups for an application",
                 "parameters": [
@@ -6421,7 +6421,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-groups"
                 ],
                 "summary": "Create a group for an application",
                 "parameters": [
@@ -6482,7 +6482,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-groups"
                 ],
                 "summary": "Get a group by ID",
                 "parameters": [
@@ -6541,7 +6541,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-groups"
                 ],
                 "summary": "Delete a group (soft)",
                 "parameters": [
@@ -6603,7 +6603,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-groups"
                 ],
                 "summary": "Patch a group",
                 "parameters": [
@@ -6671,7 +6671,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-group-acl"
                 ],
                 "summary": "Get a group's ACL",
                 "parameters": [
@@ -6733,7 +6733,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-group-acl"
                 ],
                 "summary": "Replace a group's ACL",
                 "parameters": [
@@ -6799,7 +6799,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-group-acl"
                 ],
                 "summary": "Delete a group's ACL (soft)",
                 "parameters": [
@@ -6860,7 +6860,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-group-members"
                 ],
                 "summary": "List members of a group",
                 "parameters": [
@@ -6922,7 +6922,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-group-members"
                 ],
                 "summary": "Add a member to a group",
                 "parameters": [
@@ -6990,7 +6990,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-group-members"
                 ],
                 "summary": "Remove a member from a group",
                 "parameters": [
@@ -7058,7 +7058,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-me"
                 ],
                 "summary": "Get password notification preferences for the authenticated user",
                 "parameters": [
@@ -7113,7 +7113,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-me"
                 ],
                 "summary": "Replace password notification preferences for the authenticated user",
                 "parameters": [
@@ -7180,7 +7180,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-scopes"
                 ],
                 "summary": "List scopes for an application",
                 "parameters": [
@@ -7245,7 +7245,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-scopes"
                 ],
                 "summary": "Create a scope for an application",
                 "parameters": [
@@ -7312,7 +7312,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-scopes"
                 ],
                 "summary": "Get a scope by ID",
                 "parameters": [
@@ -7375,7 +7375,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-scopes"
                 ],
                 "summary": "Delete a scope (soft)",
                 "parameters": [
@@ -7441,7 +7441,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-scopes"
                 ],
                 "summary": "Patch a scope",
                 "parameters": [
@@ -7509,7 +7509,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-users"
                 ],
                 "summary": "List users for an application",
                 "parameters": [
@@ -7564,7 +7564,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-users"
                 ],
                 "summary": "Create a user for an application",
                 "parameters": [
@@ -7625,7 +7625,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-users"
                 ],
                 "summary": "Get a user by ID",
                 "parameters": [
@@ -7684,7 +7684,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-users"
                 ],
                 "summary": "Delete a user (soft)",
                 "parameters": [
@@ -7746,7 +7746,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-users"
                 ],
                 "summary": "Patch a user",
                 "parameters": [
@@ -7814,7 +7814,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-user-acl"
                 ],
                 "summary": "Get a user's ACL",
                 "parameters": [
@@ -7876,7 +7876,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-user-acl"
                 ],
                 "summary": "Replace a user's ACL",
                 "parameters": [
@@ -7942,7 +7942,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-user-acl"
                 ],
                 "summary": "Delete a user's ACL (soft)",
                 "parameters": [
@@ -8006,7 +8006,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public-api"
+                    "public-app-users"
                 ],
                 "summary": "Set a user's password",
                 "parameters": [
@@ -9486,17 +9486,55 @@ const docTemplate = `{
                 }
             }
         }
-    }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Bearer \u003cJWT token\u003e. See the API description above — which JWT you need depends on which tag the operation carries.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    },
+    "tags": [
+        {
+            "description": "Manage an application's own end-users (create, list, patch, soft-delete, set password). Requires that application's ` + "`" + `users:*` + "`" + ` scope.",
+            "name": "public-app-users"
+        },
+        {
+            "description": "Read or replace a single user's role assignment within an application. Requires that application's ` + "`" + `acl:*` + "`" + ` scope.",
+            "name": "public-app-user-acl"
+        },
+        {
+            "description": "Manage user groups scoped to an application (create, list, patch, soft-delete). Requires that application's ` + "`" + `groups:*` + "`" + ` scope.",
+            "name": "public-app-groups"
+        },
+        {
+            "description": "Add, remove, and list which users belong to an application's groups. Requires that application's ` + "`" + `groups:*` + "`" + ` scope.",
+            "name": "public-app-group-members"
+        },
+        {
+            "description": "Read or replace a group's role assignment within an application. Requires that application's ` + "`" + `acl:*` + "`" + ` scope.",
+            "name": "public-app-group-acl"
+        },
+        {
+            "description": "Manage an application's own scope catalog — the vocabulary of permissions it exposes to its users. Requires that application's ` + "`" + `scopes:*` + "`" + ` scope.",
+            "name": "public-app-scopes"
+        },
+        {
+            "description": "Self-service preferences for the currently authenticated application end-user (e.g. password-expiry notification settings).",
+            "name": "public-app-me"
+        }
+    ]
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0",
+	Host:             "localhost:2026",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "CoCo IAM API",
+	Description:      "Multi-tenant Identity and Access Management.\n\nThis API has two independent Bearer-token systems. Both use the same\n`Authorization: Bearer <token>` header, but the tokens are NOT interchangeable:\n\n- **Admin console** (every tag below not prefixed `public-app-`): an HS256 JWT\nissued by the admin login flow, scoped via strings like `organizations:read`,\n`applications:write`, `super:admin`. Manages organizations, workspaces,\napplications, and admin users.\n\n- **Per-application public API** (tags prefixed `public-app-`, routes under\n`/public/applications/{id}/...`): an RS256 JWT signed with that *specific\napplication's own keypair*, scoped via that application's own\n`application_user_acl.roles` (e.g. `users:read`, `scopes:write`). A token\nminted for one application returns 401 against any other application's\n`{id}` — these are end-user tokens for that one app, never admin credentials.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

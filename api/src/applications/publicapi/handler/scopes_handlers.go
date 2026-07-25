@@ -85,7 +85,7 @@ type ScopesListHandler struct{}
 
 // @Summary     List scopes for an application
 // @Description Requires application scope `scopes:read` (held via the caller's `application_user_acl.roles` and carried in the bearer JWT's `scope` claim). Resource-id constrained callers only see ids in their `scopes:read` allow-list.
-// @Tags        public-api
+// @Tags        public-app-scopes
 // @Produce     json
 // @Security    BearerAuth
 // @Param       id path string true "Application ID"
@@ -148,7 +148,7 @@ type ScopesGetHandler struct{}
 
 // @Summary     Get a scope by ID
 // @Description Requires application scope `scopes:read`. Returns 404 both when the row doesn't exist and when it's outside the caller's resource-id allow-list for scopes:read.
-// @Tags        public-api
+// @Tags        public-app-scopes
 // @Produce     json
 // @Security    BearerAuth
 // @Param       id path string true "Application ID"
@@ -191,7 +191,7 @@ type ScopesCreateHandler struct{}
 
 // @Summary     Create a scope for an application
 // @Description Requires application scope `scopes:write`. `scope_id` must match letters/underscores per colon-separated segment (e.g. `docs:read`) and is immutable once created.
-// @Tags        public-api
+// @Tags        public-app-scopes
 // @Accept      json
 // @Produce     json
 // @Security    BearerAuth
@@ -256,7 +256,7 @@ type ScopesPatchHandler struct{}
 
 // @Summary     Patch a scope
 // @Description Requires application scope `scopes:write`. Only description, resource_ids, and is_active can be changed — scope_id is immutable.
-// @Tags        public-api
+// @Tags        public-app-scopes
 // @Accept      json
 // @Produce     json
 // @Security    BearerAuth
@@ -321,7 +321,7 @@ type ScopesDeleteHandler struct{}
 
 // @Summary     Delete a scope (soft)
 // @Description Requires application scope `scopes:delete`. Sets is_active=false — the row is not removed, so a subsequent GET on the same id still returns it with is_active:false.
-// @Tags        public-api
+// @Tags        public-app-scopes
 // @Produce     json
 // @Security    BearerAuth
 // @Param       id path string true "Application ID"

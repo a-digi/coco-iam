@@ -36,7 +36,7 @@ swag-gen:
 	    echo "swag not found. Install with: go install github.com/swaggo/swag/cmd/swag@latest"; \
 	    exit 1; \
 	}
-	cd api && swag init -g main.go -o docs --parseDependency --parseInternal
+	cd api && swag init -g doc.go -o docs --parseDependency --parseInternal
 	cp api/docs/swagger.json api/src/swagger/static/swagger.json
 
 .PHONY: build-linux

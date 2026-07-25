@@ -22,7 +22,7 @@ type groupAclView struct {
 type GroupAclGetHandler struct{}
 
 // @Summary     Get a group's ACL
-// @Tags        public-api
+// @Tags        public-app-group-acl
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       groupId path string true "Group ID"
@@ -55,7 +55,7 @@ func (h *GroupAclGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 type GroupAclPutHandler struct{}
 
 // @Summary     Replace a group's ACL
-// @Tags        public-api
+// @Tags        public-app-group-acl
 // @Accept      json
 // @Produce     json
 // @Param       id path string true "Application ID"
@@ -125,7 +125,7 @@ func (h *GroupAclPutHandler) ServeHTTP(reqCtx request.RequestContext) {
 type GroupAclDeleteHandler struct{}
 
 // @Summary     Delete a group's ACL (soft)
-// @Tags        public-api
+// @Tags        public-app-group-acl
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       groupId path string true "Group ID"
