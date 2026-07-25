@@ -7159,6 +7159,12 @@
         },
         "/public/applications/{id}/scopes": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Requires application scope `scopes:read` (held via the caller's `application_user_acl.roles` and carried in the bearer JWT's `scope` claim). Resource-id constrained callers only see ids in their `scopes:read` allow-list.",
                 "produces": [
                     "application/json"
                 ],
@@ -7173,44 +7179,54 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (max 500, default 50)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Row offset (default 0)",
+                        "name": "offset",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
-                    },
-                    "400": {
-                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/handler.ApplicationScopeListSuccess"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "missing/invalid bearer token, or token was not issued for this application",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "token does not carry the scopes:read scope",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     }
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Requires application scope `scopes:write`. `scope_id` must match letters/underscores per colon-separated segment (e.g. `docs:read`) and is immutable once created.",
                 "consumes": [
                     "application/json"
                 ],
@@ -7234,40 +7250,40 @@
                         "name": "body",
                         "in": "body",
                         "required": true,
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/handler.CreateScopeBody"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {}
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ApplicationScopeSuccess"
+                        }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "invalid JSON, missing scope_id, or scope_id fails format validation",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "missing/invalid bearer token, or token was not issued for this application",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "token does not carry the scopes:write scope",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     }
                 }
@@ -7275,6 +7291,12 @@
         },
         "/public/applications/{id}/scopes/{scopeId}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Requires application scope `scopes:read`. Returns 404 both when the row doesn't exist and when it's outside the caller's resource-id allow-list for scopes:read.",
                 "produces": [
                     "application/json"
                 ],
@@ -7301,39 +7323,43 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
-                    },
-                    "400": {
-                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/handler.ApplicationScopeSuccess"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "missing/invalid bearer token, or token was not issued for this application",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "token does not carry the scopes:read scope",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "scope not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     }
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Requires application scope `scopes:delete`. Sets is_active=false — the row is not removed, so a subsequent GET on the same id still returns it with is_active:false.",
                 "produces": [
                     "application/json"
                 ],
@@ -7360,39 +7386,43 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
-                    },
-                    "400": {
-                        "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/handler.ScopeDeleteSuccess"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "missing/invalid bearer token, or token was not issued for this application",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "token does not carry the scopes:delete scope",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "scope not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     }
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Requires application scope `scopes:write`. Only description, resource_ids, and is_active can be changed — scope_id is immutable.",
                 "consumes": [
                     "application/json"
                 ],
@@ -7423,40 +7453,40 @@
                         "name": "body",
                         "in": "body",
                         "required": true,
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/handler.PatchScopeBody"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/handler.ApplicationScopeSuccess"
+                        }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "invalid JSON body",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "missing/invalid bearer token, or token was not issued for this application",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "token does not carry the scopes:write scope",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "scope not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/response.ErrorBody"
                         }
                     }
                 }
@@ -8962,6 +8992,131 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "handler.ApplicationScopeListPayload": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.ApplicationScopeView"
+                    }
+                }
+            }
+        },
+        "handler.ApplicationScopeListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/handler.ApplicationScopeListPayload"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handler.ApplicationScopeSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/handler.ApplicationScopeView"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handler.ApplicationScopeView": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Read documentation pages."
+                },
+                "id": {
+                    "type": "string",
+                    "example": "7f7f175d-cefa-4098-afec-b5469aeb2af5"
+                },
+                "is_active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "resource_ids": {
+                    "type": "string",
+                    "example": "[]"
+                },
+                "scope_id": {
+                    "type": "string",
+                    "example": "docs:read"
+                }
+            }
+        },
+        "handler.CreateScopeBody": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Read documentation pages."
+                },
+                "resource_ids": {
+                    "description": "ResourceIDs is an opaque JSON-encoded array of ids this scope is\nconstrained to. Defaults to \"[]\" (unconstrained) when omitted.",
+                    "type": "string",
+                    "example": "[]"
+                },
+                "scope_id": {
+                    "description": "ScopeID must match acl.ScopeIDFormat: letters/underscores per\nsegment, separated by colons. Immutable once created.",
+                    "type": "string",
+                    "example": "docs:read"
+                }
+            }
+        },
+        "handler.PatchScopeBody": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Read documentation pages."
+                },
+                "is_active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "resource_ids": {
+                    "type": "string",
+                    "example": "[]"
+                }
+            }
+        },
+        "handler.ScopeDeleteStatus": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "deleted"
+                }
+            }
+        },
+        "handler.ScopeDeleteSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/handler.ScopeDeleteStatus"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

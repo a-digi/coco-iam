@@ -395,6 +395,97 @@ definitions:
       username:
         type: string
     type: object
+  handler.ApplicationScopeListPayload:
+    properties:
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      scopes:
+        items:
+          $ref: '#/definitions/handler.ApplicationScopeView'
+        type: array
+    type: object
+  handler.ApplicationScopeListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/handler.ApplicationScopeListPayload'
+      success:
+        example: true
+        type: boolean
+    type: object
+  handler.ApplicationScopeSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/handler.ApplicationScopeView'
+      success:
+        example: true
+        type: boolean
+    type: object
+  handler.ApplicationScopeView:
+    properties:
+      description:
+        example: Read documentation pages.
+        type: string
+      id:
+        example: 7f7f175d-cefa-4098-afec-b5469aeb2af5
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      resource_ids:
+        example: '[]'
+        type: string
+      scope_id:
+        example: docs:read
+        type: string
+    type: object
+  handler.CreateScopeBody:
+    properties:
+      description:
+        example: Read documentation pages.
+        type: string
+      resource_ids:
+        description: |-
+          ResourceIDs is an opaque JSON-encoded array of ids this scope is
+          constrained to. Defaults to "[]" (unconstrained) when omitted.
+        example: '[]'
+        type: string
+      scope_id:
+        description: |-
+          ScopeID must match acl.ScopeIDFormat: letters/underscores per
+          segment, separated by colons. Immutable once created.
+        example: docs:read
+        type: string
+    type: object
+  handler.PatchScopeBody:
+    properties:
+      description:
+        example: Read documentation pages.
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      resource_ids:
+        example: '[]'
+        type: string
+    type: object
+  handler.ScopeDeleteStatus:
+    properties:
+      status:
+        example: deleted
+        type: string
+    type: object
+  handler.ScopeDeleteSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/handler.ScopeDeleteStatus'
+      success:
+        example: true
+        type: boolean
+    type: object
   model.TokenResponse:
     properties:
       access_token:
@@ -5495,44 +5586,54 @@ paths:
       - public-api
   /public/applications/{id}/scopes:
     get:
+      description: Requires application scope `scopes:read` (held via the caller's
+        `application_user_acl.roles` and carried in the bearer JWT's `scope` claim).
+        Resource-id constrained callers only see ids in their `scopes:read` allow-list.
       parameters:
       - description: Application ID
         in: path
         name: id
         required: true
         type: string
+      - description: Page size (max 500, default 50)
+        in: query
+        name: limit
+        type: integer
+      - description: Row offset (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema: {}
-        "400":
-          description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handler.ApplicationScopeListSuccess'
         "401":
-          description: Unauthorized
+          description: missing/invalid bearer token, or token was not issued for this
+            application
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
         "403":
-          description: Forbidden
+          description: token does not carry the scopes:read scope
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
       summary: List scopes for an application
       tags:
       - public-api
     post:
       consumes:
       - application/json
+      description: Requires application scope `scopes:write`. `scope_id` must match
+        letters/underscores per colon-separated segment (e.g. `docs:read`) and is
+        immutable once created.
       parameters:
       - description: Application ID
         in: path
@@ -5543,38 +5644,42 @@ paths:
         in: body
         name: body
         required: true
-        schema: {}
+        schema:
+          $ref: '#/definitions/handler.CreateScopeBody'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema: {}
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.ApplicationScopeSuccess'
         "400":
-          description: Bad Request
+          description: invalid JSON, missing scope_id, or scope_id fails format validation
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
         "401":
-          description: Unauthorized
+          description: missing/invalid bearer token, or token was not issued for this
+            application
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
         "403":
-          description: Forbidden
+          description: token does not carry the scopes:write scope
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
       summary: Create a scope for an application
       tags:
       - public-api
   /public/applications/{id}/scopes/{scopeId}:
     delete:
+      description: Requires application scope `scopes:delete`. Sets is_active=false
+        — the row is not removed, so a subsequent GET on the same id still returns
+        it with is_active:false.
       parameters:
       - description: Application ID
         in: path
@@ -5591,31 +5696,34 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
-        "400":
-          description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handler.ScopeDeleteSuccess'
         "401":
-          description: Unauthorized
+          description: missing/invalid bearer token, or token was not issued for this
+            application
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
         "403":
-          description: Forbidden
+          description: token does not carry the scopes:delete scope
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: scope not found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
       summary: Delete a scope (soft)
       tags:
       - public-api
     get:
+      description: Requires application scope `scopes:read`. Returns 404 both when
+        the row doesn't exist and when it's outside the caller's resource-id allow-list
+        for scopes:read.
       parameters:
       - description: Application ID
         in: path
@@ -5632,33 +5740,35 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
-        "400":
-          description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handler.ApplicationScopeSuccess'
         "401":
-          description: Unauthorized
+          description: missing/invalid bearer token, or token was not issued for this
+            application
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
         "403":
-          description: Forbidden
+          description: token does not carry the scopes:read scope
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: scope not found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
       summary: Get a scope by ID
       tags:
       - public-api
     patch:
       consumes:
       - application/json
+      description: Requires application scope `scopes:write`. Only description, resource_ids,
+        and is_active can be changed — scope_id is immutable.
       parameters:
       - description: Application ID
         in: path
@@ -5674,33 +5784,34 @@ paths:
         in: body
         name: body
         required: true
-        schema: {}
+        schema:
+          $ref: '#/definitions/handler.PatchScopeBody'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/handler.ApplicationScopeSuccess'
         "400":
-          description: Bad Request
+          description: invalid JSON body
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
         "401":
-          description: Unauthorized
+          description: missing/invalid bearer token, or token was not issued for this
+            application
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
         "403":
-          description: Forbidden
+          description: token does not carry the scopes:write scope
           schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: scope not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
       summary: Patch a scope
       tags:
       - public-api
