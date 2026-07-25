@@ -3,9 +3,12 @@ package authentication
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/a-digi/coco-iam/config"
 	user_acl_repo "github.com/a-digi/coco-iam/src/admin/acl/repository"
+	mfa_entity "github.com/a-digi/coco-iam/src/admin/mfa/entity"
+	mfa_query "github.com/a-digi/coco-iam/src/admin/mfa/repository/query"
 	passwordexpiry "github.com/a-digi/coco-iam/src/admin/users/passwordexpiry"
 	user_repository "github.com/a-digi/coco-iam/src/admin/users/repository/query"
 	auth_db "github.com/a-digi/coco-iam/src/auth/database"
@@ -30,18 +33,18 @@ type DatabaseAuthenticationLogin struct{}
 // ServeHTTP authenticates an admin user.
 //
 //	@Summary		Admin login
-//	@Description	Authenticates an admin user with username+password and returns a signed JWT.
+//	@Description	Authenticates an admin user with username+password and returns a signed JWT. If the admin has MFA enabled, returns 202 with a short-lived mfa_token (scope system:mfa_required) instead — exchange it at /admin/oauth/verify-mfa for the full token.
 //	@Tags			auth
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		auth_entity.LoginCredentials	true	"Username and password"
 //	@Success		200		{object}	entity.LoginSuccess
+//	@Success		202		{object}	mfa_entity.MfaRequiredSuccess "MFA enabled — verify to complete login"
 //	@Failure		400		{object}	response.ErrorBody
 //	@Failure		401		{object}	response.ErrorBody
 //	@Failure		403		{object}	response.ErrorBody
 //	@Failure		500		{object}	response.ErrorBody
 //	@Router			/admin/oauth/authenticate [post]
-
 func (h *DatabaseAuthenticationLogin) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	r := reqCtx.GetRequest()
@@ -140,6 +143,34 @@ func (h *DatabaseAuthenticationLogin) ServeHTTP(reqCtx request.RequestContext) {
 			response.ErrorResponse(w, http.StatusForbidden, "No access rights have been assigned to your account. Please contact your administrator.")
 			return
 		}
+
+		// MFA check only applies to a real, full-scope login — an
+		// admin forced through the password-reset path (mustChange,
+		// scoped to system:pwd_reset_required only) must not be able
+		// to skip MFA by resetting their password first; they'll hit
+		// this same check again on their next, real login attempt.
+		mfaRepo := mfa_query.NewAdminMfaQueryRepo(manager.Connector.DB)
+		mfaRow, mfaErr := mfaRepo.FindByAdminUserID(user.ID)
+		if mfaErr != nil && mfaErr != mfa_query.ErrNotFound {
+			response.ErrorResponse(w, http.StatusInternalServerError, "failed to read MFA state")
+			return
+		}
+		if mfaRow != nil && mfaRow.IsEnabled {
+			pendingResp, err := oauth.IssueTokenWithTTL(
+				cfg, user.ID, []string{"system:mfa_required"},
+				oauth.MfaPendingExpiryMinutes*time.Minute,
+			)
+			if err != nil {
+				response.ErrorResponse(w, http.StatusInternalServerError, "token signing failed")
+				return
+			}
+			response.SuccessResponse(w, http.StatusAccepted, mfa_entity.MfaRequiredResponse{
+				MfaRequired: true,
+				MfaToken:    pendingResp.AccessToken,
+				ExpiresAt:   pendingResp.ExpiresAt,
+			})
+			return
+		}
 	}
 
 	tokenResp, err := oauth.IssueToken(cfg, user.ID, scopes)
@@ -153,7 +184,9 @@ func (h *DatabaseAuthenticationLogin) ServeHTTP(reqCtx request.RequestContext) {
 }
 
 func resolveAdminExpiryChecker(ctx interface{}) *passwordexpiry.Checker {
-	bag, ok := ctx.(interface{ Get(string) (interface{}, bool) })
+	bag, ok := ctx.(interface {
+		Get(string) (interface{}, bool)
+	})
 	if !ok {
 		return nil
 	}

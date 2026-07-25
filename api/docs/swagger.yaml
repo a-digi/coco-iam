@@ -252,6 +252,107 @@ definitions:
       name:
         type: string
     type: object
+  entity.LoginCredentials:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  entity.LoginSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/model.TokenResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.MfaCodeRequest:
+    properties:
+      code:
+        example: "123456"
+        type: string
+    type: object
+  entity.MfaDisableRequest:
+    properties:
+      password:
+        example: CurrentPassw0rd!
+        type: string
+    type: object
+  entity.MfaEnrollResponse:
+    properties:
+      provisioning_uri:
+        example: otpauth://totp/coco-iam:admin@example.com?secret=K7PNOKLVPJ24AFFK5J2U4QSMJTAUXZHU&issuer=coco-iam
+        type: string
+      secret:
+        example: K7PNOKLVPJ24AFFK5J2U4QSMJTAUXZHU
+        type: string
+    type: object
+  entity.MfaEnrollSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.MfaEnrollResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.MfaRecoveryCodesResponse:
+    properties:
+      recovery_codes:
+        example:
+        - 7K9QX-2MN4P
+        - HRDR7-J9Y6B
+        items:
+          type: string
+        type: array
+    type: object
+  entity.MfaRecoveryCodesSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.MfaRecoveryCodesResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.MfaRequiredResponse:
+    properties:
+      expires_at:
+        example: 1784980000
+        type: integer
+      mfa_required:
+        example: true
+        type: boolean
+      mfa_token:
+        type: string
+    type: object
+  entity.MfaRequiredSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.MfaRequiredResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.MfaStatus:
+    properties:
+      enabled:
+        example: true
+        type: boolean
+      enrolled_at:
+        example: "2026-07-25T12:00:00Z"
+        type: string
+      recovery_codes_remaining:
+        example: 8
+        type: integer
+    type: object
+  entity.MfaStatusSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.MfaStatus'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.OAuthErrorResponse:
     properties:
       error:
@@ -336,6 +437,20 @@ definitions:
       steps:
         items: {}
         type: array
+    type: object
+  entity.StatusResponse:
+    properties:
+      status:
+        example: disabled
+        type: string
+    type: object
+  entity.StatusSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.StatusResponse'
+      success:
+        example: true
+        type: boolean
     type: object
   entity.UpdateUserRequest:
     properties:
@@ -2670,6 +2785,51 @@ paths:
       summary: Get current admin user groups
       tags:
       - admin-me
+  /admin/oauth/authenticate:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates an admin user with username+password and returns
+        a signed JWT. If the admin has MFA enabled, returns 202 with a short-lived
+        mfa_token (scope system:mfa_required) instead — exchange it at /admin/oauth/verify-mfa
+        for the full token.
+      parameters:
+      - description: Username and password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.LoginCredentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.LoginSuccess'
+        "202":
+          description: MFA enabled — verify to complete login
+          schema:
+            $ref: '#/definitions/entity.MfaRequiredSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      summary: Admin login
+      tags:
+      - auth
   /admin/oauth/renew:
     post:
       produces:
@@ -2699,6 +2859,52 @@ paths:
             additionalProperties: true
             type: object
       summary: Renew OAuth token
+      tags:
+      - auth
+  /admin/oauth/verify-mfa:
+    post:
+      consumes:
+      - application/json
+      description: Exchanges a pending mfa_token (scope system:mfa_required, minted
+        by /admin/oauth/authenticate) plus a valid TOTP code or unused recovery code
+        for a full-scope access token.
+      parameters:
+      - description: 6-digit code, or an unused recovery code
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.MfaCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.LoginSuccess'
+        "400":
+          description: invalid code
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: missing/invalid/expired mfa_token
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: no scopes assigned to this account
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "429":
+          description: too many failed attempts — temporarily locked out
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Verify TOTP code and complete login
       tags:
       - auth
   /admin/observe/agents:
@@ -3766,6 +3972,156 @@ paths:
       security:
       - BearerAuth: []
       summary: Upload admin user avatar
+      tags:
+      - admin-me
+  /admin/users/me/mfa:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: current password, re-verified
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.MfaDisableRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.StatusSuccess'
+        "400":
+          description: wrong password
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Disable TOTP for the current admin
+      tags:
+      - admin-me
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.MfaStatusSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get current admin's MFA status
+      tags:
+      - admin-me
+  /admin/users/me/mfa/confirm:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 6-digit code from the authenticator app
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.MfaCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.MfaRecoveryCodesSuccess'
+        "400":
+          description: invalid code, or no pending enrollment
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Confirm TOTP enrollment
+      tags:
+      - admin-me
+  /admin/users/me/mfa/enroll:
+    post:
+      description: Generates a new secret and provisioning URI. Not enabled until
+        /confirm succeeds. Calling again before confirming replaces the pending secret.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.MfaEnrollSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Start TOTP enrollment for the current admin
+      tags:
+      - admin-me
+  /admin/users/me/mfa/recovery-codes:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: current password, re-verified
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.MfaDisableRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.MfaRecoveryCodesSuccess'
+        "400":
+          description: wrong password, or MFA not enabled
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Regenerate recovery codes
       tags:
       - admin-me
   /admin/users/me/password-notification:

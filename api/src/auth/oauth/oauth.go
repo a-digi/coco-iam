@@ -19,6 +19,12 @@ const (
 	// token (plus a 15-min grace past expiry), so this gives a client
 	// ~24h to call `/oauth/renew` after the access token has expired.
 	RefreshExpiryHours = 24
+	// MfaPendingExpiryMinutes is the TTL for the narrow, single-scope
+	// (system:mfa_required) token minted when an admin's password
+	// check succeeds but MFA verification hasn't happened yet. Short
+	// on purpose — it should never be a viable target for delayed
+	// replay.
+	MfaPendingExpiryMinutes = 5
 )
 
 // RefreshScope is the only scope on a refresh JWT. It exists solely
@@ -31,10 +37,10 @@ const RefreshScope = "token:refresh"
 // vendored library. The JSON layout is identical to TokenResponse for
 // everything except the extra `refresh_token` field.
 type LoginTokenResponse struct {
-	AccessToken  string              `json:"access_token"`
-	RefreshToken string              `json:"refresh_token"`
-	TokenType    string              `json:"token_type"`
-	ExpiresAt    int64               `json:"expires_at"`
+	AccessToken  string               `json:"access_token"`
+	RefreshToken string               `json:"refresh_token"`
+	TokenType    string               `json:"token_type"`
+	ExpiresAt    int64                `json:"expires_at"`
 	User         oauth_model.UserInfo `json:"user"`
 }
 
@@ -42,12 +48,19 @@ func ProvideTimeToLive() time.Duration {
 	return DefaultExpiryMinutes * time.Minute
 }
 
-// IssueToken issues a JWT token response using a config struct
+// IssueToken issues a JWT token response using a config struct, at
+// the standard session TTL.
 func IssueToken(cfg oauth_lib.AuthConfig, subject string, scopes []string) (oauth_model.TokenResponse, error) {
+	return IssueTokenWithTTL(cfg, subject, scopes, ProvideTimeToLive())
+}
+
+// IssueTokenWithTTL is IssueToken with an explicit TTL — used for the
+// short-lived system:mfa_required pending token, distinct from the
+// normal session length.
+func IssueTokenWithTTL(cfg oauth_lib.AuthConfig, subject string, scopes []string, ttl time.Duration) (oauth_model.TokenResponse, error) {
 	if cfg.HS256Secret == "" {
 		return oauth_model.TokenResponse{}, nil
 	}
-	ttl := ProvideTimeToLive()
 	token, exp, err := oauth_lib.SignHS256([]byte(cfg.HS256Secret), cfg.Issuer, cfg.Audience, subject, scopes, ttl)
 
 	if err != nil {
