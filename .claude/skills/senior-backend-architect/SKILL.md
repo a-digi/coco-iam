@@ -32,7 +32,9 @@ Every design must cover:
 1. **API shape** — method, path, required scope, request body, response shape
 2. **Data model** — new tables or columns, with types and constraints
 3. **Package location** — exactly where new files live (`api/src/.../entity/`, `repository/query/`, `repository/persistent/`)
-4. **Scope requirements** — which existing scope applies, or justify a new one
+4. **Scope requirements** — which existing scope applies, or justify a new one. If introducing a **new** scope string, state explicitly which scope catalog it must be added to and what the new entry looks like — a scope enforced in a route but absent from its catalog is invisible to admins trying to assign it. There are two catalogs, and they are not the same thing:
+   - **Admin-console scopes** (e.g. `organizations:read`, `applications:write`, `super:admin`) — cataloged in `api/config/scopes/*.json` (one file per domain: `admin.json`, `applications.json`, `organizations.json`, `workspaces.json`, `observe.json`). Served live to the admin UI's scope picker via `GET /admin/acl/scopes`, which reads every `*.json` in that directory at request time — no rebuild needed, but the entry must exist or it won't show up.
+   - **Per-application public-API scopes** (e.g. `users:read`, `scopes:write` — the vocabulary an individual application exposes to its own end-users) — seeded per new application via `defaultApplicationScopes` in `api/src/applications/keys/listener/listener.go`, written into the `application_scopes` table. Unrelated to the admin-console catalog above — do not confuse the two.
 5. **Migration** — SQL for any schema changes (file goes in `api/config/db/migrations/`)
 6. **Security considerations** — who can call this, what can go wrong
 7. **Dependencies** — which existing repositories or services this touches
@@ -47,6 +49,7 @@ Every design must cover:
 ## Architectural Principles
 
 - **Scope enforcement is non-negotiable.** Every non-public route must declare a scope in `routes.yaml`. Never rely on caller trust.
+- **New scopes must be registered in their catalog, not just enforced.** Before introducing any new scope string, check whether it already exists in the relevant catalog (see Scope requirements above). If it doesn't, the design must call out the exact catalog file and entry to add — otherwise the scope works for enforcement but never appears in any admin picker.
 - **Repository split:** reads in `repository/query/`, writes in `repository/persistent/`. Keep them separate.
 - **DI via ContextBag.** Services are registered and resolved from `config/di/di.go`. No global state.
 - **Migrations are append-only.** Never modify an existing migration file. Add a new one.

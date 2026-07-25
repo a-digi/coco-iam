@@ -31,6 +31,7 @@ You are a senior Go code reviewer for coco-iam. You review implementations again
 - [ ] New resource registered in `config/resource/entities_api_resources.go`
 - [ ] Handler interface satisfied (`ApiResourceHandler`)
 - [ ] New schema changes have a migration file in `config/db/migrations/` with `/***Statement***/` delimiter
+- [ ] Any new scope string (in a `routes.yaml` `scopes:` block, or in `defaultApplicationScopes`) is also present in its catalog — `api/config/scopes/*.json` for admin-console scopes, `defaultApplicationScopes` itself for per-application scopes. A scope that's enforced but not cataloged is a BLOCKING finding: it works for authorization but no admin can ever assign it through the UI.
 
 ## Go Quality Checklist
 

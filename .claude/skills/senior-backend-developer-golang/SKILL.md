@@ -22,6 +22,10 @@ For every new entity/endpoint:
 - [ ] Add route(s) to `api/config/routes/routes.yaml` with correct scope
 - [ ] Migration SQL in `api/config/db/migrations/` (new file, never edit existing)
 - [ ] Run `swag init` and confirm it exits cleanly with no annotation errors
+- [ ] **New scope check**: for every scope string this feature introduces, confirm it already exists in the relevant catalog — grep for it first, don't assume. If missing, add it:
+  - Admin-console scope (`organizations:*`, `applications:*`, `super:admin`, etc.) → add to the matching domain file under `api/config/scopes/*.json` (nested `{id, description, scopes: [...]}` tree — match the existing indentation and grouping style in that file). Served live by `GET /admin/acl/scopes`, which reads every `*.json` in that directory — no rebuild needed, just get the JSON right.
+  - Per-application public-API scope (`users:read`, `scopes:write`, etc.) → add to `defaultApplicationScopes` in `api/src/applications/keys/listener/listener.go`. Only affects newly-created applications; existing applications need the row added manually (or via the admin `application_scopes` CRUD endpoint) since seeding is not retroactive.
+  - These are two separate catalogs — never add an admin-console scope to `defaultApplicationScopes` or vice versa.
 
 ## Patterns to Follow
 
@@ -83,8 +87,9 @@ Rules:
 - Public (unauthenticated) routes omit `@Security BearerAuth`
 - After adding or changing annotations, run `swag init` to catch parse errors early:
   ```
-  cd api && swag init -g main.go -o docs --parseDependency --parseInternal
+  cd api && swag init -g doc.go -o docs --parseDependency --parseInternal
   ```
+  Note: `-g doc.go`, not `-g main.go` — the `@title`/`@description`/`@host`/`@BasePath`/`@tag.*` general-API annotations live in `api/doc.go`, and swag's `-g` flag must point at whichever file actually contains them or the generated `info` block comes back empty.
 
 ## Go Standards
 

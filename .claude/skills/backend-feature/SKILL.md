@@ -46,7 +46,7 @@ Produce a design covering:
 - API shape (method, path, scope, request body, response)
 - Data model (new tables or columns with types and constraints)
 - Package location (entity, query repo, persistent repo, handler)
-- Scope requirements (existing scope or new one with justification)
+- Scope requirements (existing scope or new one with justification — if new, name the exact catalog entry to add: `api/config/scopes/*.json` for admin-console scopes, `defaultApplicationScopes` in `keys/listener/listener.go` for per-application scopes)
 - Migration SQL
 - Security considerations
 - OpenAPI contract: `@Tags`, named entity types for request/response, `@Router` paths, `@Success`/`@Failure` types
@@ -62,6 +62,7 @@ Implement the approved design exactly. Follow the implementation checklist in th
 - query repo → persistent repo → handler
 - swag annotations on every handler (`@Summary`, `@Tags`, `@Param`, `@Success`, `@Failure`, `@Security`, `@Router`)
 - register resource → add route → migration
+- new scope check: confirm any new scope string is added to its catalog (see Step 2), not just enforced in the route
 
 After implementation, run `swag init` inside `api/` and confirm it exits cleanly before proceeding to review. Do not add features not in the design.
 
