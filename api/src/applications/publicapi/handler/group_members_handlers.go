@@ -27,7 +27,7 @@ type addMemberBody struct {
 type GroupMembersListHandler struct{}
 
 // @Summary     List members of a group
-// @Tags        public-api
+// @Tags        public-app-group-members
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       groupId path string true "Group ID"
@@ -83,7 +83,7 @@ func (h *GroupMembersListHandler) ServeHTTP(reqCtx request.RequestContext) {
 type GroupMembersAddHandler struct{}
 
 // @Summary     Add a member to a group
-// @Tags        public-api
+// @Tags        public-app-group-members
 // @Accept      json
 // @Produce     json
 // @Param       id path string true "Application ID"
@@ -138,7 +138,7 @@ func (h *GroupMembersAddHandler) ServeHTTP(reqCtx request.RequestContext) {
 type GroupMembersRemoveHandler struct{}
 
 // @Summary     Remove a member from a group
-// @Tags        public-api
+// @Tags        public-app-group-members
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       groupId path string true "Group ID"

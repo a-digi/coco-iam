@@ -27,7 +27,7 @@ type aclPutBody struct {
 type UserAclGetHandler struct{}
 
 // @Summary     Get a user's ACL
-// @Tags        public-api
+// @Tags        public-app-user-acl
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       userId path string true "User ID"
@@ -72,7 +72,7 @@ func (h *UserAclGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 type UserAclPutHandler struct{}
 
 // @Summary     Replace a user's ACL
-// @Tags        public-api
+// @Tags        public-app-user-acl
 // @Accept      json
 // @Produce     json
 // @Param       id path string true "Application ID"
@@ -154,7 +154,7 @@ func (h *UserAclPutHandler) ServeHTTP(reqCtx request.RequestContext) {
 type UserAclDeleteHandler struct{}
 
 // @Summary     Delete a user's ACL (soft)
-// @Tags        public-api
+// @Tags        public-app-user-acl
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       userId path string true "User ID"

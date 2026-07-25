@@ -60,7 +60,7 @@ type passwordBody struct {
 type UsersListHandler struct{}
 
 // @Summary     List users for an application
-// @Tags        public-api
+// @Tags        public-app-users
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Success     200 {object} interface{}
@@ -142,7 +142,7 @@ func (h *UsersListHandler) ServeHTTP(reqCtx request.RequestContext) {
 type UsersGetHandler struct{}
 
 // @Summary     Get a user by ID
-// @Tags        public-api
+// @Tags        public-app-users
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       userId path string true "User ID"
@@ -181,7 +181,7 @@ func (h *UsersGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 type UsersCreateHandler struct{}
 
 // @Summary     Create a user for an application
-// @Tags        public-api
+// @Tags        public-app-users
 // @Accept      json
 // @Produce     json
 // @Param       id path string true "Application ID"
@@ -287,7 +287,7 @@ func (h *UsersCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 type UsersPatchHandler struct{}
 
 // @Summary     Patch a user
-// @Tags        public-api
+// @Tags        public-app-users
 // @Accept      json
 // @Produce     json
 // @Param       id path string true "Application ID"
@@ -352,7 +352,7 @@ func (h *UsersPatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 type UsersPasswordHandler struct{}
 
 // @Summary     Set a user's password
-// @Tags        public-api
+// @Tags        public-app-users
 // @Accept      json
 // @Produce     json
 // @Param       id path string true "Application ID"
@@ -409,7 +409,7 @@ func (h *UsersPasswordHandler) ServeHTTP(reqCtx request.RequestContext) {
 type UsersDeleteHandler struct{}
 
 // @Summary     Delete a user (soft)
-// @Tags        public-api
+// @Tags        public-app-users
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       userId path string true "User ID"

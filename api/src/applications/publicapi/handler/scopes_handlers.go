@@ -13,30 +13,70 @@ import (
 	"github.com/a-digi/coco-server/server/response"
 )
 
-// publicScope mirrors `application_scopes` trimmed to the fields the
-// public API cares about.
-type publicScope struct {
-	ID          string `json:"id"`
-	ScopeID     string `json:"scope_id"`
-	Description string `json:"description"`
-	ResourceIDs string `json:"resource_ids"`
-	IsActive    bool   `json:"is_active"`
+// ApplicationScopeView mirrors `application_scopes` trimmed to the
+// fields the public API cares about.
+type ApplicationScopeView struct {
+	ID          string `json:"id"           example:"7f7f175d-cefa-4098-afec-b5469aeb2af5"`
+	ScopeID     string `json:"scope_id"     example:"docs:read"`
+	Description string `json:"description"  example:"Read documentation pages."`
+	ResourceIDs string `json:"resource_ids" example:"[]"`
+	IsActive    bool   `json:"is_active"    example:"true"`
 }
 
-type createScopeBody struct {
-	ScopeID     string `json:"scope_id"`
-	Description string `json:"description"`
-	ResourceIDs string `json:"resource_ids"`
+// ApplicationScopeListPayload is the `message` body of the list
+// endpoint's success envelope.
+type ApplicationScopeListPayload struct {
+	Scopes []ApplicationScopeView `json:"scopes"`
+	Limit  int                    `json:"limit"  example:"50"`
+	Offset int                    `json:"offset" example:"0"`
 }
 
-// patchScopeBody deliberately has no ScopeID field — scope_id is
-// immutable after creation. Any `application_user_acl.roles` entry
-// already referencing the original string would silently break
-// otherwise.
-type patchScopeBody struct {
-	Description *string `json:"description,omitempty"`
-	ResourceIDs *string `json:"resource_ids,omitempty"`
-	IsActive    *bool   `json:"is_active,omitempty"`
+// ApplicationScopeListSuccess is the full response body for
+// GET /public/applications/{id}/scopes.
+type ApplicationScopeListSuccess struct {
+	Success bool                        `json:"success" example:"true"`
+	Message ApplicationScopeListPayload `json:"message"`
+}
+
+// ApplicationScopeSuccess is the full response body returned by the
+// single-scope endpoints (get, create, patch).
+type ApplicationScopeSuccess struct {
+	Success bool                 `json:"success" example:"true"`
+	Message ApplicationScopeView `json:"message"`
+}
+
+// ScopeDeleteStatus is the `message` body of the delete endpoint's
+// success envelope.
+type ScopeDeleteStatus struct {
+	Status string `json:"status" example:"deleted"`
+}
+
+// ScopeDeleteSuccess is the full response body for
+// DELETE /public/applications/{id}/scopes/{scopeId}.
+type ScopeDeleteSuccess struct {
+	Success bool              `json:"success" example:"true"`
+	Message ScopeDeleteStatus `json:"message"`
+}
+
+// CreateScopeBody is the request body for
+// POST /public/applications/{id}/scopes.
+type CreateScopeBody struct {
+	// ScopeID must match acl.ScopeIDFormat: letters/underscores per
+	// segment, separated by colons. Immutable once created.
+	ScopeID     string `json:"scope_id"     example:"docs:read"`
+	Description string `json:"description"  example:"Read documentation pages."`
+	// ResourceIDs is an opaque JSON-encoded array of ids this scope is
+	// constrained to. Defaults to "[]" (unconstrained) when omitted.
+	ResourceIDs string `json:"resource_ids" example:"[]"`
+}
+
+// PatchScopeBody is the request body for
+// PATCH /public/applications/{id}/scopes/{scopeId}. scope_id is
+// deliberately not patchable — see patchScopeBody's original comment.
+type PatchScopeBody struct {
+	Description *string `json:"description,omitempty"  example:"Read documentation pages."`
+	ResourceIDs *string `json:"resource_ids,omitempty" example:"[]"`
+	IsActive    *bool   `json:"is_active,omitempty"    example:"true"`
 }
 
 // -- Scopes list --------------------------------------------------------
@@ -44,11 +84,17 @@ type patchScopeBody struct {
 type ScopesListHandler struct{}
 
 // @Summary     List scopes for an application
-// @Tags        public-api
+// @Description Requires application scope `scopes:read` (held via the caller's `application_user_acl.roles` and carried in the bearer JWT's `scope` claim). Resource-id constrained callers only see ids in their `scopes:read` allow-list.
+// @Tags        public-app-scopes
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path string true "Application ID"
-// @Success     200 {object} interface{}
-// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Param       limit query int false "Page size (max 500, default 50)"
+// @Param       offset query int false "Row offset (default 0)"
+// @Success     200 {object} ApplicationScopeListSuccess
+// @Failure     401 {object} response.ErrorBody "missing/invalid bearer token, or token was not issued for this application"
+// @Failure     403 {object} response.ErrorBody "token does not carry the scopes:read scope"
+// @Failure     500 {object} response.ErrorBody
 // @Router      /public/applications/{id}/scopes [get]
 func (h *ScopesListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "scopes:read")
@@ -80,19 +126,19 @@ func (h *ScopesListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	}
 	defer rows.Close()
 
-	out := []publicScope{}
+	out := []ApplicationScopeView{}
 	for rows.Next() {
-		var s publicScope
+		var s ApplicationScopeView
 		if err := rows.Scan(&s.ID, &s.ScopeID, &s.Description, &s.ResourceIDs, &s.IsActive); err != nil {
 			response.ErrorResponse(reqCtx.GetWriter(), http.StatusInternalServerError, err.Error())
 			return
 		}
 		out = append(out, s)
 	}
-	response.SuccessResponse(reqCtx.GetWriter(), http.StatusOK, map[string]any{
-		"scopes": out,
-		"limit":  limit,
-		"offset": offset,
+	response.SuccessResponse(reqCtx.GetWriter(), http.StatusOK, ApplicationScopeListPayload{
+		Scopes: out,
+		Limit:  limit,
+		Offset: offset,
 	})
 }
 
@@ -101,12 +147,17 @@ func (h *ScopesListHandler) ServeHTTP(reqCtx request.RequestContext) {
 type ScopesGetHandler struct{}
 
 // @Summary     Get a scope by ID
-// @Tags        public-api
+// @Description Requires application scope `scopes:read`. Returns 404 both when the row doesn't exist and when it's outside the caller's resource-id allow-list for scopes:read.
+// @Tags        public-app-scopes
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path string true "Application ID"
 // @Param       scopeId path string true "Scope ID"
-// @Success     200 {object} interface{}
-// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Success     200 {object} ApplicationScopeSuccess
+// @Failure     401 {object} response.ErrorBody "missing/invalid bearer token, or token was not issued for this application"
+// @Failure     403 {object} response.ErrorBody "token does not carry the scopes:read scope"
+// @Failure     404 {object} response.ErrorBody "scope not found"
+// @Failure     500 {object} response.ErrorBody
 // @Router      /public/applications/{id}/scopes/{scopeId} [get]
 func (h *ScopesGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "scopes:read")
@@ -139,13 +190,18 @@ func (h *ScopesGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 type ScopesCreateHandler struct{}
 
 // @Summary     Create a scope for an application
-// @Tags        public-api
+// @Description Requires application scope `scopes:write`. `scope_id` must match letters/underscores per colon-separated segment (e.g. `docs:read`) and is immutable once created.
+// @Tags        public-app-scopes
 // @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path string true "Application ID"
-// @Param       body body interface{} true "Request body"
-// @Success     200 {object} interface{}
-// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Param       body body CreateScopeBody true "Request body"
+// @Success     201 {object} ApplicationScopeSuccess
+// @Failure     400 {object} response.ErrorBody "invalid JSON, missing scope_id, or scope_id fails format validation"
+// @Failure     401 {object} response.ErrorBody "missing/invalid bearer token, or token was not issued for this application"
+// @Failure     403 {object} response.ErrorBody "token does not carry the scopes:write scope"
+// @Failure     500 {object} response.ErrorBody
 // @Router      /public/applications/{id}/scopes [post]
 func (h *ScopesCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "scopes:write")
@@ -156,7 +212,7 @@ func (h *ScopesCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(reqCtx.GetWriter(), http.StatusInternalServerError, "org db not available")
 		return
 	}
-	var body createScopeBody
+	var body CreateScopeBody
 	if err := reqCtx.BindJSON(&body); err != nil {
 		response.ErrorResponse(reqCtx.GetWriter(), http.StatusBadRequest, "invalid JSON body")
 		return
@@ -199,14 +255,19 @@ func (h *ScopesCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 type ScopesPatchHandler struct{}
 
 // @Summary     Patch a scope
-// @Tags        public-api
+// @Description Requires application scope `scopes:write`. Only description, resource_ids, and is_active can be changed — scope_id is immutable.
+// @Tags        public-app-scopes
 // @Accept      json
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path string true "Application ID"
 // @Param       scopeId path string true "Scope ID"
-// @Param       body body interface{} true "Request body"
-// @Success     200 {object} interface{}
-// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Param       body body PatchScopeBody true "Request body"
+// @Success     200 {object} ApplicationScopeSuccess
+// @Failure     400 {object} response.ErrorBody "invalid JSON body"
+// @Failure     401 {object} response.ErrorBody "missing/invalid bearer token, or token was not issued for this application"
+// @Failure     403 {object} response.ErrorBody "token does not carry the scopes:write scope"
+// @Failure     404 {object} response.ErrorBody "scope not found"
 // @Router      /public/applications/{id}/scopes/{scopeId} [patch]
 func (h *ScopesPatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "scopes:write")
@@ -218,7 +279,7 @@ func (h *ScopesPatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(reqCtx.GetWriter(), http.StatusNotFound, "scope not found")
 		return
 	}
-	var body patchScopeBody
+	var body PatchScopeBody
 	if err := reqCtx.BindJSON(&body); err != nil {
 		response.ErrorResponse(reqCtx.GetWriter(), http.StatusBadRequest, "invalid JSON body")
 		return
@@ -259,12 +320,17 @@ func (h *ScopesPatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 type ScopesDeleteHandler struct{}
 
 // @Summary     Delete a scope (soft)
-// @Tags        public-api
+// @Description Requires application scope `scopes:delete`. Sets is_active=false — the row is not removed, so a subsequent GET on the same id still returns it with is_active:false.
+// @Tags        public-app-scopes
 // @Produce     json
+// @Security    BearerAuth
 // @Param       id path string true "Application ID"
 // @Param       scopeId path string true "Scope ID"
-// @Success     200 {object} interface{}
-// @Failure     400,401,403,500 {object} map[string]interface{}
+// @Success     200 {object} ScopeDeleteSuccess
+// @Failure     401 {object} response.ErrorBody "missing/invalid bearer token, or token was not issued for this application"
+// @Failure     403 {object} response.ErrorBody "token does not carry the scopes:delete scope"
+// @Failure     404 {object} response.ErrorBody "scope not found"
+// @Failure     500 {object} response.ErrorBody
 // @Router      /public/applications/{id}/scopes/{scopeId} [delete]
 func (h *ScopesDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 	caller := auth.Authenticate(reqCtx, "scopes:delete")
@@ -280,20 +346,20 @@ func (h *ScopesDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(reqCtx.GetWriter(), http.StatusInternalServerError, err.Error())
 		return
 	}
-	response.SuccessResponse(reqCtx.GetWriter(), http.StatusOK, map[string]string{"status": "deleted"})
+	response.SuccessResponse(reqCtx.GetWriter(), http.StatusOK, ScopeDeleteStatus{Status: "deleted"})
 }
 
 // -- helpers ---------------------------------------------------------------
 
-func fetchScope(orgDB *sql.DB, appID, scopeID string) (publicScope, error) {
-	var s publicScope
+func fetchScope(orgDB *sql.DB, appID, scopeID string) (ApplicationScopeView, error) {
+	var s ApplicationScopeView
 	err := orgDB.QueryRow(
 		`SELECT id, scope_id, description, resource_ids, is_active
 		 FROM application_scopes WHERE application_id = ? AND id = ? LIMIT 1`,
 		appID, scopeID,
 	).Scan(&s.ID, &s.ScopeID, &s.Description, &s.ResourceIDs, &s.IsActive)
 	if err != nil {
-		return publicScope{}, err
+		return ApplicationScopeView{}, err
 	}
 	return s, nil
 }

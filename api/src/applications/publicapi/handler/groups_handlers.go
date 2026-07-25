@@ -41,7 +41,7 @@ type patchGroupBody struct {
 type GroupsListHandler struct{}
 
 // @Summary     List groups for an application
-// @Tags        public-api
+// @Tags        public-app-groups
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Success     200 {object} interface{}
@@ -147,7 +147,7 @@ func (h *GroupsListHandler) ServeHTTP(reqCtx request.RequestContext) {
 type GroupsGetHandler struct{}
 
 // @Summary     Get a group by ID
-// @Tags        public-api
+// @Tags        public-app-groups
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       groupId path string true "Group ID"
@@ -185,7 +185,7 @@ func (h *GroupsGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 type GroupsCreateHandler struct{}
 
 // @Summary     Create a group for an application
-// @Tags        public-api
+// @Tags        public-app-groups
 // @Accept      json
 // @Produce     json
 // @Param       id path string true "Application ID"
@@ -272,7 +272,7 @@ func (h *GroupsCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 type GroupsPatchHandler struct{}
 
 // @Summary     Patch a group
-// @Tags        public-api
+// @Tags        public-app-groups
 // @Accept      json
 // @Produce     json
 // @Param       id path string true "Application ID"
@@ -332,7 +332,7 @@ func (h *GroupsPatchHandler) ServeHTTP(reqCtx request.RequestContext) {
 type GroupsDeleteHandler struct{}
 
 // @Summary     Delete a group (soft)
-// @Tags        public-api
+// @Tags        public-app-groups
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Param       groupId path string true "Group ID"

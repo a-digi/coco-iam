@@ -15,7 +15,7 @@ import (
 type PasswordNotificationGetHandler struct{}
 
 // @Summary     Get password notification preferences for the authenticated user
-// @Tags        public-api
+// @Tags        public-app-me
 // @Produce     json
 // @Param       id path string true "Application ID"
 // @Success     200 {object} interface{}
@@ -53,7 +53,7 @@ type orgNotifyPrefsBody struct {
 }
 
 // @Summary     Replace password notification preferences for the authenticated user
-// @Tags        public-api
+// @Tags        public-app-me
 // @Accept      json
 // @Produce     json
 // @Param       id path string true "Application ID"
