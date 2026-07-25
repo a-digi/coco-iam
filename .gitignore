@@ -50,3 +50,5 @@ vendor/
 .claude/settings.local.json
 
 versions/
+
+.playwright-mcp
