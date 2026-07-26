@@ -30,4 +30,16 @@ export const DEFAULT_SECURITY_MENU: SecurityMenuEntry[] = [
         matchPrefixes: ['/admin/security/attacks'],
         scopes: [AppScopes.AdminSecurityAttacksRead, AppScopes.SuperAdmin],
     },
+    {
+        label: 'Archives',
+        href: '/admin/security/archives',
+        matchPrefixes: ['/admin/security/archives'],
+        scopes: [AppScopes.AdminSecurityArchivesRead, AppScopes.SuperAdmin],
+    },
+    {
+        label: 'Port scans',
+        href: '/admin/security/scans',
+        matchPrefixes: ['/admin/security/scans'],
+        scopes: [AppScopes.AdminSecurityScansRead, AppScopes.SuperAdmin],
+    },
 ];

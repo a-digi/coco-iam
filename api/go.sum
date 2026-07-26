@@ -4,8 +4,6 @@ github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/a-digi/coco-filer v0.1.0 h1:rT93+U3pD5tuMwVof2O/Wyq7vpXLP1wm2gf/4MN8IDs=
 github.com/a-digi/coco-filer v0.1.0/go.mod h1:ooszP1+1lWa+avcIW+n8lL4dTM0r+8wRGJP74hEN780=
-github.com/a-digi/coco-lift v0.0.1 h1:Oik+ITYUlpTcZL+Uk1qrpdE8E0pVts6RSD95/PL8wpM=
-github.com/a-digi/coco-lift v0.0.1/go.mod h1:G2p0Vcz3mO+mYmxpvFvegsvoZLirrO6omea61vkmYak=
 github.com/a-digi/coco-logger v0.1.0 h1:LAlMe69T4CFfOqSx6cprlORKp7GHK49nLVhts0Nmp1Q=
 github.com/a-digi/coco-logger v0.1.0/go.mod h1:7YbTbDE4QPtypZMQOevUSeKNHK7fjehq+OEAlhs/e+w=
 github.com/a-digi/coco-oauth v0.1.0 h1:2bG8rGjPePZYiSVZ33bkuP1gSAsLmFYebEzjgpoqVOs=
@@ -16,8 +14,6 @@ github.com/a-digi/coco-orm v1.0.6 h1:WPxDPt5ckWwIhSUHDZqDBqZA+Q6mSEGJRTHMrSvrz44
 github.com/a-digi/coco-orm v1.0.6/go.mod h1:PC45QsEwzySD4Z6EfwjcfyhxAOc+SnsOKXfqBeFezYc=
 github.com/a-digi/coco-queue v0.0.1 h1:g15rQL3m6VvvEj2XE2T0ClsHQOipYhtLYsgqEeXIX38=
 github.com/a-digi/coco-queue v0.0.1/go.mod h1:g47Li55UNJewOE+pUjD3wVOdUL/xFOr1k5MWzh87SVs=
-github.com/a-digi/coco-server v0.1.10 h1:rVd6vgbM+W63NONPt2EHyXOuK8PvCgTTL9mfilsAbg8=
-github.com/a-digi/coco-server v0.1.10/go.mod h1:rBtC7MyOU1Sv6CrNjFc0jCAbS9ZemwEnLGxVU69evjI=
 github.com/alecthomas/assert/v2 v2.10.0 h1:jjRCHsj6hBJhkmhznrCzoNpbA3zqy0fYiUcYZP/GkPY=
 github.com/alecthomas/assert/v2 v2.10.0/go.mod h1:Bze95FyfUr7x34QZrjL+XP+0qgp/zg8yS+TtBj1WA3k=
 github.com/alecthomas/repr v0.4.0 h1:GhI2A8MACjfegCPVq9f1FLvIBS+DrQ2KQBFZP1iFzXc=

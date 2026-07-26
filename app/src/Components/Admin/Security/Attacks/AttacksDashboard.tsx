@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import Table from '../../../../Shared/Components/Table/Table';
 import type { TableColumn } from '../../../../Shared/Components/Table/Table';
 import Pagination from '../../../../Shared/Components/Pagination/Pagination';
@@ -33,6 +34,10 @@ const TIER_OPTIONS = [
     { label: 'Global', value: 'global' },
     { label: 'Sensitive', value: 'sensitive' },
     { label: 'Manual', value: 'manual' },
+    // Path probes against routes coco-iam doesn't recognize at all
+    // (/wp-admin, /.env, etc.) — visibility-only, never rate-limited
+    // or banned. See plan/port-scan-detection/plan.md Phase A.
+    { label: 'Unmatched path', value: 'unmatched' },
 ];
 
 // AttacksDashboard is the first real caller of Pagination.tsx — every
@@ -41,7 +46,15 @@ const TIER_OPTIONS = [
 // server-side limit/offset/total (see
 // plan/ip-abuse-protection/frontend-plan.md's "Attacks list needs
 // real pagination" decision).
+//
+// Reused for browsing a rotated-out archive too (see
+// plan/ip-attacks-db-archiving/plan.md) — mounted on
+// /admin/security/archives/:archiveId/attacks instead of
+// /admin/security/attacks, archiveId is present and every fetch/link
+// below reads from that archive instead of the live data. Purely
+// additive: archiveId is always undefined on the live route.
 export const AttacksDashboard: React.FC = () => {
+    const { archiveId } = useParams<{ archiveId?: string }>();
     const { get } = useHttpClient();
     const { errorMessage } = useSnackBar();
 
@@ -70,7 +83,8 @@ export const AttacksDashboard: React.FC = () => {
             if (appliedTier) params.set('tier', appliedTier);
             if (activeOnly) params.set('active', 'true');
 
-            const resp = await get<{ message: AttackListResponse }>(`admin/security/attacks?${params.toString()}`);
+            const base = archiveId ? `admin/security/archives/{id:${archiveId}}/attacks` : 'admin/security/attacks';
+            const resp = await get<{ message: AttackListResponse }>(`${base}?${params.toString()}`);
             setAttacks(resp.message.attacks);
             setTotal(resp.message.total);
         } catch (err: unknown) {
@@ -78,7 +92,7 @@ export const AttacksDashboard: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [get, errorMessage, page, appliedIp, appliedTier, activeOnly]);
+    }, [get, errorMessage, page, appliedIp, appliedTier, activeOnly, archiveId]);
 
     useEffect(() => {
         void load();
@@ -109,14 +123,19 @@ export const AttacksDashboard: React.FC = () => {
             key: 'actions',
             label: '',
             render: (_value, row) => (
-                <LinkAction to={`/admin/security/attacks/${row.id}`} label="View details" />
+                <LinkAction
+                    to={archiveId ? `/admin/security/archives/${archiveId}/attacks/${row.id}` : `/admin/security/attacks/${row.id}`}
+                    label="View details"
+                />
             ),
         },
     ];
 
     return (
         <div>
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">Attack episodes</h2>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                {archiveId ? 'Archived attack episodes' : 'Attack episodes'}
+            </h2>
 
             <div className="flex flex-wrap items-end gap-3 mb-4">
                 <FormInput

@@ -190,6 +190,12 @@ export const AppScopes = {
     AdminSecurityIpAllowlistRead: 'admin:security:ipallowlist:read',
     AdminSecurityIpAllowlistWrite: 'admin:security:ipallowlist:write',
     AdminSecurityAttacksRead: 'admin:security:attacks:read',
+
+    // ip-attacks.db archives — see plan/ip-attacks-db-archiving/plan.md.
+    AdminSecurityArchivesRead: 'admin:security:archives:read',
+
+    // Port-scan detection — see plan/port-scan-detection/plan.md.
+    AdminSecurityScansRead: 'admin:security:scans:read',
 } as const;
 
 export type AppScope = typeof AppScopes[keyof typeof AppScopes];

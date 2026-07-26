@@ -7,11 +7,13 @@ import (
 
 	attacks_query "github.com/a-digi/coco-iam/src/admin/security/attacks/repository/query"
 	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/a-digi/coco-iam/src/security/dbhandle"
 )
 
 // freshDB opens an in-memory SQLite DB with the ip_attacks/
-// ip_attack_targets schema — mirrors
-// api/config/db/ip_attacks_migrations/001_initial.sql.
+// ip_attack_targets/db_meta schema — mirrors
+// api/config/db/ip_attacks_migrations/001_initial.sql and 002_db_meta.sql.
 func freshDB(t *testing.T) *sql.DB {
 	t.Helper()
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -38,6 +40,8 @@ func freshDB(t *testing.T) *sql.DB {
 		    hit_count INTEGER NOT NULL DEFAULT 0
 		);
 		CREATE UNIQUE INDEX ip_attack_targets_unique_idx ON ip_attack_targets (attack_id, path, method);
+		CREATE TABLE db_meta (key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL);
+		INSERT INTO db_meta (key, value) VALUES ('entry_count', '0');
 	`)
 	if err != nil {
 		t.Fatalf("create schema: %v", err)
@@ -45,10 +49,23 @@ func freshDB(t *testing.T) *sql.DB {
 	return db
 }
 
+// mustHandle wraps db in a *dbhandle.Handle, the type
+// AttackPersistentRepo actually takes — see
+// plan/ip-attacks-db-archiving/plan.md.
+func mustHandle(t *testing.T, db *sql.DB) *dbhandle.Handle {
+	t.Helper()
+	h, err := dbhandle.New(db)
+	if err != nil {
+		t.Fatalf("dbhandle.New() error = %v", err)
+	}
+	return h
+}
+
 func TestCreateAttack_ThenFindable(t *testing.T) {
 	db := freshDB(t)
-	persist := NewAttackPersistentRepo(db)
-	query := attacks_query.NewAttackQueryRepo(db)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
 
 	now := time.Now()
 	if err := persist.CreateAttack("attack-1", "203.0.113.7", "sensitive", now); err != nil {
@@ -72,8 +89,9 @@ func TestCreateAttack_ThenFindable(t *testing.T) {
 
 func TestUpdateAttackCounts_FlushesLatestTotals(t *testing.T) {
 	db := freshDB(t)
-	persist := NewAttackPersistentRepo(db)
-	query := attacks_query.NewAttackQueryRepo(db)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
 
 	now := time.Now()
 	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", now); err != nil {
@@ -94,8 +112,9 @@ func TestUpdateAttackCounts_FlushesLatestTotals(t *testing.T) {
 
 func TestCloseAttack_SetsEndedAt(t *testing.T) {
 	db := freshDB(t)
-	persist := NewAttackPersistentRepo(db)
-	query := attacks_query.NewAttackQueryRepo(db)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
 
 	now := time.Now()
 	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", now); err != nil {
@@ -116,8 +135,9 @@ func TestCloseAttack_SetsEndedAt(t *testing.T) {
 
 func TestCloseAllOpen_ClosesOnlyOpenRows(t *testing.T) {
 	db := freshDB(t)
-	persist := NewAttackPersistentRepo(db)
-	query := attacks_query.NewAttackQueryRepo(db)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
 
 	now := time.Now()
 	if err := persist.CreateAttack("open-1", "1.1.1.1", "global", now); err != nil {
@@ -154,14 +174,22 @@ func TestCloseAllOpen_ClosesOnlyOpenRows(t *testing.T) {
 
 func TestSetTargetCount_CreatesThenUpdatesInPlace(t *testing.T) {
 	db := freshDB(t)
-	persist := NewAttackPersistentRepo(db)
-	query := attacks_query.NewAttackQueryRepo(db)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
 
 	if err := persist.CreateAttack("attack-1", "203.0.113.7", "sensitive", time.Now()); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
+	if got := persist.handle.EntryCount(); got != 1 {
+		t.Fatalf("EntryCount() after CreateAttack = %d, want 1", got)
+	}
+
 	if err := persist.SetTargetCount("attack-1", "/admin/oauth/authenticate", "POST", 5); err != nil {
 		t.Fatalf("SetTargetCount() error = %v", err)
+	}
+	if got := persist.handle.EntryCount(); got != 2 {
+		t.Fatalf("EntryCount() after the first SetTargetCount (a new row) = %d, want 2", got)
 	}
 
 	targets, err := query.ListTargets("attack-1")
@@ -173,9 +201,13 @@ func TestSetTargetCount_CreatesThenUpdatesInPlace(t *testing.T) {
 	}
 
 	// Setting again for the same (attack, path, method) must update in
-	// place, not create a second row.
+	// place, not create a second row — and must not move the entry
+	// counter, which only tracks rows, not writes.
 	if err := persist.SetTargetCount("attack-1", "/admin/oauth/authenticate", "POST", 12); err != nil {
 		t.Fatalf("SetTargetCount() second call error = %v", err)
+	}
+	if got := persist.handle.EntryCount(); got != 2 {
+		t.Fatalf("EntryCount() after updating the same target in place = %d, want still 2", got)
 	}
 	targets, err = query.ListTargets("attack-1")
 	if err != nil {
@@ -188,8 +220,9 @@ func TestSetTargetCount_CreatesThenUpdatesInPlace(t *testing.T) {
 
 func TestSetTargetCount_DifferentEndpointsAreSeparateRows(t *testing.T) {
 	db := freshDB(t)
-	persist := NewAttackPersistentRepo(db)
-	query := attacks_query.NewAttackQueryRepo(db)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
 
 	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", time.Now()); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
@@ -212,8 +245,9 @@ func TestSetTargetCount_DifferentEndpointsAreSeparateRows(t *testing.T) {
 
 func TestListAttacks_NewestFirstAndPaginated(t *testing.T) {
 	db := freshDB(t)
-	persist := NewAttackPersistentRepo(db)
-	query := attacks_query.NewAttackQueryRepo(db)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
 
 	base := time.Now()
 	if err := persist.CreateAttack("older", "1.1.1.1", "global", base); err != nil {
@@ -250,8 +284,9 @@ func TestListAttacks_NewestFirstAndPaginated(t *testing.T) {
 
 func TestListAttacks_FiltersByIPTierAndActiveOnly(t *testing.T) {
 	db := freshDB(t)
-	persist := NewAttackPersistentRepo(db)
-	query := attacks_query.NewAttackQueryRepo(db)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
 
 	base := time.Now()
 	if err := persist.CreateAttack("a", "1.1.1.1", "global", base); err != nil {
@@ -302,7 +337,7 @@ func TestListAttacks_FiltersByIPTierAndActiveOnly(t *testing.T) {
 
 func TestFindAttack_NotFound(t *testing.T) {
 	db := freshDB(t)
-	query := attacks_query.NewAttackQueryRepo(db)
+	query := attacks_query.NewAttackQueryRepo(mustHandle(t, db))
 	if _, err := query.FindAttack("nope"); err != attacks_query.ErrNotFound {
 		t.Fatalf("FindAttack() error = %v, want ErrNotFound", err)
 	}
