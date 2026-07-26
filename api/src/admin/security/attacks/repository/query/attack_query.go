@@ -10,17 +10,22 @@ import (
 	"time"
 
 	attacks_entity "github.com/a-digi/coco-iam/src/admin/security/attacks/entity"
+	"github.com/a-digi/coco-iam/src/security/dbhandle"
 )
 
 // ErrNotFound signals no ip_attacks row exists for the given id.
 var ErrNotFound = errors.New("ip-attack: not found")
 
+// AttackQueryRepo reads through a *dbhandle.Handle rather than a raw
+// *sql.DB, so the admin Attacks page keeps reading the live generation
+// even across the archiver rotating ip-attacks.db out from under it —
+// see plan/ip-attacks-db-archiving/plan.md.
 type AttackQueryRepo struct {
-	db *sql.DB
+	handle *dbhandle.Handle
 }
 
-func NewAttackQueryRepo(db *sql.DB) *AttackQueryRepo {
-	return &AttackQueryRepo{db: db}
+func NewAttackQueryRepo(handle *dbhandle.Handle) *AttackQueryRepo {
+	return &AttackQueryRepo{handle: handle}
 }
 
 // ListFilter narrows ListAttacks/CountAttacks — every string field is
@@ -58,7 +63,7 @@ func (r *AttackQueryRepo) ListAttacks(filter ListFilter) ([]attacks_entity.Attac
 	          FROM ip_attacks` + where + ` ORDER BY started_at DESC LIMIT ? OFFSET ?`
 	args = append(args, filter.Limit, filter.Offset)
 
-	rows, err := r.db.Query(query, args...)
+	rows, err := r.handle.DB().Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("ip-attack: list: %w", err)
 	}
@@ -84,7 +89,7 @@ func (r *AttackQueryRepo) ListAttacks(filter ListFilter) ([]attacks_entity.Attac
 func (r *AttackQueryRepo) CountAttacks(filter ListFilter) (int, error) {
 	where, args := filter.whereClause()
 	var n int
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM ip_attacks`+where, args...).Scan(&n)
+	err := r.handle.DB().QueryRow(`SELECT COUNT(*) FROM ip_attacks`+where, args...).Scan(&n)
 	if err != nil {
 		return 0, fmt.Errorf("ip-attack: count: %w", err)
 	}
@@ -93,7 +98,7 @@ func (r *AttackQueryRepo) CountAttacks(filter ListFilter) (int, error) {
 
 // FindAttack returns a single episode by id, or ErrNotFound.
 func (r *AttackQueryRepo) FindAttack(id string) (*attacks_entity.Attack, error) {
-	row := r.db.QueryRow(
+	row := r.handle.DB().QueryRow(
 		`SELECT id, ip, tier, started_at, last_seen_at, COALESCE(ended_at, ''), hit_count, ban_count
 		 FROM ip_attacks WHERE id = ?`,
 		id,
@@ -138,7 +143,7 @@ func normalizeTimestamp(s string) string {
 // ListTargets returns the per-endpoint hit-count breakdown for one
 // episode, highest-hit-count first.
 func (r *AttackQueryRepo) ListTargets(attackID string) ([]attacks_entity.AttackTarget, error) {
-	rows, err := r.db.Query(
+	rows, err := r.handle.DB().Query(
 		`SELECT path, method, hit_count FROM ip_attack_targets WHERE attack_id = ? ORDER BY hit_count DESC`,
 		attackID,
 	)

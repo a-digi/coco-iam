@@ -2,7 +2,10 @@ package di
 
 import (
 	resource_handler "github.com/a-digi/coco-iam/config/resource"
+	"github.com/a-digi/coco-iam/src/security/dbarchive"
+	"github.com/a-digi/coco-iam/src/security/dbhandle"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
+	"github.com/a-digi/coco-iam/src/security/scanwatch"
 	lift_api "github.com/a-digi/coco-lift/resource"
 	"github.com/a-digi/coco-logger/logger"
 	"github.com/a-digi/coco-orm/orm"
@@ -24,12 +27,33 @@ type ContextBag struct {
 	// in-memory cache Authorize reads, instead of only writing SQL
 	// that a still-running process would never see.
 	IPGuard *ipguard.IPGuardSecurityLayer
-	// IPAttacksDBManager and IPAttacksLog are set directly in main.go
-	// (both are already constructed before NewContextBag runs, unlike
+	// IPAttacksHandle and IPAttacksLog are set directly in main.go
+	// (both already constructed before NewContextBag runs, unlike
 	// IPGuard) and read back out by config/routes.Init when building
-	// IPGuard — see plan/ip-abuse-protection/plan.md sections 10-12.
-	IPAttacksDBManager *orm.DatabaseManager
-	IPAttacksLog       logger.Logger
+	// IPGuard, and by the admin attacks handlers when querying
+	// ip-attacks.db — see plan/ip-abuse-protection/plan.md sections
+	// 10-12. IPAttacksHandle wraps a swappable *sql.DB connection so
+	// the archiver rotating ip-attacks.db (see
+	// plan/ip-attacks-db-archiving/plan.md) can hand every consumer a
+	// fresh connection without reconstructing any of them — this is
+	// why nothing here holds the underlying *orm.DatabaseManager or
+	// *sql.DB directly.
+	IPAttacksHandle *dbhandle.Handle
+	IPAttacksLog    logger.Logger
+	// DBArchiver is set directly in main.go (constructed alongside
+	// IPAttacksHandle, before NewContextBag runs). Exposed here so the
+	// admin security status endpoint can report the current entry
+	// count and how close it is to the rotation threshold — see
+	// plan/ip-attacks-db-archiving/plan.md.
+	DBArchiver *dbarchive.Archiver
+	// ScanSource is set directly in main.go. Exposed here so the admin
+	// security status endpoint can report whether port-scan detection
+	// actually has a log source available on this host — see
+	// plan/port-scan-detection/plan.md Phase B. Nothing in the admin
+	// API needs the scanwatch.Watcher itself: unlike IPGuard, there is
+	// no admin-triggered action against it (no manual ban/allow
+	// equivalent), so only the Source's status is exposed.
+	ScanSource scanwatch.Source
 }
 
 func NewContextBag(manager *orm.DatabaseManager, log logger.Logger) *ContextBag {
@@ -66,10 +90,18 @@ func (c *ContextBag) GetIPGuard() *ipguard.IPGuardSecurityLayer {
 	return c.IPGuard
 }
 
-func (c *ContextBag) GetIPAttacksDBManager() *orm.DatabaseManager {
-	return c.IPAttacksDBManager
+func (c *ContextBag) GetIPAttacksHandle() *dbhandle.Handle {
+	return c.IPAttacksHandle
 }
 
 func (c *ContextBag) GetIPAttacksLog() logger.Logger {
 	return c.IPAttacksLog
+}
+
+func (c *ContextBag) GetDBArchiver() *dbarchive.Archiver {
+	return c.DBArchiver
+}
+
+func (c *ContextBag) GetScanSource() scanwatch.Source {
+	return c.ScanSource
 }

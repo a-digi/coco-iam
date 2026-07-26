@@ -533,6 +533,48 @@ routes:
             scopes:
               - admin:security:attacks:read
               - super:admin
+          - path: /security/archives
+            method: GET
+            executor: ArchiveListHandler
+            security: authenticated
+            scopes:
+              - admin:security:archives:read
+              - super:admin
+          - path: /security/archives/{id}
+            method: GET
+            executor: ArchiveDetailHandler
+            security: authenticated
+            scopes:
+              - admin:security:archives:read
+              - super:admin
+          - path: /security/archives/{id}/attacks
+            method: GET
+            executor: ArchiveAttacksListHandler
+            security: authenticated
+            scopes:
+              - admin:security:archives:read
+              - super:admin
+          - path: /security/archives/{id}/attacks/{attackId}
+            method: GET
+            executor: ArchiveAttackDetailHandler
+            security: authenticated
+            scopes:
+              - admin:security:archives:read
+              - super:admin
+          - path: /security/scans
+            method: GET
+            executor: ScanListHandler
+            security: authenticated
+            scopes:
+              - admin:security:scans:read
+              - super:admin
+          - path: /security/scans/{id}
+            method: GET
+            executor: ScanDetailHandler
+            security: authenticated
+            scopes:
+              - admin:security:scans:read
+              - super:admin
           - path: /security/status
             method: GET
             executor: SecurityStatusHandler

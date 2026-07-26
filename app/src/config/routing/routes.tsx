@@ -56,6 +56,10 @@ import BansDashboard from '../../Components/Admin/Security/Bans/BansDashboard';
 import AllowlistDashboard from '../../Components/Admin/Security/Allowlist/AllowlistDashboard';
 import AttacksDashboard from '../../Components/Admin/Security/Attacks/AttacksDashboard';
 import AttackDetail from '../../Components/Admin/Security/Attacks/AttackDetail';
+import ArchivesDashboard from '../../Components/Admin/Security/Archives/ArchivesDashboard';
+import ArchiveDetail from '../../Components/Admin/Security/Archives/ArchiveDetail';
+import ScansDashboard from '../../Components/Admin/Security/Scans/ScansDashboard';
+import ScanDetail from '../../Components/Admin/Security/Scans/ScanDetail';
 
 export const routes: RouteConfig[] = [
   {
@@ -318,7 +322,7 @@ export const routes: RouteConfig[] = [
   {
     path: '/admin/security',
     element: (
-      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityIpBansRead, AppScopes.AdminSecurityIpAllowlistRead, AppScopes.AdminSecurityAttacksRead]}>
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityIpBansRead, AppScopes.AdminSecurityIpAllowlistRead, AppScopes.AdminSecurityAttacksRead, AppScopes.AdminSecurityArchivesRead, AppScopes.AdminSecurityScansRead]}>
         <Navigate to="/admin/security/bans" replace />
       </AuthGuard>
     ),
@@ -358,6 +362,62 @@ export const routes: RouteConfig[] = [
     element: (
       <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityAttacksRead]}>
         <AttackDetail />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/archives',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityArchivesRead]}>
+        <SecurityPage>
+          <ArchivesDashboard />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/archives/:id',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityArchivesRead]}>
+        <ArchiveDetail />
+      </AuthGuard>
+    ),
+  },
+  {
+    // Reuses AttacksDashboard — see that component's own doc comment
+    // for how the archiveId route param changes its behavior.
+    path: '/admin/security/archives/:archiveId/attacks',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityArchivesRead]}>
+        <AttacksDashboard />
+      </AuthGuard>
+    ),
+  },
+  {
+    // Reuses AttackDetail — see that component's own doc comment for
+    // how the archiveId route param changes its behavior.
+    path: '/admin/security/archives/:archiveId/attacks/:id',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityArchivesRead]}>
+        <AttackDetail />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/scans',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityScansRead]}>
+        <SecurityPage>
+          <ScansDashboard />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/scans/:id',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityScansRead]}>
+        <ScanDetail />
       </AuthGuard>
     ),
   },

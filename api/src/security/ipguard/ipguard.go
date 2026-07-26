@@ -18,6 +18,7 @@ import (
 	security_entity "github.com/a-digi/coco-iam/src/admin/security/entity"
 	security_persistent "github.com/a-digi/coco-iam/src/admin/security/repository/persistent"
 	security_query "github.com/a-digi/coco-iam/src/admin/security/repository/query"
+	"github.com/a-digi/coco-iam/src/security/dbhandle"
 	"github.com/a-digi/coco-iam/src/security/ipguard/firewall"
 )
 
@@ -85,26 +86,30 @@ type IPGuardSecurityLayer struct {
 
 // New builds an IPGuardSecurityLayer from the framework's DI context —
 // the intended construction path from api/config/routes/routes.go.
-// attacksDB is the separate ip-attacks.db connection (section 10);
-// attackLog is the dedicated attack log file (section 12). The
-// OS-level firewall backend is auto-detected via firewall.Detect —
-// callers don't choose it explicitly.
-func New(cfg Config, inner security.SecurityLayer, ctx di.Context, attacksDB *sql.DB, attackLog logger.Logger) (*IPGuardSecurityLayer, error) {
+// attacksHandle wraps the separate ip-attacks.db connection (section
+// 10) in a *dbhandle.Handle, so the connection it holds keeps working
+// even after the archiver rotates the file out from under it — see
+// plan/ip-attacks-db-archiving/plan.md. attackLog is the dedicated
+// attack log file (section 12). The OS-level firewall backend is
+// auto-detected via firewall.Detect — callers don't choose it
+// explicitly.
+func New(cfg Config, inner security.SecurityLayer, ctx di.Context, attacksHandle *dbhandle.Handle, attackLog logger.Logger) (*IPGuardSecurityLayer, error) {
 	manager := ctx.GetDatabaseManager()
 	if manager == nil || manager.Connector == nil || manager.Connector.DB == nil {
 		return nil, fmt.Errorf("ipguard: database manager not available")
 	}
 	fw := firewall.Detect(ctx.GetLogger())
-	return NewWithDB(cfg, inner, manager.Connector.DB, ctx.GetLogger(), attacksDB, attackLog, fw)
+	return NewWithDB(cfg, inner, manager.Connector.DB, ctx.GetLogger(), attacksHandle, attackLog, fw)
 }
 
-// NewWithDB builds an IPGuardSecurityLayer directly from *sql.DB
-// handles, loggers, and a firewall.Banner — the lower-level
-// constructor, easiest to unit test without faking the full
-// di.Context interface. log, attackLog, and fw may all be nil/absent
-// (fw nil disables OS-level enforcement entirely, same as a
+// NewWithDB builds an IPGuardSecurityLayer directly from a *sql.DB (the
+// main database, for bans/allowlist), a *dbhandle.Handle (the
+// rotatable ip-attacks.db connection), loggers, and a firewall.Banner —
+// the lower-level constructor, easiest to unit test without faking the
+// full di.Context interface. log, attackLog, and fw may all be
+// nil/absent (fw nil disables OS-level enforcement entirely, same as a
 // NoopBanner).
-func NewWithDB(cfg Config, inner security.SecurityLayer, db *sql.DB, log logger.Logger, attacksDB *sql.DB, attackLog logger.Logger, fw firewall.Banner) (*IPGuardSecurityLayer, error) {
+func NewWithDB(cfg Config, inner security.SecurityLayer, db *sql.DB, log logger.Logger, attacksHandle *dbhandle.Handle, attackLog logger.Logger, fw firewall.Banner) (*IPGuardSecurityLayer, error) {
 	g := &IPGuardSecurityLayer{
 		inner:         inner,
 		cfg:           cfg,
@@ -114,7 +119,7 @@ func NewWithDB(cfg Config, inner security.SecurityLayer, db *sql.DB, log logger.
 		banPersist:    security_persistent.NewIPBanPersistentRepo(db),
 		allowQuery:    security_query.NewIPAllowlistQueryRepo(db),
 		allowPersist:  security_persistent.NewIPAllowlistPersistentRepo(db),
-		attackPersist: attacks_persistent.NewAttackPersistentRepo(attacksDB),
+		attackPersist: attacks_persistent.NewAttackPersistentRepo(attacksHandle),
 		attackLog:     attackLog,
 		firewall:      fw,
 		bans:          make(map[string]banEntry),
@@ -209,6 +214,27 @@ func (g *IPGuardSecurityLayer) Authorize(w http.ResponseWriter, r *http.Request,
 	}
 
 	return g.inner.Authorize(w, r, ctx, route)
+}
+
+// RecordRecon records ip's probe against a path that matched no route
+// at all — coco-server's RouteBuilder.NotFoundHook calls this
+// directly, bypassing Authorize entirely, since there is no route to
+// authorize against (Authorize only ever runs for matched routes —
+// see its own doc comment). route is always nil here, so
+// recordAttackHit falls back to the raw request path exactly as
+// received, not a route pattern.
+//
+// Unlike every other tier, this never rate-limits or bans: a single
+// stray 404 (a browser's /favicon.ico, a crawler, a typo) isn't
+// evidence of an attack on its own the way tripping a rate limit is —
+// this tier is visibility-only by design. See
+// plan/port-scan-detection/plan.md Phase A and its Open Question 2 on
+// whether to auto-ban here later.
+func (g *IPGuardSecurityLayer) RecordRecon(ip string, r *http.Request) {
+	if g.isAllowed(ip) {
+		return
+	}
+	g.recordAttackHit(ip, "unmatched", "no matching route", r, nil, false)
 }
 
 // Ban records a ban for ip — updates the in-memory cache immediately

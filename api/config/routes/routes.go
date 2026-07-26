@@ -23,6 +23,8 @@ import (
 	mail_templates_admin "github.com/a-digi/coco-iam/src/admin/mail/templates"
 	admin_mfa "github.com/a-digi/coco-iam/src/admin/mfa/handler"
 	admin_security "github.com/a-digi/coco-iam/src/admin/security/handler"
+	admin_security_archives "github.com/a-digi/coco-iam/src/admin/security/archives/handler"
+	admin_security_scans "github.com/a-digi/coco-iam/src/admin/security/scans/handler"
 	admin_security_attacks "github.com/a-digi/coco-iam/src/admin/security/attacks/handler"
 	admin_users "github.com/a-digi/coco-iam/src/admin/users"
 	admin_login "github.com/a-digi/coco-iam/src/admin/users/authentication"
@@ -833,6 +835,12 @@ func Init(ctx serverdi.Context) {
 		"SecurityStatusHandler":                &admin_security.SecurityStatusHandler{},
 		"AttackListHandler":                    &admin_security_attacks.AttackListHandler{},
 		"AttackDetailHandler":                  &admin_security_attacks.AttackDetailHandler{},
+		"ArchiveListHandler":                   &admin_security_archives.ArchiveListHandler{},
+		"ArchiveDetailHandler":                 &admin_security_archives.ArchiveDetailHandler{},
+		"ArchiveAttacksListHandler":            &admin_security_archives.ArchiveAttacksListHandler{},
+		"ArchiveAttackDetailHandler":           &admin_security_archives.ArchiveAttackDetailHandler{},
+		"ScanListHandler":                      &admin_security_scans.ScanListHandler{},
+		"ScanDetailHandler":                    &admin_security_scans.ScanDetailHandler{},
 		"AdminQueueStatsHandler":               &queue_admin.AdminQueueStatsHandler{},
 		"AdminQueueRetryHandler":               &queue_admin.AdminQueueRetryHandler{},
 		"AdminQueueCreateHandler":              &queue_admin.AdminQueueCreateHandler{},
@@ -1056,16 +1064,27 @@ func Init(ctx serverdi.Context) {
 	if !ok {
 		panic("routes.Init: DI context has unexpected type")
 	}
-	if bag.IPAttacksDBManager == nil || bag.IPAttacksDBManager.Connector == nil || bag.IPAttacksDBManager.Connector.DB == nil {
-		panic("routes.Init: ip-attacks database manager not available")
+	if bag.IPAttacksHandle == nil {
+		panic("routes.Init: ip-attacks db handle not available")
 	}
-	ipGuard, err := ipguard.New(ipGuardCfg, scopeLayer, ctx, bag.IPAttacksDBManager.Connector.DB, bag.IPAttacksLog)
+	ipGuard, err := ipguard.New(ipGuardCfg, scopeLayer, ctx, bag.IPAttacksHandle, bag.IPAttacksLog)
 	if err != nil {
 		panic(err)
 	}
 	bag.IPGuard = ipGuard
 
 	routing.GlobalRouteBuilder.SetSecurityLayer(ipGuard)
+
+	// A request matching no route at all never reaches Authorize (see
+	// its own doc comment), so this is the only seam that sees
+	// path-probing against paths coco-iam doesn't route at all
+	// (/wp-admin, /.env, etc.) — see plan/port-scan-detection/plan.md
+	// Phase A. NotFoundHook is additive/nil-safe in the vendored
+	// RouteBuilder, so this is the only place that needs to know about it.
+	routing.GlobalRouteBuilder.NotFoundHook = func(r *http.Request) {
+		ip := ipguard.ClientIP(r, ipGuardCfg.TrustProxyIPHeader)
+		ipGuard.RecordRecon(ip, r)
+	}
 
 	routing.GlobalRouteBuilder.AddRoute(
 		routing.Routes{

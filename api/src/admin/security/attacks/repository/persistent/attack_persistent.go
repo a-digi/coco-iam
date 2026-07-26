@@ -9,24 +9,34 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/a-digi/coco-iam/src/security/dbhandle"
 )
 
 const timeLayout = "2006-01-02 15:04:05"
 
+// AttackPersistentRepo writes through a *dbhandle.Handle rather than a
+// raw *sql.DB, so it keeps working across the archiver rotating
+// ip-attacks.db out from under it mid-run — see
+// plan/ip-attacks-db-archiving/plan.md. Every call that creates a new
+// row (CreateAttack, and SetTargetCount when it's actually an insert)
+// also increments the handle's entry counter on the same connection it
+// just wrote to, so the two can never disagree.
 type AttackPersistentRepo struct {
-	db *sql.DB
+	handle *dbhandle.Handle
 }
 
-func NewAttackPersistentRepo(db *sql.DB) *AttackPersistentRepo {
-	return &AttackPersistentRepo{db: db}
+func NewAttackPersistentRepo(handle *dbhandle.Handle) *AttackPersistentRepo {
+	return &AttackPersistentRepo{handle: handle}
 }
 
 // CreateAttack inserts a new attack episode row with the given id —
 // called once, the moment an IP's first rejected request has no
 // already-open episode.
 func (r *AttackPersistentRepo) CreateAttack(id, ip, tier string, startedAt time.Time) error {
+	db := r.handle.DB()
 	ts := startedAt.UTC().Format(timeLayout)
-	_, err := r.db.Exec(
+	_, err := db.Exec(
 		`INSERT INTO ip_attacks (id, ip, tier, started_at, last_seen_at, hit_count, ban_count)
 		 VALUES (?, ?, ?, ?, ?, 0, 1)`,
 		id, ip, tier, ts, ts,
@@ -34,13 +44,17 @@ func (r *AttackPersistentRepo) CreateAttack(id, ip, tier string, startedAt time.
 	if err != nil {
 		return fmt.Errorf("ip-attack: create: %w", err)
 	}
+	if _, err := r.handle.IncrementEntryCount(db, 1); err != nil {
+		return fmt.Errorf("ip-attack: create: %w", err)
+	}
 	return nil
 }
 
 // UpdateAttackCounts flushes the current in-memory totals for an
 // ongoing episode — called periodically by the sweeper, not per hit.
+// Never creates a row, so it never touches the entry counter.
 func (r *AttackPersistentRepo) UpdateAttackCounts(id string, hitCount, banCount int, lastSeenAt time.Time) error {
-	_, err := r.db.Exec(
+	_, err := r.handle.DB().Exec(
 		`UPDATE ip_attacks SET hit_count = ?, ban_count = ?, last_seen_at = ? WHERE id = ?`,
 		hitCount, banCount, lastSeenAt.UTC().Format(timeLayout), id,
 	)
@@ -50,9 +64,10 @@ func (r *AttackPersistentRepo) UpdateAttackCounts(id string, hitCount, banCount 
 	return nil
 }
 
-// CloseAttack marks an episode ended.
+// CloseAttack marks an episode ended. Never creates a row, so it never
+// touches the entry counter.
 func (r *AttackPersistentRepo) CloseAttack(id string, endedAt time.Time) error {
-	_, err := r.db.Exec(
+	_, err := r.handle.DB().Exec(
 		`UPDATE ip_attacks SET ended_at = ? WHERE id = ?`,
 		endedAt.UTC().Format(timeLayout), id,
 	)
@@ -72,7 +87,7 @@ func (r *AttackPersistentRepo) CloseAttack(id string, endedAt time.Time) error {
 // orphaned and should be reconciled immediately rather than left
 // open forever.
 func (r *AttackPersistentRepo) CloseAllOpen() (int64, error) {
-	res, err := r.db.Exec(`UPDATE ip_attacks SET ended_at = last_seen_at WHERE ended_at IS NULL`)
+	res, err := r.handle.DB().Exec(`UPDATE ip_attacks SET ended_at = last_seen_at WHERE ended_at IS NULL`)
 	if err != nil {
 		return 0, fmt.Errorf("ip-attack: close all open: %w", err)
 	}
@@ -87,8 +102,24 @@ func (r *AttackPersistentRepo) CloseAllOpen() (int64, error) {
 // method), creating the row if absent. Takes an absolute value, not a
 // delta — the caller always knows and passes the current in-memory
 // total, so there's nothing to reconcile if a flush is ever retried.
+// The ON CONFLICT upsert doesn't tell us whether it inserted or
+// updated, so a target that's already been flushed once (the common
+// case — targets are flushed on every sweeper tick) has to be checked
+// for first; the entry counter must only move on a genuine new row.
 func (r *AttackPersistentRepo) SetTargetCount(attackID, path, method string, hitCount int) error {
-	_, err := r.db.Exec(
+	db := r.handle.DB()
+
+	var exists int
+	err := db.QueryRow(
+		`SELECT 1 FROM ip_attack_targets WHERE attack_id = ? AND path = ? AND method = ?`,
+		attackID, path, method,
+	).Scan(&exists)
+	isNew := err == sql.ErrNoRows
+	if err != nil && !isNew {
+		return fmt.Errorf("ip-attack: set target count: check existing: %w", err)
+	}
+
+	_, err = db.Exec(
 		`INSERT INTO ip_attack_targets (id, attack_id, path, method, hit_count)
 		 VALUES (?, ?, ?, ?, ?)
 		 ON CONFLICT(attack_id, path, method) DO UPDATE SET hit_count = excluded.hit_count`,
@@ -97,5 +128,12 @@ func (r *AttackPersistentRepo) SetTargetCount(attackID, path, method string, hit
 	if err != nil {
 		return fmt.Errorf("ip-attack: set target count: %w", err)
 	}
+
+	if isNew {
+		if _, err := r.handle.IncrementEntryCount(db, 1); err != nil {
+			return fmt.Errorf("ip-attack: set target count: %w", err)
+		}
+	}
+
 	return nil
 }

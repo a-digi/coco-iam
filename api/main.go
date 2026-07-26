@@ -15,7 +15,11 @@ import (
 	"github.com/a-digi/coco-iam/src/datamigration"
 	oauth_archiver "github.com/a-digi/coco-iam/src/oauthserver/archiver"
 	organization_deleted "github.com/a-digi/coco-iam/src/organizations/deleted"
+	scans_persistent "github.com/a-digi/coco-iam/src/admin/security/scans/repository/persistent"
+	"github.com/a-digi/coco-iam/src/security/dbarchive"
+	"github.com/a-digi/coco-iam/src/security/dbhandle"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
+	"github.com/a-digi/coco-iam/src/security/scanwatch"
 	"github.com/a-digi/coco-iam/src/activation"
 	"github.com/a-digi/coco-iam/src/general"
 	app_keys "github.com/a-digi/coco-iam/src/applications/keys"
@@ -120,6 +124,45 @@ func main() {
 			os.Exit(1)
 		}
 
+		// Wraps ipAttacksDBManager.Connector.DB in a swappable handle —
+		// ipguard and the admin attacks query handler both hold this
+		// (not the raw *sql.DB), so the archiver below can rotate
+		// ip-attacks.db out and hand every consumer a fresh connection
+		// without reconstructing any of them.
+		ipAttacksHandle, err := dbhandle.New(ipAttacksDBManager.Connector.DB)
+		if err != nil {
+			log.Error("ip-attacks handle creation failed: %v", err)
+			os.Exit(1)
+		}
+
+		// Rotates ip-attacks.db into data/db/security/archives once its
+		// entry count crosses the threshold, registering the rotated-out
+		// file in the main DB so it stays queryable later. Started below
+		// alongside the other sweepers, once queueCtx exists. See
+		// plan/ip-attacks-db-archiving/plan.md.
+		dbArchiver := dbarchive.New(
+			ipAttacksHandle, ipAttacksDBManager, manager.Connector.DB,
+			"ip-attacks.db", "./data/db/security", ipAttacksMigrationsPath,
+			"./data/db/security/archives", dbarchive.DefaultThreshold, log,
+		)
+
+		// Port-scan detection — ingests OS-level firewall log lines to
+		// see traffic against ports coco-iam isn't listening on at all,
+		// architecturally invisible to ipguard's own rate limiter. Never
+		// detects anything itself; it only consumes whichever log source
+		// is actually available on this host (journald, else a syslog
+		// file, else disabled) — see
+		// plan/port-scan-detection/plan.md Phase B and
+		// docs/setup/port-scan-detection.md for the one-time,
+		// operator-run iptables logging rule this depends on.
+		scanSource := scanwatch.Detect(log, scanwatch.DefaultSyslogFilePath)
+		scanPersist := scans_persistent.NewScanPersistentRepo(ipAttacksHandle)
+		scanWatcher, err := scanwatch.NewWatcher(scanPersist, scanwatch.DefaultThreshold, scanwatch.DefaultWindow, log)
+		if err != nil {
+			log.Error("scanwatch: failed to initialize: %v", err)
+			os.Exit(1)
+		}
+
 		// Dedicated attack log — one line per rejected request while an
 		// IP is under an open attack episode, kept separate from the
 		// main server log so operators can tail/rotate it independently
@@ -134,8 +177,10 @@ func main() {
 
 		// Create ContextBag and inject manager and logger
 		ctx := di.NewContextBag(manager, log)
-		ctx.IPAttacksDBManager = ipAttacksDBManager
+		ctx.IPAttacksHandle = ipAttacksHandle
+		ctx.DBArchiver = dbArchiver
 		ctx.IPAttacksLog = ipAttacksLog
+		ctx.ScanSource = scanSource
 
 		// Per-organization profile databases. Each org has its own SQLite
 		// file that holds the profile-field schema and the user profile
@@ -588,6 +633,24 @@ func main() {
 		// plan/ip-abuse-protection/plan.md section 6.
 		ipGuardSweeper := ipguard.NewSweeper(ctx.IPGuard, log)
 		go ipGuardSweeper.Run(queueCtx)
+
+		// ip-attacks.db archiver — rotates the file out once it crosses
+		// the entry-count threshold, every 10 minutes. Separate ticker
+		// from the sweeper above since rotation is a much rarer, distinct
+		// concern. See plan/ip-attacks-db-archiving/plan.md.
+		go dbArchiver.Run(queueCtx)
+
+		// Port-scan detection: start the log source (a no-op if
+		// unavailable — Available()/Detail() report why on the admin
+		// Security page), consume its lines into scan episodes, and
+		// flush those episodes to disk on its own ticker. All three
+		// share the queue context for clean shutdown.
+		if err := scanSource.Start(queueCtx); err != nil {
+			log.Warning("scanwatch: failed to start log source (%s): %v", scanSource.Name(), err)
+		} else {
+			go scanWatcher.Consume(scanSource.Lines(), scanwatch.DefaultLogPrefix)
+		}
+		go scanWatcher.Run(queueCtx)
 
 		serv, config, err := server.StartServer(configPath, log)
 

@@ -44,7 +44,7 @@ func newTestGuardWithAttacks(t *testing.T, cfg Config, attackLog *spyLogger) (*I
 	if attackLog != nil {
 		l = attackLog
 	}
-	g, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, attacksDB, l, nil)
+	g, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, mustAttacksHandle(t, attacksDB), l, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -220,7 +220,7 @@ func TestHydrate_ClosesAttacksOrphanedByAPreviousProcess(t *testing.T) {
 		t.Fatalf("seed orphaned attack: %v", err)
 	}
 
-	_, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, attacksDB, nil, nil)
+	_, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, mustAttacksHandle(t, attacksDB), nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -254,5 +254,102 @@ func TestSweeper_FlushesAttacksOnTick(t *testing.T) {
 	}
 	if hitCount != 3 { // calls 4, 5, 6 are the rejections
 		t.Fatalf("hit_count after sweeper tick = %d, want 3 (sweeper must flush attacks too)", hitCount)
+	}
+}
+
+func TestRecordRecon_CreatesUnmatchedTierEpisode(t *testing.T) {
+	cfg := testConfig()
+	g, attacksDB := newTestGuardWithAttacks(t, cfg, nil)
+
+	g.RecordRecon("203.0.113.7", request("203.0.113.7", "/wp-admin"))
+
+	if got := countAttacks(t, attacksDB, "203.0.113.7"); got != 1 {
+		t.Fatalf("ip_attacks rows for the IP = %d, want exactly 1", got)
+	}
+	var tier string
+	if err := attacksDB.QueryRow(`SELECT tier FROM ip_attacks WHERE ip = ?`, "203.0.113.7").Scan(&tier); err != nil {
+		t.Fatalf("query tier: %v", err)
+	}
+	if tier != "unmatched" {
+		t.Fatalf("tier = %q, want %q", tier, "unmatched")
+	}
+}
+
+func TestRecordRecon_MultipleHitsAggregateIntoOneEpisode(t *testing.T) {
+	cfg := testConfig()
+	g, attacksDB := newTestGuardWithAttacks(t, cfg, nil)
+
+	for _, path := range []string{"/wp-admin", "/.env", "/wp-admin"} {
+		g.RecordRecon("203.0.113.7", request("203.0.113.7", path))
+	}
+	g.FlushAttacks()
+
+	if got := countAttacks(t, attacksDB, "203.0.113.7"); got != 1 {
+		t.Fatalf("ip_attacks rows for the IP = %d, want exactly 1 (one episode, not one per probe)", got)
+	}
+	var hitCount int
+	if err := attacksDB.QueryRow(`SELECT hit_count FROM ip_attacks WHERE ip = ?`, "203.0.113.7").Scan(&hitCount); err != nil {
+		t.Fatalf("query hit_count: %v", err)
+	}
+	if hitCount != 3 {
+		t.Fatalf("hit_count = %d, want 3", hitCount)
+	}
+
+	rows, err := attacksDB.Query(`SELECT path, hit_count FROM ip_attack_targets ORDER BY path`)
+	if err != nil {
+		t.Fatalf("query targets: %v", err)
+	}
+	defer rows.Close()
+	counts := map[string]int{}
+	for rows.Next() {
+		var path string
+		var hitCount int
+		if err := rows.Scan(&path, &hitCount); err != nil {
+			t.Fatalf("scan target: %v", err)
+		}
+		counts[path] = hitCount
+	}
+	if counts["/wp-admin"] != 2 {
+		t.Fatalf("hit count for /wp-admin = %d, want 2", counts["/wp-admin"])
+	}
+	if counts["/.env"] != 1 {
+		t.Fatalf("hit count for /.env = %d, want 1", counts["/.env"])
+	}
+}
+
+// TestRecordRecon_NeverBansOrRateLimits confirms recon hits are purely
+// observational — even far more hits than the global tier's own limit
+// must never trip a ban or affect the rate limiter's own counters.
+func TestRecordRecon_NeverBansOrRateLimits(t *testing.T) {
+	cfg := testConfig() // global limit 3
+	g := newTestGuard(t, cfg)
+
+	for i := 0; i < 20; i++ {
+		g.RecordRecon("203.0.113.7", request("203.0.113.7", "/wp-admin"))
+	}
+
+	if banned, _, _, _ := g.checkBanned("203.0.113.7"); banned {
+		t.Fatal("RecordRecon must never ban the IP, however many hits")
+	}
+
+	// A normal request against a real route must still be allowed —
+	// recon hits must not share the global limiter's counter.
+	w := httptest.NewRecorder()
+	if err := g.Authorize(w, request("203.0.113.7", "/anything"), nil, &security.Route{Path: "/anything"}); err != nil {
+		t.Fatalf("Authorize() after only recon hits should succeed, error = %v", err)
+	}
+}
+
+func TestRecordRecon_SkipsAllowlistedIP(t *testing.T) {
+	cfg := testConfig()
+	g, attacksDB := newTestGuardWithAttacks(t, cfg, nil)
+
+	if err := g.AllowIP("9.9.9.9", "office egress", "admin-1"); err != nil {
+		t.Fatalf("AllowIP() error = %v", err)
+	}
+	g.RecordRecon("9.9.9.9", request("9.9.9.9", "/wp-admin"))
+
+	if got := countAttacks(t, attacksDB, "9.9.9.9"); got != 0 {
+		t.Fatalf("ip_attacks rows for an allowlisted IP = %d, want 0", got)
 	}
 }

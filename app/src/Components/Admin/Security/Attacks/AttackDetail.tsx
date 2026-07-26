@@ -38,9 +38,27 @@ const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, val
 // rather than nesting inside the Bans/Allowlist/Attacks tab bar, which
 // would misleadingly imply you're still switching tabs once you've
 // drilled into one specific episode.
+//
+// Reused for browsing a rotated-out archive too (see
+// plan/ip-attacks-db-archiving/plan.md) — when this component is
+// mounted on the /admin/security/archives/:archiveId/attacks/:id route
+// instead of /admin/security/attacks/:id, archiveId is present and
+// every fetch/link below reads from that archive instead of the live
+// data. Purely additive: archiveId is always undefined on the live
+// route, so the live page's behavior is unchanged.
 export const AttackDetail: React.FC = () => {
-    useBreadcrumbItems([{ label: 'Admin' }, { label: 'Security', href: '/admin/security/attacks' }, { label: 'Attack' }]);
-    const { id } = useParams<{ id: string }>();
+    const { id, archiveId } = useParams<{ id: string; archiveId?: string }>();
+
+    useBreadcrumbItems(
+        archiveId
+            ? [
+                  { label: 'Admin' },
+                  { label: 'Security', href: '/admin/security/archives' },
+                  { label: 'Archive', href: `/admin/security/archives/${archiveId}` },
+                  { label: 'Attack' },
+              ]
+            : [{ label: 'Admin' }, { label: 'Security', href: '/admin/security/attacks' }, { label: 'Attack' }]
+    );
     const { get } = useHttpClient();
     const { errorMessage } = useSnackBar();
 
@@ -51,14 +69,17 @@ export const AttackDetail: React.FC = () => {
         if (!id) return;
         setLoading(true);
         try {
-            const resp = await get<{ message: AttackDetailResponse }>(`admin/security/attacks/{id:${id}}`);
+            const path = archiveId
+                ? `admin/security/archives/{id:${archiveId}}/attacks/{attackId:${id}}`
+                : `admin/security/attacks/{id:${id}}`;
+            const resp = await get<{ message: AttackDetailResponse }>(path);
             setAttack(resp.message);
         } catch (err: unknown) {
             errorMessage(err instanceof Error ? err.message : 'Failed to load attack episode.');
         } finally {
             setLoading(false);
         }
-    }, [id, get, errorMessage]);
+    }, [id, archiveId, get, errorMessage]);
 
     useEffect(() => {
         void load();
@@ -70,18 +91,20 @@ export const AttackDetail: React.FC = () => {
         { key: 'hit_count', label: 'Hits' },
     ];
 
+    const backTo = archiveId ? `/admin/security/archives/${archiveId}/attacks` : '/admin/security/attacks';
+
     return (
         <div>
             <div className="mb-4">
                 <Link
-                    to="/admin/security/attacks"
+                    to={backTo}
                     className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
                 >
-                    ← Back to attacks
+                    ← Back to {archiveId ? 'archived attacks' : 'attacks'}
                 </Link>
             </div>
 
-            <Title>Attack episode</Title>
+            <Title>Attack episode{archiveId ? ' (archived)' : ''}</Title>
 
             {loading && !attack ? (
                 <div className="mt-6 text-sm text-gray-500">Loading...</div>

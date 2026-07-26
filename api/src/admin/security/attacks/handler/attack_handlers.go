@@ -141,8 +141,12 @@ func (h *AttackDetailHandler) ServeHTTP(reqCtx request.RequestContext) {
 }
 
 // resolveAttackQuery builds a query repo against the separate
-// ip-attacks.db, resolved via the DI ContextBag. Writes a 500
-// response itself and returns ok=false if unavailable.
+// ip-attacks.db, resolved via the DI ContextBag. Reads through the
+// same *dbhandle.Handle ipguard writes through, so this keeps reading
+// the live generation across the archiver rotating the file out from
+// under it (see plan/ip-attacks-db-archiving/plan.md) instead of
+// freezing on a stale connection. Writes a 500 response itself and
+// returns ok=false if unavailable.
 func resolveAttackQuery(reqCtx request.RequestContext) (*attacks_query.AttackQueryRepo, bool) {
 	w := reqCtx.GetWriter()
 	bag, ok := reqCtx.GetDI().(*di.ContextBag)
@@ -150,12 +154,12 @@ func resolveAttackQuery(reqCtx request.RequestContext) (*attacks_query.AttackQue
 		response.ErrorResponse(w, http.StatusInternalServerError, "DI context has unexpected type")
 		return nil, false
 	}
-	manager := bag.GetIPAttacksDBManager()
-	if manager == nil || manager.Connector == nil || manager.Connector.DB == nil {
+	handle := bag.GetIPAttacksHandle()
+	if handle == nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, "ip-attacks database not available")
 		return nil, false
 	}
-	return attacks_query.NewAttackQueryRepo(manager.Connector.DB), true
+	return attacks_query.NewAttackQueryRepo(handle), true
 }
 
 func parseIntOr(s string, def int) int {

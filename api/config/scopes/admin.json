@@ -302,6 +302,26 @@
                                 "description": "Allows viewing recorded attack episodes and their targeted endpoints."
                             }
                         ]
+                    },
+                    {
+                        "id": "admin:security:archives",
+                        "description": "Allows viewing rotated-out ip-attacks.db archives.",
+                        "scopes": [
+                            {
+                                "id": "admin:security:archives:read",
+                                "description": "Allows viewing archived attack history once ip-attacks.db has been rotated."
+                            }
+                        ]
+                    },
+                    {
+                        "id": "admin:security:scans",
+                        "description": "Allows viewing detected port-scan episodes.",
+                        "scopes": [
+                            {
+                                "id": "admin:security:scans:read",
+                                "description": "Allows viewing recorded port-scan episodes."
+                            }
+                        ]
                     }
                 ]
             }
