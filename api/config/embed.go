@@ -197,6 +197,15 @@ func ExtractQueueMigrationsToTemp() (string, error) {
 	return migrationsPath("db/queue_migrations")
 }
 
+// ExtractIPAttacksMigrationsToTemp returns the on-disk path to the
+// ip-attacks.db migrations folder — a self-contained DB, own
+// migration sequence (001_initial.sql, not the DD_MM_YYYY convention
+// used by db/migrations). See plan/ip-abuse-protection/plan.md
+// section 10.
+func ExtractIPAttacksMigrationsToTemp() (string, error) {
+	return migrationsPath("db/ip_attacks_migrations")
+}
+
 func migrationsPath(rel string) (string, error) {
 	full := filepath.Join(resolved().Root(), filepath.FromSlash(rel))
 	info, err := os.Stat(full)

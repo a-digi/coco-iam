@@ -182,6 +182,14 @@ export const AppScopes = {
     // coco-observe — system observability
     ObserveView: 'observe:view',
     ObserveManage: 'observe:manage',
+
+    // IP-based rate limiting and abuse protection — see
+    // plan/ip-abuse-protection/plan.md.
+    AdminSecurityIpBansRead: 'admin:security:ipbans:read',
+    AdminSecurityIpBansWrite: 'admin:security:ipbans:write',
+    AdminSecurityIpAllowlistRead: 'admin:security:ipallowlist:read',
+    AdminSecurityIpAllowlistWrite: 'admin:security:ipallowlist:write',
+    AdminSecurityAttacksRead: 'admin:security:attacks:read',
 } as const;
 
 export type AppScope = typeof AppScopes[keyof typeof AppScopes];
