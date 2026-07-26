@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/a-digi/coco-iam/config"
+	"github.com/a-digi/coco-iam/config/di"
 	"github.com/a-digi/coco-iam/config/resource"
 	activation_admin "github.com/a-digi/coco-iam/src/activation/admin"
 	admin_acl "github.com/a-digi/coco-iam/src/admin/acl"
@@ -21,6 +22,8 @@ import (
 	mail_settings_admin "github.com/a-digi/coco-iam/src/admin/mail/settings"
 	mail_templates_admin "github.com/a-digi/coco-iam/src/admin/mail/templates"
 	admin_mfa "github.com/a-digi/coco-iam/src/admin/mfa/handler"
+	admin_security "github.com/a-digi/coco-iam/src/admin/security/handler"
+	admin_security_attacks "github.com/a-digi/coco-iam/src/admin/security/attacks/handler"
 	admin_users "github.com/a-digi/coco-iam/src/admin/users"
 	admin_login "github.com/a-digi/coco-iam/src/admin/users/authentication"
 	"github.com/a-digi/coco-iam/src/admin/users/me"
@@ -63,6 +66,7 @@ import (
 	organization_users_admin "github.com/a-digi/coco-iam/src/organizations/users/admin"
 	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
+	"github.com/a-digi/coco-iam/src/security/ipguard"
 	swagger_handler "github.com/a-digi/coco-iam/src/swagger"
 	userrules_handler "github.com/a-digi/coco-iam/src/userrules/handler"
 	lift_routes "github.com/a-digi/coco-lift/routes"
@@ -819,6 +823,16 @@ func Init(ctx serverdi.Context) {
 		"MfaDisableHandler":                    &admin_mfa.MfaDisableHandler{},
 		"MfaRecoveryCodesRegenerateHandler":    &admin_mfa.MfaRecoveryCodesRegenerateHandler{},
 		"VerifyMfaHandler":                     &admin_mfa.VerifyMfaHandler{},
+		// Admin IP ban/allowlist management — see plan/ip-abuse-protection/plan.md.
+		"IPBanListHandler":                     &admin_security.IPBanListHandler{},
+		"IPBanCreateHandler":                   &admin_security.IPBanCreateHandler{},
+		"IPBanDeleteHandler":                   &admin_security.IPBanDeleteHandler{},
+		"IPAllowlistListHandler":               &admin_security.IPAllowlistListHandler{},
+		"IPAllowlistCreateHandler":             &admin_security.IPAllowlistCreateHandler{},
+		"IPAllowlistDeleteHandler":             &admin_security.IPAllowlistDeleteHandler{},
+		"SecurityStatusHandler":                &admin_security.SecurityStatusHandler{},
+		"AttackListHandler":                    &admin_security_attacks.AttackListHandler{},
+		"AttackDetailHandler":                  &admin_security_attacks.AttackDetailHandler{},
 		"AdminQueueStatsHandler":               &queue_admin.AdminQueueStatsHandler{},
 		"AdminQueueRetryHandler":               &queue_admin.AdminQueueRetryHandler{},
 		"AdminQueueCreateHandler":              &queue_admin.AdminQueueCreateHandler{},
@@ -1028,9 +1042,30 @@ func Init(ctx serverdi.Context) {
 	if err != nil {
 		panic(err)
 	}
-	routing.GlobalRouteBuilder.SetSecurityLayer(
-		security.NewScopeSecurityLayer(handlerMap, authCfgBytes, updatedYamlBytes),
-	)
+	scopeLayer := security.NewScopeSecurityLayer(handlerMap, authCfgBytes, updatedYamlBytes)
+
+	// IPGuardSecurityLayer wraps scopeLayer — RouteBuilder.ServeHTTP
+	// calls Authorize for every matched route, public or authenticated,
+	// so this sees 100% of traffic including the public login endpoint.
+	// See plan/ip-abuse-protection/plan.md sections 1 and 4.
+	ipGuardCfg, err := ipguard.LoadConfig(authCfgBytes)
+	if err != nil {
+		panic(err)
+	}
+	bag, ok := ctx.(*di.ContextBag)
+	if !ok {
+		panic("routes.Init: DI context has unexpected type")
+	}
+	if bag.IPAttacksDBManager == nil || bag.IPAttacksDBManager.Connector == nil || bag.IPAttacksDBManager.Connector.DB == nil {
+		panic("routes.Init: ip-attacks database manager not available")
+	}
+	ipGuard, err := ipguard.New(ipGuardCfg, scopeLayer, ctx, bag.IPAttacksDBManager.Connector.DB, bag.IPAttacksLog)
+	if err != nil {
+		panic(err)
+	}
+	bag.IPGuard = ipGuard
+
+	routing.GlobalRouteBuilder.SetSecurityLayer(ipGuard)
 
 	routing.GlobalRouteBuilder.AddRoute(
 		routing.Routes{

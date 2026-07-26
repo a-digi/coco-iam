@@ -260,6 +260,50 @@
                         "description": "Allows updating user validation rule settings."
                     }
                 ]
+            },
+            {
+                "id": "admin:security",
+                "description": "IP-based rate limiting and abuse protection.",
+                "scopes": [
+                    {
+                        "id": "admin:security:ipbans",
+                        "description": "Allows viewing and managing banned IP addresses.",
+                        "scopes": [
+                            {
+                                "id": "admin:security:ipbans:read",
+                                "description": "Allows viewing banned IP addresses."
+                            },
+                            {
+                                "id": "admin:security:ipbans:write",
+                                "description": "Allows manually banning or unbanning IP addresses."
+                            }
+                        ]
+                    },
+                    {
+                        "id": "admin:security:ipallowlist",
+                        "description": "Allows viewing and managing the IP allowlist.",
+                        "scopes": [
+                            {
+                                "id": "admin:security:ipallowlist:read",
+                                "description": "Allows viewing the IP allowlist."
+                            },
+                            {
+                                "id": "admin:security:ipallowlist:write",
+                                "description": "Allows managing the IP allowlist."
+                            }
+                        ]
+                    },
+                    {
+                        "id": "admin:security:attacks",
+                        "description": "Allows viewing recorded attack episodes.",
+                        "scopes": [
+                            {
+                                "id": "admin:security:attacks:read",
+                                "description": "Allows viewing recorded attack episodes and their targeted endpoints."
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     },

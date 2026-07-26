@@ -155,6 +155,108 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.Attack:
+    properties:
+      ban_count:
+        example: 3
+        type: integer
+      ended_at:
+        example: "2026-07-26T10:30:00Z"
+        type: string
+      hit_count:
+        example: 143
+        type: integer
+      id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      last_seen_at:
+        example: "2026-07-26T10:04:12Z"
+        type: string
+      started_at:
+        example: "2026-07-26T10:00:00Z"
+        type: string
+      tier:
+        example: sensitive
+        type: string
+    type: object
+  entity.AttackDetailResponse:
+    properties:
+      ban_count:
+        example: 3
+        type: integer
+      ended_at:
+        example: "2026-07-26T10:30:00Z"
+        type: string
+      hit_count:
+        example: 143
+        type: integer
+      id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      last_seen_at:
+        example: "2026-07-26T10:04:12Z"
+        type: string
+      started_at:
+        example: "2026-07-26T10:00:00Z"
+        type: string
+      targets:
+        items:
+          $ref: '#/definitions/entity.AttackTarget'
+        type: array
+      tier:
+        example: sensitive
+        type: string
+    type: object
+  entity.AttackDetailSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.AttackDetailResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.AttackListResponse:
+    properties:
+      attacks:
+        items:
+          $ref: '#/definitions/entity.Attack'
+        type: array
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      total:
+        example: 37
+        type: integer
+    type: object
+  entity.AttackListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.AttackListResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.AttackTarget:
+    properties:
+      hit_count:
+        example: 89
+        type: integer
+      method:
+        example: POST
+        type: string
+      path:
+        example: /admin/oauth/authenticate
+        type: string
+    type: object
   entity.CheckRequest:
     properties:
       email:
@@ -239,6 +341,102 @@ definitions:
   entity.FieldAvailability:
     properties:
       available:
+        type: boolean
+    type: object
+  entity.IPAllowlistEntry:
+    properties:
+      created_at:
+        example: "2026-07-26T10:00:00Z"
+        type: string
+      created_by:
+        example: 6b12ba0b-6b36-4a94-bce4-6ba3615b1f85
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      note:
+        example: office egress
+        type: string
+    type: object
+  entity.IPAllowlistEntrySuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.IPAllowlistEntry'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.IPAllowlistListSuccess:
+    properties:
+      message:
+        items:
+          $ref: '#/definitions/entity.IPAllowlistEntry'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.IPAllowlistRequest:
+    properties:
+      ip:
+        example: 203.0.113.7
+        type: string
+      note:
+        example: office egress
+        type: string
+    type: object
+  entity.IPBan:
+    properties:
+      banned_at:
+        example: "2026-07-26T10:00:00Z"
+        type: string
+      created_by:
+        example: 6b12ba0b-6b36-4a94-bce4-6ba3615b1f85
+        type: string
+      expires_at:
+        example: "2026-07-26T11:00:00Z"
+        type: string
+      hit_count:
+        example: 3
+        type: integer
+      ip:
+        example: 203.0.113.7
+        type: string
+      reason:
+        example: sensitive rate limit exceeded
+        type: string
+      tier:
+        example: sensitive
+        type: string
+    type: object
+  entity.IPBanListSuccess:
+    properties:
+      message:
+        items:
+          $ref: '#/definitions/entity.IPBan'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.IPBanRequest:
+    properties:
+      duration_minutes:
+        example: 60
+        type: integer
+      ip:
+        example: 203.0.113.7
+        type: string
+      reason:
+        example: manually banned by admin
+        type: string
+    type: object
+  entity.IPBanSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.IPBan'
+      success:
+        example: true
         type: boolean
     type: object
   entity.IdentityFieldDef:
@@ -438,16 +636,25 @@ definitions:
         items: {}
         type: array
     type: object
-  entity.StatusResponse:
+  entity.SecurityStatus:
     properties:
-      status:
-        example: disabled
+      firewall_available:
+        example: true
+        type: boolean
+      firewall_backend:
+        example: iptables
+        type: string
+      firewall_detail:
+        example: 'iptables not found in PATH (on Alpine: apk add iptables)'
+        type: string
+      os:
+        example: linux
         type: string
     type: object
-  entity.StatusSuccess:
+  entity.SecurityStatusSuccess:
     properties:
       message:
-        $ref: '#/definitions/entity.StatusResponse'
+        $ref: '#/definitions/entity.SecurityStatus'
       success:
         example: true
         type: boolean
@@ -474,6 +681,34 @@ definitions:
     properties:
       message:
         $ref: '#/definitions/github_com_a-digi_coco-iam_src_admin_users_entity.User'
+      success:
+        example: true
+        type: boolean
+    type: object
+  github_com_a-digi_coco-iam_src_admin_mfa_entity.StatusResponse:
+    properties:
+      status:
+        example: disabled
+        type: string
+    type: object
+  github_com_a-digi_coco-iam_src_admin_mfa_entity.StatusSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/github_com_a-digi_coco-iam_src_admin_mfa_entity.StatusResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  github_com_a-digi_coco-iam_src_admin_security_entity.StatusResponse:
+    properties:
+      status:
+        example: unbanned
+        type: string
+    type: object
+  github_com_a-digi_coco-iam_src_admin_security_entity.StatusSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/github_com_a-digi_coco-iam_src_admin_security_entity.StatusResponse'
       success:
         example: true
         type: boolean
@@ -3628,6 +3863,316 @@ paths:
       summary: Get task payload
       tags:
       - admin-queue
+  /admin/security/attacks:
+    get:
+      description: Lists historical (and currently ongoing) attack episodes, newest
+        first.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AttackListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List IP-abuse attack episodes
+      tags:
+      - security
+  /admin/security/attacks/{id}:
+    get:
+      parameters:
+      - description: Attack episode id, as {id:<value>}
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AttackDetailSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get one attack episode
+      tags:
+      - security
+  /admin/security/ip-allowlist:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.IPAllowlistListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List allowlisted IPs
+      tags:
+      - security
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Allowlist request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.IPAllowlistRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.IPAllowlistEntrySuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Add an IP to the allowlist
+      tags:
+      - security
+  /admin/security/ip-allowlist/{ip}:
+    delete:
+      parameters:
+      - description: IP address, as {ip:<value>}
+        in: path
+        name: ip
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_a-digi_coco-iam_src_admin_security_entity.StatusSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Remove an IP from the allowlist
+      tags:
+      - security
+  /admin/security/ip-bans:
+    get:
+      description: |-
+        Lists every currently-tracked IP ban, including
+        already-expired rows the sweeper hasn't pruned yet.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.IPBanListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List IP bans
+      tags:
+      - security
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Ban request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.IPBanRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.IPBanSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Manually ban an IP
+      tags:
+      - security
+  /admin/security/ip-bans/{ip}:
+    delete:
+      parameters:
+      - description: IP address, as {ip:<value>}
+        in: path
+        name: ip
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_a-digi_coco-iam_src_admin_security_entity.StatusSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Unban an IP
+      tags:
+      - security
+  /admin/security/status:
+    get:
+      description: |-
+        Reports whether OS-level firewall enforcement is active. When
+        firewall_available is false, only application-layer rate
+        limiting (429 responses) is protecting this host — see
+        plan/ip-abuse-protection/plan.md section 14.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.SecurityStatusSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: IP-guard security status
+      tags:
+      - security
   /admin/settings/general:
     get:
       produces:
@@ -3991,7 +4536,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.StatusSuccess'
+            $ref: '#/definitions/github_com_a-digi_coco-iam_src_admin_mfa_entity.StatusSuccess'
         "400":
           description: wrong password
           schema:

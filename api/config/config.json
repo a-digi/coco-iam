@@ -6,5 +6,19 @@
     "audience": "coco-iam",
     "hs256_secret": "dev-secret",
     "jwks_url": ""
+  },
+  "security": {
+    "trust_proxy_ip_header": "X-Real-IP",
+    "rate_limit": {
+      "global": { "requests": 300, "window_seconds": 60, "ban_seconds": 900 },
+      "sensitive": { "requests": 15, "window_seconds": 300, "ban_seconds": 3600 },
+      "sensitive_paths": [
+        "/admin/oauth/authenticate", "/admin/oauth/renew",
+        "/recovery/request", "/recovery/verify", "/recovery/reset",
+        "/activation/verify", "/activation/activate",
+        "/applications/authenticate", "/applications/renew",
+        "/public/applications/recover/request", "/public/applications/recover/reset"
+      ]
+    }
   }
 }

@@ -476,6 +476,70 @@ routes:
             security: authenticated
             scopes:
               - admin:me
+          # Admin IP ban/allowlist management — see plan/ip-abuse-protection/plan.md.
+          - path: /security/ip-bans
+            method: GET
+            executor: IPBanListHandler
+            security: authenticated
+            scopes:
+              - admin:security:ipbans:read
+              - super:admin
+          - path: /security/ip-bans
+            method: POST
+            executor: IPBanCreateHandler
+            security: authenticated
+            scopes:
+              - admin:security:ipbans:write
+              - super:admin
+          - path: /security/ip-bans/{ip}
+            method: DELETE
+            executor: IPBanDeleteHandler
+            security: authenticated
+            scopes:
+              - admin:security:ipbans:write
+              - super:admin
+          - path: /security/ip-allowlist
+            method: GET
+            executor: IPAllowlistListHandler
+            security: authenticated
+            scopes:
+              - admin:security:ipallowlist:read
+              - super:admin
+          - path: /security/ip-allowlist
+            method: POST
+            executor: IPAllowlistCreateHandler
+            security: authenticated
+            scopes:
+              - admin:security:ipallowlist:write
+              - super:admin
+          - path: /security/ip-allowlist/{ip}
+            method: DELETE
+            executor: IPAllowlistDeleteHandler
+            security: authenticated
+            scopes:
+              - admin:security:ipallowlist:write
+              - super:admin
+          - path: /security/attacks
+            method: GET
+            executor: AttackListHandler
+            security: authenticated
+            scopes:
+              - admin:security:attacks:read
+              - super:admin
+          - path: /security/attacks/{id}
+            method: GET
+            executor: AttackDetailHandler
+            security: authenticated
+            scopes:
+              - admin:security:attacks:read
+              - super:admin
+          - path: /security/status
+            method: GET
+            executor: SecurityStatusHandler
+            security: authenticated
+            scopes:
+              - admin:security:attacks:read
+              - super:admin
           - path: /queue/queues
             method: GET
             executor: AdminQueueStatsHandler

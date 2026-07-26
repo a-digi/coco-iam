@@ -15,6 +15,7 @@ import (
 	"github.com/a-digi/coco-iam/src/datamigration"
 	oauth_archiver "github.com/a-digi/coco-iam/src/oauthserver/archiver"
 	organization_deleted "github.com/a-digi/coco-iam/src/organizations/deleted"
+	"github.com/a-digi/coco-iam/src/security/ipguard"
 	"github.com/a-digi/coco-iam/src/activation"
 	"github.com/a-digi/coco-iam/src/general"
 	app_keys "github.com/a-digi/coco-iam/src/applications/keys"
@@ -98,8 +99,43 @@ func main() {
 			os.Exit(1)
 		}
 
+		// ip-attacks.db — a separate, self-contained database holding
+		// the historical record of past IP-abuse episodes (own file,
+		// own migration sequence), kept out of the main users.db so
+		// that ever-growing history doesn't bloat it. Consumed by
+		// IPGuardSecurityLayer, wired up below via ContextBag — see
+		// plan/ip-abuse-protection/plan.md section 10.
+		ipAttacksMigrationsPath, err := config.ExtractIPAttacksMigrationsToTemp()
+		if err != nil {
+			log.Error("failed to extract ip-attacks migrations: %v", err)
+			os.Exit(1)
+		}
+		ipAttacksDBManager, err := dbmanager.NewDatabaseManager("ip-attacks.db", "./data/db/security", []string{ipAttacksMigrationsPath})
+		if err != nil {
+			log.Error("ip-attacks DatabaseManager creation failed: %v", err)
+			os.Exit(1)
+		}
+		if err := ipAttacksDBManager.SyncMigrations(); err != nil {
+			log.Error("ip-attacks migrations failed: %v", err)
+			os.Exit(1)
+		}
+
+		// Dedicated attack log — one line per rejected request while an
+		// IP is under an open attack episode, kept separate from the
+		// main server log so operators can tail/rotate it independently
+		// and so per-request detail never has to live in the (small,
+		// aggregated-only) ip-attacks.db. See
+		// plan/ip-abuse-protection/plan.md section 12.
+		ipAttacksLog, err := logger.NewLogger("ip-attacks.log", "data/logs/security")
+		if err != nil {
+			log.Error("failed to initialize ip-attacks log: %v", err)
+			os.Exit(1)
+		}
+
 		// Create ContextBag and inject manager and logger
 		ctx := di.NewContextBag(manager, log)
+		ctx.IPAttacksDBManager = ipAttacksDBManager
+		ctx.IPAttacksLog = ipAttacksLog
 
 		// Per-organization profile databases. Each org has its own SQLite
 		// file that holds the profile-field schema and the user profile
@@ -543,6 +579,15 @@ func main() {
 
 		orgPwDetector := orgpwnotify.NewOrgDetector(orgUserDBRegistry, orgRulesStore, queueMgr, log)
 		go orgPwDetector.Run(queueCtx)
+
+		// IP-guard sweeper — prunes expired bans (DB + in-memory) and
+		// stale rate-limit counters every 5 minutes. ctx.IPGuard is set
+		// inside routes.Init above; construction there panics on
+		// failure, so it is always populated by this point. Shares the
+		// queue context for clean shutdown. See
+		// plan/ip-abuse-protection/plan.md section 6.
+		ipGuardSweeper := ipguard.NewSweeper(ctx.IPGuard, log)
+		go ipGuardSweeper.Run(queueCtx)
 
 		serv, config, err := server.StartServer(configPath, log)
 

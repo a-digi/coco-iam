@@ -51,6 +51,11 @@ import ProfilePageShell from '../../Components/Admin/Profile/ProfilePageShell';
 import SecuritySection from '../../Components/Admin/Profile/Security/SecuritySection';
 import ObserveDashboard from '../../Components/Observe/ObserveDashboard';
 import AgentMetricsPage from '../../Components/Observe/Agent/AgentMetricsPage';
+import SecurityPage from '../../Components/Admin/Security/SecurityPage';
+import BansDashboard from '../../Components/Admin/Security/Bans/BansDashboard';
+import AllowlistDashboard from '../../Components/Admin/Security/Allowlist/AllowlistDashboard';
+import AttacksDashboard from '../../Components/Admin/Security/Attacks/AttacksDashboard';
+import AttackDetail from '../../Components/Admin/Security/Attacks/AttackDetail';
 
 export const routes: RouteConfig[] = [
   {
@@ -307,6 +312,52 @@ export const routes: RouteConfig[] = [
     element: (
       <AuthGuard accessScopes={[AppScopes.OrganizationsGroupsRead, AppScopes.OrganizationsGroups, AppScopes.Organizations, AppScopes.SuperAdmin]}>
         <EditOrganizationGroup />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityIpBansRead, AppScopes.AdminSecurityIpAllowlistRead, AppScopes.AdminSecurityAttacksRead]}>
+        <Navigate to="/admin/security/bans" replace />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/bans',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityIpBansRead]}>
+        <SecurityPage>
+          <BansDashboard />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/allowlist',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityIpAllowlistRead]}>
+        <SecurityPage>
+          <AllowlistDashboard />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/attacks',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityAttacksRead]}>
+        <SecurityPage>
+          <AttacksDashboard />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/attacks/:id',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityAttacksRead]}>
+        <AttackDetail />
       </AuthGuard>
     ),
   },
