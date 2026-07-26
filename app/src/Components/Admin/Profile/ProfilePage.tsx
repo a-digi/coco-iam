@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Title from '../../../Shared/Components/Font/Title';
 import { Submit } from '../../../Shared/Components/Button';
 import { FormInput } from '../../../Shared/Components/Form';
 import { useHttpClient } from '../../../api/http/useHttpClient';
@@ -9,11 +8,12 @@ import { profileDisplayName } from '../../Auth/Profile/profileDisplayName';
 import { absolutePublicURL } from '../../../api/client';
 import { useBreadcrumbItems } from '../../../Layout/Breadcrumb/useBreadcrumb';
 
-// ProfilePage edits the authenticated admin's own profile row.
-// Reads /api/v1/admin/users/me on mount (via AdminProfileProvider),
-// PATCHes back on save. Avatar upload + delete talk to dedicated
-// endpoints. Every mutation calls `refresh()` so the top-bar
-// UserMenu (same provider) updates immediately.
+// ProfilePage is the "General" tab of the profile section (rendered
+// inside ProfilePageShell — see routes.tsx). Edits the authenticated
+// admin's own profile row: reads /api/v1/admin/users/me on mount (via
+// AdminProfileProvider), PATCHes back on save. Avatar upload + delete
+// talk to dedicated endpoints. Every mutation calls `refresh()` so the
+// top-bar UserMenu (same provider) updates immediately.
 export const ProfilePage: React.FC = () => {
     useBreadcrumbItems([{ label: 'Profile' }]);
     const { patch, postMultipart, del } = useHttpClient();
@@ -96,8 +96,6 @@ export const ProfilePage: React.FC = () => {
 
     return (
         <div className="max-w-2xl">
-            <Title>Profile</Title>
-
             {profile && (
                 <div className="flex items-center gap-4 mt-4 mb-6">
                     {avatarURL ? (

@@ -47,6 +47,8 @@ import EmailAccountsManager from '../../Components/Admin/Settings/EmailAccounts/
 import EmailAccountForm from '../../Components/Admin/Settings/EmailAccounts/EmailAccountForm.tsx';
 import { AppScopes } from '../security/scopes.ts';
 import ProfilePage from '../../Components/Admin/Profile/ProfilePage';
+import ProfilePageShell from '../../Components/Admin/Profile/ProfilePageShell';
+import SecuritySection from '../../Components/Admin/Profile/Security/SecuritySection';
 import ObserveDashboard from '../../Components/Observe/ObserveDashboard';
 import AgentMetricsPage from '../../Components/Observe/Agent/AgentMetricsPage';
 
@@ -71,11 +73,24 @@ export const routes: RouteConfig[] = [
     // Admin-self profile page. Scope `admin:me` covers any
     // authenticated admin; `SuperAdmin` is listed so the existing
     // guard pattern (superadmin overrides everything) continues
-    // to apply.
+    // to apply. Same shell + scopes for both tabs — see
+    // plan/admin-mfa-totp/frontend-plan.md.
     path: '/profile',
     element: (
       <AuthGuard accessScopes={[AppScopes.AdminMe, AppScopes.SuperAdmin]}>
-        <ProfilePage />
+        <ProfilePageShell>
+          <ProfilePage />
+        </ProfilePageShell>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/profile/security',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.AdminMe, AppScopes.SuperAdmin]}>
+        <ProfilePageShell>
+          <SecuritySection />
+        </ProfilePageShell>
       </AuthGuard>
     ),
   },
