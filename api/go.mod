@@ -16,6 +16,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.34
 	github.com/parquet-go/parquet-go v0.28.0
+	github.com/pquerna/otp v1.5.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
 	github.com/wneessen/go-mail v0.7.2
@@ -26,6 +27,7 @@ require (
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
 	github.com/go-openapi/spec v0.20.6 // indirect
@@ -51,6 +53,6 @@ require (
 
 // replace github.com/a-digi/coco-server => ../plugins/coco-server
 
-// replace github.com/a-digi/coco-lift => ../plugins/coco-lift
+replace github.com/a-digi/coco-lift => ../plugins/coco-lift
 
 // replace github.com/a-digi/coco-observe => ../plugins/coco-observe

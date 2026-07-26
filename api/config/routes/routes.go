@@ -8,72 +8,73 @@ import (
 
 	"github.com/a-digi/coco-iam/config"
 	"github.com/a-digi/coco-iam/config/resource"
-	lift_routes "github.com/a-digi/coco-lift/routes"
-	security "github.com/a-digi/coco-lift/security"
 	activation_admin "github.com/a-digi/coco-iam/src/activation/admin"
-	password_handler "github.com/a-digi/coco-iam/src/auth/password/handler"
-	recovery_handler "github.com/a-digi/coco-iam/src/auth/recovery/handler"
-	app_authn "github.com/a-digi/coco-iam/src/applications/authentication"
-	apicred_admin "github.com/a-digi/coco-iam/src/applications/apicredentials/admin"
-	oauthproviders_admin "github.com/a-digi/coco-iam/src/applications/oauthproviders/admin"
-	oauth_authstate "github.com/a-digi/coco-iam/src/applications/oauthproviders/authstate"
-	oauth_login "github.com/a-digi/coco-iam/src/applications/oauthproviders/login"
-	oauth_repo "github.com/a-digi/coco-iam/src/applications/oauthproviders/repository"
-	oauthserver_admin "github.com/a-digi/coco-iam/src/applications/oauthserverwiring/admin"
-	oauthserver_consents "github.com/a-digi/coco-iam/src/applications/oauthserverwiring/consents"
-	oauthserverwiring "github.com/a-digi/coco-iam/src/applications/oauthserverwiring"
-	oauthserver "github.com/a-digi/coco-iam/src/oauthserver"
-	oauth_sqlstore "github.com/a-digi/coco-iam/src/oauthserver/sqlstore"
-	oauth_dbregistry "github.com/a-digi/coco-iam/src/oauthserver/dbregistry"
-	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
-	"github.com/a-digi/coco-iam/src/orgrouter"
-	oauth_lib "github.com/a-digi/coco-oauth/oauth"
-	apicred_public "github.com/a-digi/coco-iam/src/applications/apicredentials/public"
-	regfields_admin "github.com/a-digi/coco-iam/src/applications/registrationfields/admin"
-	regfields_public "github.com/a-digi/coco-iam/src/applications/registrationfields/public"
-	regfields_submit "github.com/a-digi/coco-iam/src/applications/registrationfields/submit"
-	userprofile "github.com/a-digi/coco-iam/src/applications/userprofile"
-	profilefields "github.com/a-digi/coco-iam/src/applications/profilefields"
-	app_keys "github.com/a-digi/coco-iam/src/applications/keys"
-	app_keys_handler "github.com/a-digi/coco-iam/src/applications/keys/handler"
-	profile_dbregistry_main "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
-	app_loginpage "github.com/a-digi/coco-iam/src/applications/loginpage"
-	app_loginpage_handler "github.com/a-digi/coco-iam/src/applications/loginpage/handler"
-	app_slugmedia "github.com/a-digi/coco-iam/src/applications/slugmedia"
-	app_recoverypage_handler "github.com/a-digi/coco-iam/src/applications/recoverypage/handler"
-	publicapi_handler "github.com/a-digi/coco-iam/src/applications/publicapi/handler"
-	app_media_handler "github.com/a-digi/coco-iam/src/applications/media/handler"
-	"github.com/a-digi/coco-server/server/fileserver"
-	app_media "github.com/a-digi/coco-server/server/media"
-	userrules_handler "github.com/a-digi/coco-iam/src/userrules/handler"
 	admin_acl "github.com/a-digi/coco-iam/src/admin/acl"
-	dashboard_stats "github.com/a-digi/coco-iam/src/admin/dashboard/stats"
-	dashboard_registrations "github.com/a-digi/coco-iam/src/admin/dashboard/registrations"
-	dashboard_toporgs "github.com/a-digi/coco-iam/src/admin/dashboard/toporgs"
+	dashboard_failedtasks "github.com/a-digi/coco-iam/src/admin/dashboard/failedtasks"
 	dashboard_queue "github.com/a-digi/coco-iam/src/admin/dashboard/queue"
 	dashboard_recentusers "github.com/a-digi/coco-iam/src/admin/dashboard/recentusers"
-	dashboard_failedtasks "github.com/a-digi/coco-iam/src/admin/dashboard/failedtasks"
-	profile_handler "github.com/a-digi/coco-iam/src/organizations/profile/handler"
-	organization_users_admin "github.com/a-digi/coco-iam/src/organizations/users/admin"
-	workspace_stats "github.com/a-digi/coco-iam/src/admin/workspaces/stats"
-	admin_login "github.com/a-digi/coco-iam/src/admin/users/authentication"
-	"github.com/a-digi/coco-iam/src/admin/users/me"
-	admin_users "github.com/a-digi/coco-iam/src/admin/users"
-	admin_avatar "github.com/a-digi/coco-iam/src/admin/users/profile/avatar"
-	applications_admin "github.com/a-digi/coco-iam/src/applications/admin"
-	analytics_handler "github.com/a-digi/coco-iam/src/applications/analytics/handler"
-	renew_handler "github.com/a-digi/coco-iam/src/auth/oauth/renew"
-	general_admin "github.com/a-digi/coco-iam/src/general/admin"
+	dashboard_registrations "github.com/a-digi/coco-iam/src/admin/dashboard/registrations"
+	dashboard_stats "github.com/a-digi/coco-iam/src/admin/dashboard/stats"
+	dashboard_toporgs "github.com/a-digi/coco-iam/src/admin/dashboard/toporgs"
 	mail_admin "github.com/a-digi/coco-iam/src/admin/mail"
 	mail_accounts_admin "github.com/a-digi/coco-iam/src/admin/mail/accounts"
 	mail_settings_admin "github.com/a-digi/coco-iam/src/admin/mail/settings"
 	mail_templates_admin "github.com/a-digi/coco-iam/src/admin/mail/templates"
-	queue_admin "github.com/a-digi/coco-queue/admin"
+	admin_mfa "github.com/a-digi/coco-iam/src/admin/mfa/handler"
+	admin_users "github.com/a-digi/coco-iam/src/admin/users"
+	admin_login "github.com/a-digi/coco-iam/src/admin/users/authentication"
+	"github.com/a-digi/coco-iam/src/admin/users/me"
+	admin_avatar "github.com/a-digi/coco-iam/src/admin/users/profile/avatar"
+	workspace_stats "github.com/a-digi/coco-iam/src/admin/workspaces/stats"
+	applications_admin "github.com/a-digi/coco-iam/src/applications/admin"
+	analytics_handler "github.com/a-digi/coco-iam/src/applications/analytics/handler"
+	apicred_admin "github.com/a-digi/coco-iam/src/applications/apicredentials/admin"
+	apicred_public "github.com/a-digi/coco-iam/src/applications/apicredentials/public"
+	app_authn "github.com/a-digi/coco-iam/src/applications/authentication"
+	app_keys "github.com/a-digi/coco-iam/src/applications/keys"
+	app_keys_handler "github.com/a-digi/coco-iam/src/applications/keys/handler"
+	app_loginpage "github.com/a-digi/coco-iam/src/applications/loginpage"
+	app_loginpage_handler "github.com/a-digi/coco-iam/src/applications/loginpage/handler"
+	app_media_handler "github.com/a-digi/coco-iam/src/applications/media/handler"
+	oauthproviders_admin "github.com/a-digi/coco-iam/src/applications/oauthproviders/admin"
+	oauth_authstate "github.com/a-digi/coco-iam/src/applications/oauthproviders/authstate"
+	oauth_login "github.com/a-digi/coco-iam/src/applications/oauthproviders/login"
+	oauth_repo "github.com/a-digi/coco-iam/src/applications/oauthproviders/repository"
+	oauthserverwiring "github.com/a-digi/coco-iam/src/applications/oauthserverwiring"
+	oauthserver_admin "github.com/a-digi/coco-iam/src/applications/oauthserverwiring/admin"
+	oauthserver_consents "github.com/a-digi/coco-iam/src/applications/oauthserverwiring/consents"
+	profilefields "github.com/a-digi/coco-iam/src/applications/profilefields"
+	publicapi_handler "github.com/a-digi/coco-iam/src/applications/publicapi/handler"
+	app_recoverypage_handler "github.com/a-digi/coco-iam/src/applications/recoverypage/handler"
+	regfields_admin "github.com/a-digi/coco-iam/src/applications/registrationfields/admin"
+	regfields_public "github.com/a-digi/coco-iam/src/applications/registrationfields/public"
+	regfields_submit "github.com/a-digi/coco-iam/src/applications/registrationfields/submit"
+	app_slugmedia "github.com/a-digi/coco-iam/src/applications/slugmedia"
+	userprofile "github.com/a-digi/coco-iam/src/applications/userprofile"
+	renew_handler "github.com/a-digi/coco-iam/src/auth/oauth/renew"
+	password_handler "github.com/a-digi/coco-iam/src/auth/password/handler"
+	recovery_handler "github.com/a-digi/coco-iam/src/auth/recovery/handler"
+	general_admin "github.com/a-digi/coco-iam/src/general/admin"
+	oauthserver "github.com/a-digi/coco-iam/src/oauthserver"
+	oauth_dbregistry "github.com/a-digi/coco-iam/src/oauthserver/dbregistry"
+	oauth_sqlstore "github.com/a-digi/coco-iam/src/oauthserver/sqlstore"
+	profile_dbregistry_main "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
+	profile_handler "github.com/a-digi/coco-iam/src/organizations/profile/handler"
+	organization_users_admin "github.com/a-digi/coco-iam/src/organizations/users/admin"
+	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
+	"github.com/a-digi/coco-iam/src/orgrouter"
+	swagger_handler "github.com/a-digi/coco-iam/src/swagger"
+	userrules_handler "github.com/a-digi/coco-iam/src/userrules/handler"
+	lift_routes "github.com/a-digi/coco-lift/routes"
+	security "github.com/a-digi/coco-lift/security"
+	oauth_lib "github.com/a-digi/coco-oauth/oauth"
 	observe_agg "github.com/a-digi/coco-observe/aggregator"
+	queue_admin "github.com/a-digi/coco-queue/admin"
 	serverdi "github.com/a-digi/coco-server/server/di"
+	"github.com/a-digi/coco-server/server/fileserver"
+	app_media "github.com/a-digi/coco-server/server/media"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/routing"
-	swagger_handler "github.com/a-digi/coco-iam/src/swagger"
 )
 
 type RootHandler struct{}
@@ -782,100 +783,107 @@ func Init(ctx serverdi.Context) {
 	observePush, observeQuery, observeAgents, observeDownload := buildObserveHandlers()
 
 	handlerMap := map[string]routing.HandlerInterface{
-		"RootHandler":              &RootHandler{},
+		"RootHandler":                        &RootHandler{},
 		"AdminDashboardStatsHandler":         &dashboard_stats.AdminDashboardStatsHandler{},
 		"AdminDashboardRegistrationsHandler": &dashboard_registrations.AdminDashboardRegistrationsHandler{},
 		"AdminDashboardTopOrgsHandler":       &dashboard_toporgs.AdminDashboardTopOrgsHandler{},
 		"AdminDashboardQueueHandler":         &dashboard_queue.AdminDashboardQueueHandler{},
 		"AdminDashboardRecentUsersHandler":   &dashboard_recentusers.AdminDashboardRecentUsersHandler{},
 		"AdminDashboardFailedTasksHandler":   &dashboard_failedtasks.AdminDashboardFailedTasksHandler{},
-		"OrgProfileFieldsListHandler":      &profile_handler.OrgProfileFieldsListHandler{},
-		"OrgProfileFieldsCreateHandler":    &profile_handler.OrgProfileFieldsCreateHandler{},
-		"OrgProfileFieldsUpdateHandler":    &profile_handler.OrgProfileFieldsUpdateHandler{},
-		"OrgProfileFieldsDeleteHandler":    &profile_handler.OrgProfileFieldsDeleteHandler{},
-		"OrgProfileFieldsReorderHandler":   &profile_handler.OrgProfileFieldsReorderHandler{},
-		"OrgUserProfileGetHandler":              &profile_handler.OrgUserProfileGetHandler{},
-		"OrgUserProfileUpsertHandler":           &profile_handler.OrgUserProfileUpsertHandler{},
-		"OrgUserResendActivationHandler":        &organization_users_admin.ResendOrgUserActivationHandler{},
-		"AdminLoginHandler":  &admin_login.DatabaseAuthenticationLogin{},
-		"AclScopesHandler":   &admin_acl.AclScopesHandler{},
-		"TokenRenewHandler":  &renew_handler.TokenRenewHandler{},
-		"MeGroupsHandler":        &me.MeGroupsHandler{},
-		"MeAclHandler":           &me.MeAclHandler{},
+		"OrgProfileFieldsListHandler":        &profile_handler.OrgProfileFieldsListHandler{},
+		"OrgProfileFieldsCreateHandler":      &profile_handler.OrgProfileFieldsCreateHandler{},
+		"OrgProfileFieldsUpdateHandler":      &profile_handler.OrgProfileFieldsUpdateHandler{},
+		"OrgProfileFieldsDeleteHandler":      &profile_handler.OrgProfileFieldsDeleteHandler{},
+		"OrgProfileFieldsReorderHandler":     &profile_handler.OrgProfileFieldsReorderHandler{},
+		"OrgUserProfileGetHandler":           &profile_handler.OrgUserProfileGetHandler{},
+		"OrgUserProfileUpsertHandler":        &profile_handler.OrgUserProfileUpsertHandler{},
+		"OrgUserResendActivationHandler":     &organization_users_admin.ResendOrgUserActivationHandler{},
+		"AdminLoginHandler":                  &admin_login.DatabaseAuthenticationLogin{},
+		"AclScopesHandler":                   &admin_acl.AclScopesHandler{},
+		"TokenRenewHandler":                  &renew_handler.TokenRenewHandler{},
+		"MeGroupsHandler":                    &me.MeGroupsHandler{},
+		"MeAclHandler":                       &me.MeAclHandler{},
 		// Admin-user self profile — see plan/admin-user-profile/plan.md.
-		"MeHandler":              &me.MeHandler{},
-		"MePatchHandler":         &me.MePatchHandler{},
+		"MeHandler":      &me.MeHandler{},
+		"MePatchHandler": &me.MePatchHandler{},
 		// Admin me: password notification preferences.
 		"MePasswordNotificationGetHandler": &me.MePasswordNotificationGetHandler{},
 		"MePasswordNotificationPutHandler": &me.MePasswordNotificationPutHandler{},
-		"AdminAvatarUploadHandler":  &admin_avatar.UploadHandler{},
-		"AdminAvatarDeleteHandler":  &admin_avatar.DeleteHandler{},
-		"AdminAvatarServeHandler":   &admin_avatar.PublicServeHandler{},
-		"AdminQueueStatsHandler":        &queue_admin.AdminQueueStatsHandler{},
-		"AdminQueueRetryHandler":        &queue_admin.AdminQueueRetryHandler{},
-		"AdminQueueCreateHandler":       &queue_admin.AdminQueueCreateHandler{},
-		"AdminQueueTaskPayloadHandler":  &queue_admin.AdminQueueTaskPayloadHandler{},
-		"AdminQueueTasksListHandler":    &queue_admin.AdminQueueTasksListHandler{},
-		"AdminQueueTaskGetHandler":      &queue_admin.AdminQueueTaskGetHandler{},
-		"WorkspaceStatsHandler":           &workspace_stats.WorkspaceStatsHandler{},
-		"ApplicationScopesExportHandler": &applications_admin.ApplicationScopesExportHandler{},
-		"ApplicationScopesImportHandler": &applications_admin.ApplicationScopesImportHandler{},
-		"AdminMailTestHandler":           &mail_admin.AdminMailTestHandler{},
-		"AdminMailListHandler":           &mail_admin.AdminMailListHandler{},
-		"AdminMailDetailHandler":         &mail_admin.AdminMailDetailHandler{},
-		"AdminMailRetryHandler":          &mail_admin.AdminMailRetryHandler{},
-		"AdminMailStatusHandler":         &mail_admin.AdminMailStatusHandler{},
-		"AdminMailTemplatesListHandler":     &mail_templates_admin.AdminMailTemplatesListHandler{},
-		"AdminMailTemplatesGetHandler":      &mail_templates_admin.AdminMailTemplatesGetHandler{},
-		"AdminMailTemplatesCreateHandler":   &mail_templates_admin.AdminMailTemplatesCreateHandler{},
-		"AdminMailTemplatesUpdateHandler":   &mail_templates_admin.AdminMailTemplatesUpdateHandler{},
-		"AdminMailTemplatesDeleteHandler":   &mail_templates_admin.AdminMailTemplatesDeleteHandler{},
-		"AdminMailTemplatesStartersHandler": &mail_templates_admin.AdminMailTemplatesStartersHandler{},
-		"AdminMailSettingsGetHandler":       &mail_settings_admin.AdminMailSettingsGetHandler{},
-		"AdminMailSettingsUpdateHandler":    &mail_settings_admin.AdminMailSettingsUpdateHandler{},
-		"AdminMailSettingsEventsHandler":    &mail_settings_admin.AdminMailSettingsEventsHandler{},
-		"AdminMailSettingsTestHandler":      &mail_settings_admin.AdminMailSettingsTestHandler{},
-		"AdminMailAccountsListHandler":      &mail_accounts_admin.AdminMailAccountsListHandler{},
-		"AdminMailAccountsGetHandler":       &mail_accounts_admin.AdminMailAccountsGetHandler{},
-		"AdminMailAccountsCreateHandler":    &mail_accounts_admin.AdminMailAccountsCreateHandler{},
-		"AdminMailAccountsUpdateHandler":    &mail_accounts_admin.AdminMailAccountsUpdateHandler{},
-		"AdminMailAccountsDeleteHandler":    &mail_accounts_admin.AdminMailAccountsDeleteHandler{},
-		"AdminMailAccountsActivateHandler":  &mail_accounts_admin.AdminMailAccountsActivateHandler{},
-		"AdminMailAccountsTestHandler":      &mail_accounts_admin.AdminMailAccountsTestHandler{},
-		"ActivationVerifyHandler":           &activation_admin.VerifyHandler{},
-		"ActivationActivateHandler":         &activation_admin.ActivateHandler{},
-		"AdminActivationVerifyHandler":      &activation_admin.AdminPortalVerifyHandler{},
-		"AdminActivationActivateHandler":    &activation_admin.AdminPortalActivateHandler{},
-		"ActivationChangePasswordHandler":   &activation_admin.ChangePasswordHandler{},
-		"AccountPasswordVerifyHandler":      &password_handler.VerifyHandler{},
-		"AccountPasswordChangeHandler":      &password_handler.ChangeHandler{},
-		"AdminUserRulesGetHandler":          &userrules_handler.AdminUserRulesGetHandler{},
-		"AdminUserRulesUpdateHandler":       &userrules_handler.AdminUserRulesUpdateHandler{},
-		"OrgUserRulesGetHandler":            &userrules_handler.OrgUserRulesGetHandler{},
-		"OrgUserRulesUpdateHandler":         &userrules_handler.OrgUserRulesUpdateHandler{},
-		"AccountUserRulesHandler":           &userrules_handler.AccountUserRulesHandler{},
-		"RecoveryRequestHandler":            &recovery_handler.RequestHandler{},
-		"RecoveryVerifyHandler":             &recovery_handler.VerifyHandler{},
-		"RecoveryResetHandler":              &recovery_handler.ResetHandler{},
-		"AppLoginSettingsGetHandler":          &app_loginpage_handler.GetSettingsHandler{},
-		"AppLoginSettingsUpdateHandler":       &app_loginpage_handler.UpdateSettingsHandler{},
-		"AppSlugsHandler":                     &app_loginpage_handler.AppSlugsHandler{},
-		"AppAnalyticsUsersCountHandler":         &analytics_handler.UsersCountHandler{},
-		"AppAnalyticsGroupsCountHandler":        &analytics_handler.GroupsCountHandler{},
-		"AppAnalyticsScopesCountHandler":        &analytics_handler.ScopesCountHandler{},
-		"AppAnalyticsRecentGrantsHandler":       &analytics_handler.RecentGrantsHandler{},
-		"AppAnalyticsPendingRecoveriesHandler":  &analytics_handler.PendingRecoveriesHandler{},
-		"AppKeysListHandler":                 &app_keys_handler.ListKeysHandler{},
-		"AppKeysRegenerateHandler":           &app_keys_handler.RegenerateKeysHandler{},
-		"AppKeysActivatePendingHandler":      &app_keys_handler.ActivatePendingHandler{},
-		"AppKeysDiscardPendingHandler":       &app_keys_handler.DiscardPendingHandler{},
-		"AppKeysDeactivateHandler":           &app_keys_handler.DeactivateKeyHandler{},
-		"AppKeysPublicJWKSHandler":           &app_keys_handler.PublicJWKSHandler{},
-		"AppLoginTemplateListAssetsHandler":  &app_loginpage_handler.ListAssetsHandler{},
-		"AppLoginTemplateUploadAssetHandler": &app_loginpage_handler.UploadAssetHandler{},
-		"AppLoginTemplateDeleteAssetHandler": &app_loginpage_handler.DeleteAssetHandler{},
-		"AppLoginTemplatePublicGetHandler":   &app_loginpage_handler.PublicGetConfigHandler{},
-		"AppLoginTemplatePublicAssetHandler": &app_loginpage_handler.PublicServeAssetHandler{},
+		"AdminAvatarUploadHandler":         &admin_avatar.UploadHandler{},
+		"AdminAvatarDeleteHandler":         &admin_avatar.DeleteHandler{},
+		"AdminAvatarServeHandler":          &admin_avatar.PublicServeHandler{},
+		// Admin self-service TOTP MFA — see plan/admin-mfa-totp/plan.md.
+		"MfaStatusHandler":                     &admin_mfa.MfaStatusHandler{},
+		"MfaEnrollHandler":                     &admin_mfa.MfaEnrollHandler{},
+		"MfaConfirmHandler":                    &admin_mfa.MfaConfirmHandler{},
+		"MfaDisableHandler":                    &admin_mfa.MfaDisableHandler{},
+		"MfaRecoveryCodesRegenerateHandler":    &admin_mfa.MfaRecoveryCodesRegenerateHandler{},
+		"VerifyMfaHandler":                     &admin_mfa.VerifyMfaHandler{},
+		"AdminQueueStatsHandler":               &queue_admin.AdminQueueStatsHandler{},
+		"AdminQueueRetryHandler":               &queue_admin.AdminQueueRetryHandler{},
+		"AdminQueueCreateHandler":              &queue_admin.AdminQueueCreateHandler{},
+		"AdminQueueTaskPayloadHandler":         &queue_admin.AdminQueueTaskPayloadHandler{},
+		"AdminQueueTasksListHandler":           &queue_admin.AdminQueueTasksListHandler{},
+		"AdminQueueTaskGetHandler":             &queue_admin.AdminQueueTaskGetHandler{},
+		"WorkspaceStatsHandler":                &workspace_stats.WorkspaceStatsHandler{},
+		"ApplicationScopesExportHandler":       &applications_admin.ApplicationScopesExportHandler{},
+		"ApplicationScopesImportHandler":       &applications_admin.ApplicationScopesImportHandler{},
+		"AdminMailTestHandler":                 &mail_admin.AdminMailTestHandler{},
+		"AdminMailListHandler":                 &mail_admin.AdminMailListHandler{},
+		"AdminMailDetailHandler":               &mail_admin.AdminMailDetailHandler{},
+		"AdminMailRetryHandler":                &mail_admin.AdminMailRetryHandler{},
+		"AdminMailStatusHandler":               &mail_admin.AdminMailStatusHandler{},
+		"AdminMailTemplatesListHandler":        &mail_templates_admin.AdminMailTemplatesListHandler{},
+		"AdminMailTemplatesGetHandler":         &mail_templates_admin.AdminMailTemplatesGetHandler{},
+		"AdminMailTemplatesCreateHandler":      &mail_templates_admin.AdminMailTemplatesCreateHandler{},
+		"AdminMailTemplatesUpdateHandler":      &mail_templates_admin.AdminMailTemplatesUpdateHandler{},
+		"AdminMailTemplatesDeleteHandler":      &mail_templates_admin.AdminMailTemplatesDeleteHandler{},
+		"AdminMailTemplatesStartersHandler":    &mail_templates_admin.AdminMailTemplatesStartersHandler{},
+		"AdminMailSettingsGetHandler":          &mail_settings_admin.AdminMailSettingsGetHandler{},
+		"AdminMailSettingsUpdateHandler":       &mail_settings_admin.AdminMailSettingsUpdateHandler{},
+		"AdminMailSettingsEventsHandler":       &mail_settings_admin.AdminMailSettingsEventsHandler{},
+		"AdminMailSettingsTestHandler":         &mail_settings_admin.AdminMailSettingsTestHandler{},
+		"AdminMailAccountsListHandler":         &mail_accounts_admin.AdminMailAccountsListHandler{},
+		"AdminMailAccountsGetHandler":          &mail_accounts_admin.AdminMailAccountsGetHandler{},
+		"AdminMailAccountsCreateHandler":       &mail_accounts_admin.AdminMailAccountsCreateHandler{},
+		"AdminMailAccountsUpdateHandler":       &mail_accounts_admin.AdminMailAccountsUpdateHandler{},
+		"AdminMailAccountsDeleteHandler":       &mail_accounts_admin.AdminMailAccountsDeleteHandler{},
+		"AdminMailAccountsActivateHandler":     &mail_accounts_admin.AdminMailAccountsActivateHandler{},
+		"AdminMailAccountsTestHandler":         &mail_accounts_admin.AdminMailAccountsTestHandler{},
+		"ActivationVerifyHandler":              &activation_admin.VerifyHandler{},
+		"ActivationActivateHandler":            &activation_admin.ActivateHandler{},
+		"AdminActivationVerifyHandler":         &activation_admin.AdminPortalVerifyHandler{},
+		"AdminActivationActivateHandler":       &activation_admin.AdminPortalActivateHandler{},
+		"ActivationChangePasswordHandler":      &activation_admin.ChangePasswordHandler{},
+		"AccountPasswordVerifyHandler":         &password_handler.VerifyHandler{},
+		"AccountPasswordChangeHandler":         &password_handler.ChangeHandler{},
+		"AdminUserRulesGetHandler":             &userrules_handler.AdminUserRulesGetHandler{},
+		"AdminUserRulesUpdateHandler":          &userrules_handler.AdminUserRulesUpdateHandler{},
+		"OrgUserRulesGetHandler":               &userrules_handler.OrgUserRulesGetHandler{},
+		"OrgUserRulesUpdateHandler":            &userrules_handler.OrgUserRulesUpdateHandler{},
+		"AccountUserRulesHandler":              &userrules_handler.AccountUserRulesHandler{},
+		"RecoveryRequestHandler":               &recovery_handler.RequestHandler{},
+		"RecoveryVerifyHandler":                &recovery_handler.VerifyHandler{},
+		"RecoveryResetHandler":                 &recovery_handler.ResetHandler{},
+		"AppLoginSettingsGetHandler":           &app_loginpage_handler.GetSettingsHandler{},
+		"AppLoginSettingsUpdateHandler":        &app_loginpage_handler.UpdateSettingsHandler{},
+		"AppSlugsHandler":                      &app_loginpage_handler.AppSlugsHandler{},
+		"AppAnalyticsUsersCountHandler":        &analytics_handler.UsersCountHandler{},
+		"AppAnalyticsGroupsCountHandler":       &analytics_handler.GroupsCountHandler{},
+		"AppAnalyticsScopesCountHandler":       &analytics_handler.ScopesCountHandler{},
+		"AppAnalyticsRecentGrantsHandler":      &analytics_handler.RecentGrantsHandler{},
+		"AppAnalyticsPendingRecoveriesHandler": &analytics_handler.PendingRecoveriesHandler{},
+		"AppKeysListHandler":                   &app_keys_handler.ListKeysHandler{},
+		"AppKeysRegenerateHandler":             &app_keys_handler.RegenerateKeysHandler{},
+		"AppKeysActivatePendingHandler":        &app_keys_handler.ActivatePendingHandler{},
+		"AppKeysDiscardPendingHandler":         &app_keys_handler.DiscardPendingHandler{},
+		"AppKeysDeactivateHandler":             &app_keys_handler.DeactivateKeyHandler{},
+		"AppKeysPublicJWKSHandler":             &app_keys_handler.PublicJWKSHandler{},
+		"AppLoginTemplateListAssetsHandler":    &app_loginpage_handler.ListAssetsHandler{},
+		"AppLoginTemplateUploadAssetHandler":   &app_loginpage_handler.UploadAssetHandler{},
+		"AppLoginTemplateDeleteAssetHandler":   &app_loginpage_handler.DeleteAssetHandler{},
+		"AppLoginTemplatePublicGetHandler":     &app_loginpage_handler.PublicGetConfigHandler{},
+		"AppLoginTemplatePublicAssetHandler":   &app_loginpage_handler.PublicServeAssetHandler{},
 		"AppLoginAuthenticateHandler": func() *app_authn.AppLoginHandler {
 			h := &app_authn.AppLoginHandler{
 				Codes: func() oauthserver.CodeStore {
@@ -898,12 +906,12 @@ func Init(ctx serverdi.Context) {
 			}
 			return h
 		}(),
-		"AppLoginMethodsHandler":             &app_authn.AppLoginMethodsHandler{},
-		"AppRenewHandler":                    &app_authn.AppRenewHandler{},
+		"AppLoginMethodsHandler": &app_authn.AppLoginMethodsHandler{},
+		"AppRenewHandler":        &app_authn.AppRenewHandler{},
 		// Slug-routed machine-auth API (/a/{org}/{ws}/{app}/...) — see
 		// plan/application-api-credentials/plan.md.
-		"AppApiGetPublicKeysHandler":         &apicred_public.GetPublicKeysHandler{},
-		"AppApiGetPrivateKeyHandler":         &apicred_public.GetPrivateKeyHandler{},
+		"AppApiGetPublicKeysHandler": &apicred_public.GetPublicKeysHandler{},
+		"AppApiGetPrivateKeyHandler": &apicred_public.GetPrivateKeyHandler{},
 		// Admin session surface for issuing + revoking the credentials
 		// above.
 		"AppApiCredentialsListHandler":   &apicred_admin.ListHandler{},
@@ -952,52 +960,52 @@ func Init(ctx serverdi.Context) {
 		// Built via a helper so the handler receives its deps
 		// through interface fields instead of resolving them
 		// per-request from the DI bag.
-		"AppApiProfileMeHandler":                   buildProfileMeHandler(profileMe),
-		"AppApiProfileMePatchHandler":              buildProfileMePatchHandler(profileMe),
-		"AppApiProfileMeFileUploadHandler":         buildProfileMeFileUploadHandler(profileMe),
-		"AppApiProfileMeFileDeleteHandler":         buildProfileMeFileDeleteHandler(profileMe),
-		"AppApiProfileMeFileServeHandler":          buildProfileMeFileServeHandler(profileMe),
-		"AppApiProfileFieldsHandler":               buildProfileFieldsHandler(ctx),
-		"AppApiProfileFieldsPutHandler":            buildProfileFieldsPutHandler(ctx, profileMe),
-		"AppRegistrationFieldsListHandler":     &regfields_admin.ListHandler{},
-		"AppRegistrationFieldsReplaceHandler":  &regfields_admin.ReplaceHandler{},
+		"AppApiProfileMeHandler":              buildProfileMeHandler(profileMe),
+		"AppApiProfileMePatchHandler":         buildProfileMePatchHandler(profileMe),
+		"AppApiProfileMeFileUploadHandler":    buildProfileMeFileUploadHandler(profileMe),
+		"AppApiProfileMeFileDeleteHandler":    buildProfileMeFileDeleteHandler(profileMe),
+		"AppApiProfileMeFileServeHandler":     buildProfileMeFileServeHandler(profileMe),
+		"AppApiProfileFieldsHandler":          buildProfileFieldsHandler(ctx),
+		"AppApiProfileFieldsPutHandler":       buildProfileFieldsPutHandler(ctx, profileMe),
+		"AppRegistrationFieldsListHandler":    &regfields_admin.ListHandler{},
+		"AppRegistrationFieldsReplaceHandler": &regfields_admin.ReplaceHandler{},
 		"AppRecoveryPublicRequestHandler":     &app_recoverypage_handler.PublicRequestHandler{},
 		"AppRecoveryPublicResetHandler":       &app_recoverypage_handler.PublicResetHandler{},
 		// Public management API — see plan/application-public-api/plan.md
-		"PublicApiUsersListHandler":     &publicapi_handler.UsersListHandler{},
-		"PublicApiUsersGetHandler":      &publicapi_handler.UsersGetHandler{},
-		"PublicApiUsersCreateHandler":   &publicapi_handler.UsersCreateHandler{},
-		"PublicApiUsersPatchHandler":    &publicapi_handler.UsersPatchHandler{},
-		"PublicApiUsersPasswordHandler": &publicapi_handler.UsersPasswordHandler{},
-		"PublicApiUsersDeleteHandler":   &publicapi_handler.UsersDeleteHandler{},
-		"PublicApiUserAclGetHandler":    &publicapi_handler.UserAclGetHandler{},
-		"PublicApiUserAclPutHandler":    &publicapi_handler.UserAclPutHandler{},
-		"PublicApiUserAclDeleteHandler": &publicapi_handler.UserAclDeleteHandler{},
-		"PublicApiGroupsListHandler":    &publicapi_handler.GroupsListHandler{},
-		"PublicApiGroupsGetHandler":     &publicapi_handler.GroupsGetHandler{},
-		"PublicApiGroupsCreateHandler":  &publicapi_handler.GroupsCreateHandler{},
-		"PublicApiGroupsPatchHandler":   &publicapi_handler.GroupsPatchHandler{},
-		"PublicApiGroupsDeleteHandler":  &publicapi_handler.GroupsDeleteHandler{},
+		"PublicApiUsersListHandler":          &publicapi_handler.UsersListHandler{},
+		"PublicApiUsersGetHandler":           &publicapi_handler.UsersGetHandler{},
+		"PublicApiUsersCreateHandler":        &publicapi_handler.UsersCreateHandler{},
+		"PublicApiUsersPatchHandler":         &publicapi_handler.UsersPatchHandler{},
+		"PublicApiUsersPasswordHandler":      &publicapi_handler.UsersPasswordHandler{},
+		"PublicApiUsersDeleteHandler":        &publicapi_handler.UsersDeleteHandler{},
+		"PublicApiUserAclGetHandler":         &publicapi_handler.UserAclGetHandler{},
+		"PublicApiUserAclPutHandler":         &publicapi_handler.UserAclPutHandler{},
+		"PublicApiUserAclDeleteHandler":      &publicapi_handler.UserAclDeleteHandler{},
+		"PublicApiGroupsListHandler":         &publicapi_handler.GroupsListHandler{},
+		"PublicApiGroupsGetHandler":          &publicapi_handler.GroupsGetHandler{},
+		"PublicApiGroupsCreateHandler":       &publicapi_handler.GroupsCreateHandler{},
+		"PublicApiGroupsPatchHandler":        &publicapi_handler.GroupsPatchHandler{},
+		"PublicApiGroupsDeleteHandler":       &publicapi_handler.GroupsDeleteHandler{},
 		"PublicApiGroupMembersListHandler":   &publicapi_handler.GroupMembersListHandler{},
 		"PublicApiGroupMembersAddHandler":    &publicapi_handler.GroupMembersAddHandler{},
 		"PublicApiGroupMembersRemoveHandler": &publicapi_handler.GroupMembersRemoveHandler{},
-		"PublicApiGroupAclGetHandler":    &publicapi_handler.GroupAclGetHandler{},
-		"PublicApiGroupAclPutHandler":    &publicapi_handler.GroupAclPutHandler{},
-		"PublicApiGroupAclDeleteHandler": &publicapi_handler.GroupAclDeleteHandler{},
-		"PublicApiScopesListHandler":     &publicapi_handler.ScopesListHandler{},
-		"PublicApiScopesGetHandler":      &publicapi_handler.ScopesGetHandler{},
-		"PublicApiScopesCreateHandler":   &publicapi_handler.ScopesCreateHandler{},
-		"PublicApiScopesPatchHandler":    &publicapi_handler.ScopesPatchHandler{},
-		"PublicApiScopesDeleteHandler":   &publicapi_handler.ScopesDeleteHandler{},
+		"PublicApiGroupAclGetHandler":        &publicapi_handler.GroupAclGetHandler{},
+		"PublicApiGroupAclPutHandler":        &publicapi_handler.GroupAclPutHandler{},
+		"PublicApiGroupAclDeleteHandler":     &publicapi_handler.GroupAclDeleteHandler{},
+		"PublicApiScopesListHandler":         &publicapi_handler.ScopesListHandler{},
+		"PublicApiScopesGetHandler":          &publicapi_handler.ScopesGetHandler{},
+		"PublicApiScopesCreateHandler":       &publicapi_handler.ScopesCreateHandler{},
+		"PublicApiScopesPatchHandler":        &publicapi_handler.ScopesPatchHandler{},
+		"PublicApiScopesDeleteHandler":       &publicapi_handler.ScopesDeleteHandler{},
 		// Org user me: password notification preferences.
-		"PasswordNotificationGetHandler": &publicapi_handler.PasswordNotificationGetHandler{},
-		"PasswordNotificationPutHandler": &publicapi_handler.PasswordNotificationPutHandler{},
-		"MediaListHandler":                   &app_media_handler.ListHandler{},
-		"MediaCreateFolderHandler":           &app_media_handler.CreateFolderHandler{},
-		"MediaDeleteFolderHandler":           &app_media_handler.DeleteFolderHandler{},
-		"MediaUploadFileHandler":             &app_media_handler.UploadFileHandler{},
-		"MediaDeleteFileHandler":             &app_media_handler.DeleteFileHandler{},
-		"MediaFileServer":                    mediaFileServer(ctx),
+		"PasswordNotificationGetHandler":    &publicapi_handler.PasswordNotificationGetHandler{},
+		"PasswordNotificationPutHandler":    &publicapi_handler.PasswordNotificationPutHandler{},
+		"MediaListHandler":                  &app_media_handler.ListHandler{},
+		"MediaCreateFolderHandler":          &app_media_handler.CreateFolderHandler{},
+		"MediaDeleteFolderHandler":          &app_media_handler.DeleteFolderHandler{},
+		"MediaUploadFileHandler":            &app_media_handler.UploadFileHandler{},
+		"MediaDeleteFileHandler":            &app_media_handler.DeleteFileHandler{},
+		"MediaFileServer":                   mediaFileServer(ctx),
 		"AdminUserSendActivationHandler":    &admin_users.AdminUserSendActivationHandler{},
 		"ActivationResendAdminHandler":      &activation_admin.ResendAdminHandler{},
 		"ActivationResendUserHandler":       &activation_admin.ResendUserHandler{},
@@ -1007,13 +1015,13 @@ func Init(ctx serverdi.Context) {
 		"OrgGeneralSettingsGetHandler":      &general_admin.OrgGeneralSettingsGetHandler{},
 		"OrgGeneralSettingsUpdateHandler":   &general_admin.OrgGeneralSettingsUpdateHandler{},
 		// coco-observe — system observability (push public/HMAC, query+agents admin-scoped).
-		"ObservePushHandler":            observePush,
-		"ObserveQueryHandler":           observeQuery,
-		"ObserveAgentsHandler":          observeAgents,
-		"ObserveAgentDownloadHandler":   observeDownload,
-		"ApiResourceHandler":   resource.GetApiResourceHandler(),
-		"SwaggerSpecHandler":   &swagger_handler.SpecHandler{},
-		"SwaggerRawSpecHandler": &swagger_handler.RawSpecHandler{},
+		"ObservePushHandler":          observePush,
+		"ObserveQueryHandler":         observeQuery,
+		"ObserveAgentsHandler":        observeAgents,
+		"ObserveAgentDownloadHandler": observeDownload,
+		"ApiResourceHandler":          resource.GetApiResourceHandler(),
+		"SwaggerSpecHandler":          &swagger_handler.SpecHandler{},
+		"SwaggerRawSpecHandler":       &swagger_handler.RawSpecHandler{},
 	}
 
 	authCfgBytes, err := config.ReadConfigFile("config.json")

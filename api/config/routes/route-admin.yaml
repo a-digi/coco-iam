@@ -55,6 +55,18 @@ routes:
             method: POST
             executor: AdminLoginHandler
             security: public
+          # Exchanges the pending mfa_token (system:mfa_required) minted
+          # by /oauth/authenticate for a full token — see
+          # plan/admin-mfa-totp/plan.md. Deliberately NOT under
+          # /users/me and NOT scoped admin:me: that scope's "any
+          # authenticated admin" bypass in ScopeSecurityLayer must
+          # never apply here.
+          - path: /oauth/verify-mfa
+            method: POST
+            executor: VerifyMfaHandler
+            security: authenticated
+            scopes:
+              - system:mfa_required
           - path: /oauth/renew
             method: POST
             executor: TokenRenewHandler
@@ -433,6 +445,37 @@ routes:
             scopes:
               - admin:me
               - super:admin
+          # Admin self-service TOTP MFA — see plan/admin-mfa-totp/plan.md.
+          - path: /users/me/mfa
+            method: GET
+            executor: MfaStatusHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          - path: /users/me/mfa/enroll
+            method: POST
+            executor: MfaEnrollHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          - path: /users/me/mfa/confirm
+            method: POST
+            executor: MfaConfirmHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          - path: /users/me/mfa
+            method: DELETE
+            executor: MfaDisableHandler
+            security: authenticated
+            scopes:
+              - admin:me
+          - path: /users/me/mfa/recovery-codes
+            method: POST
+            executor: MfaRecoveryCodesRegenerateHandler
+            security: authenticated
+            scopes:
+              - admin:me
           - path: /queue/queues
             method: GET
             executor: AdminQueueStatsHandler
