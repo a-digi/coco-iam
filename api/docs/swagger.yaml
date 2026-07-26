@@ -155,6 +155,56 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.ArchiveDetailSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.ArchiveSummary'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.ArchiveListResponse:
+    properties:
+      archives:
+        items:
+          $ref: '#/definitions/entity.ArchiveSummary'
+        type: array
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      total:
+        example: 3
+        type: integer
+    type: object
+  entity.ArchiveListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.ArchiveListResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.ArchiveSummary:
+    properties:
+      archived_at:
+        example: "2026-07-26T10:00:00Z"
+        type: string
+      id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      row_count:
+        example: 100000000
+        type: integer
+      size_bytes:
+        example: 5368709120
+        type: integer
+      started_at:
+        example: "2026-06-01T00:00:00Z"
+        type: string
+    type: object
   entity.Attack:
     properties:
       ban_count:
@@ -636,6 +686,65 @@ definitions:
         items: {}
         type: array
     type: object
+  entity.Scan:
+    properties:
+      distinct_ports:
+        example: 14
+        type: integer
+      ended_at:
+        example: "2026-07-26T10:30:00Z"
+        type: string
+      hit_count:
+        example: 37
+        type: integer
+      id:
+        example: c3f6a9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      last_seen_at:
+        example: "2026-07-26T10:04:12Z"
+        type: string
+      sample_ports:
+        example: 22,80,443,3306,8080
+        type: string
+      started_at:
+        example: "2026-07-26T10:00:00Z"
+        type: string
+    type: object
+  entity.ScanDetailSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.Scan'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.ScanListResponse:
+    properties:
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      scans:
+        items:
+          $ref: '#/definitions/entity.Scan'
+        type: array
+      total:
+        example: 12
+        type: integer
+    type: object
+  entity.ScanListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.ScanListResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.SecurityStatus:
     properties:
       firewall_available:
@@ -647,8 +756,34 @@ definitions:
       firewall_detail:
         example: 'iptables not found in PATH (on Alpine: apk add iptables)'
         type: string
+      ip_attacks_archives_count:
+        example: 2
+        type: integer
+      ip_attacks_entry_count:
+        example: 1245
+        type: integer
+      ip_attacks_threshold:
+        example: 100000000
+        type: integer
       os:
         example: linux
+        type: string
+      scan_watch_available:
+        example: true
+        type: boolean
+      scan_watch_detail:
+        example: neither journalctl nor a readable syslog file (/var/log/messages)
+          was found
+        type: string
+      scan_watch_source:
+        description: |-
+          ScanWatch* report whether port-scan detection actually has a log
+          source available on this host — see
+          plan/port-scan-detection/plan.md Phase B. When
+          ScanWatchAvailable is false, no port-scan visibility exists at
+          all (not even the application-layer visibility ip_attacks has),
+          since there is nothing to ingest.
+        example: journald
         type: string
     type: object
   entity.SecurityStatusSuccess:
@@ -3863,6 +3998,158 @@ paths:
       summary: Get task payload
       tags:
       - admin-queue
+  /admin/security/archives:
+    get:
+      description: Lists rotated-out ip-attacks.db generations, newest first.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ArchiveListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List ip-attacks.db archives
+      tags:
+      - security
+  /admin/security/archives/{id}:
+    get:
+      parameters:
+      - description: Archive id, as {id:<value>}
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ArchiveDetailSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get one ip-attacks.db archive's metadata
+      tags:
+      - security
+  /admin/security/archives/{id}/attacks:
+    get:
+      parameters:
+      - description: Archive id, as {id:<value>}
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AttackListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List attack episodes within one archive
+      tags:
+      - security
+  /admin/security/archives/{id}/attacks/{attackId}:
+    get:
+      parameters:
+      - description: Archive id, as {id:<value>}
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Attack episode id, as {attackId:<value>}
+        in: path
+        name: attackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AttackDetailSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get one attack episode within one archive
+      tags:
+      - security
   /admin/security/attacks:
     get:
       description: Lists historical (and currently ongoing) attack episodes, newest
@@ -4142,13 +4429,85 @@ paths:
       summary: Unban an IP
       tags:
       - security
+  /admin/security/scans:
+    get:
+      description: Lists historical (and currently ongoing) port-scan episodes, newest
+        first.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ScanListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List port-scan episodes
+      tags:
+      - security
+  /admin/security/scans/{id}:
+    get:
+      parameters:
+      - description: Scan episode id, as {id:<value>}
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ScanDetailSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get one port-scan episode
+      tags:
+      - security
   /admin/security/status:
     get:
       description: |-
         Reports whether OS-level firewall enforcement is active. When
         firewall_available is false, only application-layer rate
         limiting (429 responses) is protecting this host — see
-        plan/ip-abuse-protection/plan.md section 14.
+        plan/ip-abuse-protection/plan.md section 14. Also reports
+        ip-attacks.db's current size relative to the archiving
+        threshold — see plan/ip-attacks-db-archiving/plan.md.
+        Also reports whether port-scan detection has a log source
+        available on this host — see plan/port-scan-detection/plan.md.
       produces:
       - application/json
       responses:

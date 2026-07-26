@@ -3890,6 +3890,245 @@
                 }
             }
         },
+        "/admin/security/archives": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists rotated-out ip-attacks.db generations, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List ip-attacks.db archives",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ArchiveListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/archives/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Get one ip-attacks.db archive's metadata",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Archive id, as {id:\u003cvalue\u003e}",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ArchiveDetailSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/archives/{id}/attacks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List attack episodes within one archive",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Archive id, as {id:\u003cvalue\u003e}",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.AttackListSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/archives/{id}/attacks/{attackId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Get one attack episode within one archive",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Archive id, as {id:\u003cvalue\u003e}",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Attack episode id, as {attackId:\u003cvalue\u003e}",
+                        "name": "attackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.AttackDetailSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/attacks": {
             "get": {
                 "security": [
@@ -4327,6 +4566,112 @@
                 }
             }
         },
+        "/admin/security/scans": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists historical (and currently ongoing) port-scan episodes, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List port-scan episodes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ScanListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/scans/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Get one port-scan episode",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Scan episode id, as {id:\u003cvalue\u003e}",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ScanDetailSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/status": {
             "get": {
                 "security": [
@@ -4334,7 +4679,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Reports whether OS-level firewall enforcement is active. When\nfirewall_available is false, only application-layer rate\nlimiting (429 responses) is protecting this host — see\nplan/ip-abuse-protection/plan.md section 14.",
+                "description": "Reports whether OS-level firewall enforcement is active. When\nfirewall_available is false, only application-layer rate\nlimiting (429 responses) is protecting this host — see\nplan/ip-abuse-protection/plan.md section 14. Also reports\nip-attacks.db's current size relative to the archiving\nthreshold — see plan/ip-attacks-db-archiving/plan.md.\nAlso reports whether port-scan detection has a log source\navailable on this host — see plan/port-scan-detection/plan.md.",
                 "produces": [
                     "application/json"
                 ],
@@ -9494,6 +9839,78 @@
                 }
             }
         },
+        "entity.ArchiveDetailSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.ArchiveSummary"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.ArchiveListResponse": {
+            "type": "object",
+            "properties": {
+                "archives": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.ArchiveSummary"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "entity.ArchiveListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.ArchiveListResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.ArchiveSummary": {
+            "type": "object",
+            "properties": {
+                "archived_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:00:00Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "row_count": {
+                    "type": "integer",
+                    "example": 100000000
+                },
+                "size_bytes": {
+                    "type": "integer",
+                    "example": 5368709120
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2026-06-01T00:00:00Z"
+                }
+            }
+        },
         "entity.Attack": {
             "type": "object",
             "properties": {
@@ -10198,6 +10615,90 @@
                 }
             }
         },
+        "entity.Scan": {
+            "type": "object",
+            "properties": {
+                "distinct_ports": {
+                    "type": "integer",
+                    "example": 14
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:30:00Z"
+                },
+                "hit_count": {
+                    "type": "integer",
+                    "example": 37
+                },
+                "id": {
+                    "type": "string",
+                    "example": "c3f6a9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "last_seen_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:04:12Z"
+                },
+                "sample_ports": {
+                    "type": "string",
+                    "example": "22,80,443,3306,8080"
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:00:00Z"
+                }
+            }
+        },
+        "entity.ScanDetailSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.Scan"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.ScanListResponse": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "scans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Scan"
+                    }
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 12
+                }
+            }
+        },
+        "entity.ScanListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.ScanListResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "entity.SecurityStatus": {
             "type": "object",
             "properties": {
@@ -10213,9 +10714,34 @@
                     "type": "string",
                     "example": "iptables not found in PATH (on Alpine: apk add iptables)"
                 },
+                "ip_attacks_archives_count": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "ip_attacks_entry_count": {
+                    "type": "integer",
+                    "example": 1245
+                },
+                "ip_attacks_threshold": {
+                    "type": "integer",
+                    "example": 100000000
+                },
                 "os": {
                     "type": "string",
                     "example": "linux"
+                },
+                "scan_watch_available": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "scan_watch_detail": {
+                    "type": "string",
+                    "example": "neither journalctl nor a readable syslog file (/var/log/messages) was found"
+                },
+                "scan_watch_source": {
+                    "description": "ScanWatch* report whether port-scan detection actually has a log\nsource available on this host — see\nplan/port-scan-detection/plan.md Phase B. When\nScanWatchAvailable is false, no port-scan visibility exists at\nall (not even the application-layer visibility ip_attacks has),\nsince there is nothing to ingest.",
+                    "type": "string",
+                    "example": "journald"
                 }
             }
         },
