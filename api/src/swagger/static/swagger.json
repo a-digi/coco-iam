@@ -3890,6 +3890,486 @@
                 }
             }
         },
+        "/admin/security/attacks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists historical (and currently ongoing) attack episodes, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List IP-abuse attack episodes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.AttackListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/attacks/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Get one attack episode",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Attack episode id, as {id:\u003cvalue\u003e}",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.AttackDetailSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/ip-allowlist": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List allowlisted IPs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.IPAllowlistListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Add an IP to the allowlist",
+                "parameters": [
+                    {
+                        "description": "Allowlist request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.IPAllowlistRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/entity.IPAllowlistEntrySuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/ip-allowlist/{ip}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Remove an IP from the allowlist",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "IP address, as {ip:\u003cvalue\u003e}",
+                        "name": "ip",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_admin_security_entity.StatusSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/ip-bans": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists every currently-tracked IP ban, including\nalready-expired rows the sweeper hasn't pruned yet.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List IP bans",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.IPBanListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Manually ban an IP",
+                "parameters": [
+                    {
+                        "description": "Ban request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.IPBanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/entity.IPBanSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/ip-bans/{ip}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Unban an IP",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "IP address, as {ip:\u003cvalue\u003e}",
+                        "name": "ip",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_admin_security_entity.StatusSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reports whether OS-level firewall enforcement is active. When\nfirewall_available is false, only application-layer rate\nlimiting (429 responses) is protecting this host — see\nplan/ip-abuse-protection/plan.md section 14.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "IP-guard security status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.SecurityStatusSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/settings/general": {
             "get": {
                 "security": [
@@ -4348,7 +4828,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.StatusSuccess"
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_admin_mfa_entity.StatusSuccess"
                         }
                     },
                     "400": {
@@ -9014,6 +9494,150 @@
                 }
             }
         },
+        "entity.Attack": {
+            "type": "object",
+            "properties": {
+                "ban_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:30:00Z"
+                },
+                "hit_count": {
+                    "type": "integer",
+                    "example": 143
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "last_seen_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:04:12Z"
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:00:00Z"
+                },
+                "tier": {
+                    "type": "string",
+                    "example": "sensitive"
+                }
+            }
+        },
+        "entity.AttackDetailResponse": {
+            "type": "object",
+            "properties": {
+                "ban_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "ended_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:30:00Z"
+                },
+                "hit_count": {
+                    "type": "integer",
+                    "example": 143
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "last_seen_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:04:12Z"
+                },
+                "started_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:00:00Z"
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.AttackTarget"
+                    }
+                },
+                "tier": {
+                    "type": "string",
+                    "example": "sensitive"
+                }
+            }
+        },
+        "entity.AttackDetailSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.AttackDetailResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.AttackListResponse": {
+            "type": "object",
+            "properties": {
+                "attacks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Attack"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 37
+                }
+            }
+        },
+        "entity.AttackListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.AttackListResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.AttackTarget": {
+            "type": "object",
+            "properties": {
+                "hit_count": {
+                    "type": "integer",
+                    "example": 89
+                },
+                "method": {
+                    "type": "string",
+                    "example": "POST"
+                },
+                "path": {
+                    "type": "string",
+                    "example": "/admin/oauth/authenticate"
+                }
+            }
+        },
         "entity.CheckRequest": {
             "type": "object",
             "properties": {
@@ -9139,6 +9763,144 @@
             "properties": {
                 "available": {
                     "type": "boolean"
+                }
+            }
+        },
+        "entity.IPAllowlistEntry": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:00:00Z"
+                },
+                "created_by": {
+                    "type": "string",
+                    "example": "6b12ba0b-6b36-4a94-bce4-6ba3615b1f85"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "note": {
+                    "type": "string",
+                    "example": "office egress"
+                }
+            }
+        },
+        "entity.IPAllowlistEntrySuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.IPAllowlistEntry"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.IPAllowlistListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.IPAllowlistEntry"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.IPAllowlistRequest": {
+            "type": "object",
+            "properties": {
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "note": {
+                    "type": "string",
+                    "example": "office egress"
+                }
+            }
+        },
+        "entity.IPBan": {
+            "type": "object",
+            "properties": {
+                "banned_at": {
+                    "type": "string",
+                    "example": "2026-07-26T10:00:00Z"
+                },
+                "created_by": {
+                    "type": "string",
+                    "example": "6b12ba0b-6b36-4a94-bce4-6ba3615b1f85"
+                },
+                "expires_at": {
+                    "type": "string",
+                    "example": "2026-07-26T11:00:00Z"
+                },
+                "hit_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "sensitive rate limit exceeded"
+                },
+                "tier": {
+                    "type": "string",
+                    "example": "sensitive"
+                }
+            }
+        },
+        "entity.IPBanListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.IPBan"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.IPBanRequest": {
+            "type": "object",
+            "properties": {
+                "duration_minutes": {
+                    "type": "integer",
+                    "example": 60
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "manually banned by admin"
+                }
+            }
+        },
+        "entity.IPBanSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.IPBan"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -9436,20 +10198,32 @@
                 }
             }
         },
-        "entity.StatusResponse": {
+        "entity.SecurityStatus": {
             "type": "object",
             "properties": {
-                "status": {
+                "firewall_available": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "firewall_backend": {
                     "type": "string",
-                    "example": "disabled"
+                    "example": "iptables"
+                },
+                "firewall_detail": {
+                    "type": "string",
+                    "example": "iptables not found in PATH (on Alpine: apk add iptables)"
+                },
+                "os": {
+                    "type": "string",
+                    "example": "linux"
                 }
             }
         },
-        "entity.StatusSuccess": {
+        "entity.SecurityStatusSuccess": {
             "type": "object",
             "properties": {
                 "message": {
-                    "$ref": "#/definitions/entity.StatusResponse"
+                    "$ref": "#/definitions/entity.SecurityStatus"
                 },
                 "success": {
                     "type": "boolean",
@@ -9487,6 +10261,48 @@
             "properties": {
                 "message": {
                     "$ref": "#/definitions/github_com_a-digi_coco-iam_src_admin_users_entity.User"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_admin_mfa_entity.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "disabled"
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_admin_mfa_entity.StatusSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/github_com_a-digi_coco-iam_src_admin_mfa_entity.StatusResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_admin_security_entity.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "unbanned"
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_admin_security_entity.StatusSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/github_com_a-digi_coco-iam_src_admin_security_entity.StatusResponse"
                 },
                 "success": {
                     "type": "boolean",
