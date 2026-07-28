@@ -126,14 +126,16 @@ func newArchivedFile(t *testing.T) string {
 		    last_seen_at DATETIME NOT NULL,
 		    ended_at     DATETIME,
 		    hit_count    INTEGER NOT NULL DEFAULT 0,
-		    ban_count    INTEGER NOT NULL DEFAULT 1
+		    ban_count    INTEGER NOT NULL DEFAULT 1,
+		    origin_hint  TEXT
 		);
 		CREATE TABLE ip_attack_targets (
-		    id        TEXT NOT NULL CONSTRAINT ip_attack_targets_pk PRIMARY KEY,
-		    attack_id TEXT NOT NULL,
-		    path      TEXT NOT NULL,
-		    method    TEXT NOT NULL,
-		    hit_count INTEGER NOT NULL DEFAULT 0
+		    id          TEXT NOT NULL CONSTRAINT ip_attack_targets_pk PRIMARY KEY,
+		    attack_id   TEXT NOT NULL,
+		    path        TEXT NOT NULL,
+		    method      TEXT NOT NULL,
+		    hit_count   INTEGER NOT NULL DEFAULT 0,
+		    body_sample TEXT
 		);
 		CREATE TABLE db_meta (key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL);
 		INSERT INTO db_meta (key, value) VALUES ('entry_count', '1');

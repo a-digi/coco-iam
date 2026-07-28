@@ -1082,7 +1082,7 @@ func Init(ctx serverdi.Context) {
 	// Phase A. NotFoundHook is additive/nil-safe in the vendored
 	// RouteBuilder, so this is the only place that needs to know about it.
 	routing.GlobalRouteBuilder.NotFoundHook = func(r *http.Request) {
-		ip := ipguard.ClientIP(r, ipGuardCfg.TrustProxyIPHeader)
+		ip := ipguard.ClientIP(r, ipGuardCfg.TrustProxyIPHeaders)
 		ipGuard.RecordRecon(ip, r)
 	}
 

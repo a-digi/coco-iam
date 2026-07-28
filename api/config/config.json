@@ -8,7 +8,7 @@
     "jwks_url": ""
   },
   "security": {
-    "trust_proxy_ip_header": "X-Real-IP",
+    "trust_proxy_ip_headers": ["X-Real-IP", "X-Forwarded-For", "CF-Connecting-IP", "True-Client-IP"],
     "rate_limit": {
       "global": { "requests": 300, "window_seconds": 60, "ban_seconds": 900 },
       "sensitive": { "requests": 15, "window_seconds": 300, "ban_seconds": 3600 },

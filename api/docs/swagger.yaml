@@ -225,6 +225,13 @@ definitions:
       last_seen_at:
         example: "2026-07-26T10:04:12Z"
         type: string
+      origin_hint:
+        description: |-
+          OriginHint is a JSON snapshot of client-identifying request
+          headers, captured only when IP resolved to a loopback/private
+          address — populated on the detail fetch only, never on the list.
+        example: '{"x_forwarded_for":"203.0.113.7","host":"coco-iam.example.com"}'
+        type: string
       started_at:
         example: "2026-07-26T10:00:00Z"
         type: string
@@ -251,6 +258,13 @@ definitions:
         type: string
       last_seen_at:
         example: "2026-07-26T10:04:12Z"
+        type: string
+      origin_hint:
+        description: |-
+          OriginHint is a JSON snapshot of client-identifying request
+          headers, captured only when IP resolved to a loopback/private
+          address — populated on the detail fetch only, never on the list.
+        example: '{"x_forwarded_for":"203.0.113.7","host":"coco-iam.example.com"}'
         type: string
       started_at:
         example: "2026-07-26T10:00:00Z"
@@ -297,6 +311,13 @@ definitions:
     type: object
   entity.AttackTarget:
     properties:
+      body_sample:
+        description: |-
+          BodySample is the first-observed request body for this target,
+          redacted and size-capped — nil if none was captured (a GET/HEAD
+          hit, or a content type this app doesn't capture).
+        example: '{"email":"admin@x.com","password":"[REDACTED]"}'
+        type: string
       hit_count:
         example: 89
         type: integer

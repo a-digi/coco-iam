@@ -39,13 +39,14 @@ type banEntry struct {
 // its own, since every access already happens while that lock is
 // held.
 type attackState struct {
-	attackID    string // "" until the DB row has been created
-	tier        string
-	startedAt   time.Time
-	lastSeenAt  time.Time
-	hits        int
-	banRenewals int
-	targets     map[string]int // "<method> <path>" -> total hit count
+	attackID     string // "" until the DB row has been created
+	tier         string
+	startedAt    time.Time
+	lastSeenAt   time.Time
+	hits         int
+	banRenewals  int
+	targets      map[string]int     // "<method> <path>" -> total hit count
+	targetBodies map[string]*string // "<method> <path>" -> first-observed redacted body sample, nil if none captured
 }
 
 // IPGuardSecurityLayer implements security.SecurityLayer, wrapping an
@@ -179,7 +180,7 @@ func (g *IPGuardSecurityLayer) hydrate() error {
 // Every rejection additionally feeds the attack-tracking state
 // (section 11) and the dedicated attack log (section 12).
 func (g *IPGuardSecurityLayer) Authorize(w http.ResponseWriter, r *http.Request, ctx di.Context, route *security.Route) error {
-	ip := ClientIP(r, g.cfg.TrustProxyIPHeader)
+	ip := ClientIP(r, g.cfg.TrustProxyIPHeaders)
 
 	if g.isAllowed(ip) {
 		return g.inner.Authorize(w, r, ctx, route)
@@ -417,6 +418,7 @@ func (g *IPGuardSecurityLayer) FlushAttacks() {
 		banRenewals  int
 		lastSeenAt   time.Time
 		targets      map[string]int
+		targetBodies map[string]*string
 	}
 
 	var snapshots []snapshot
@@ -428,10 +430,14 @@ func (g *IPGuardSecurityLayer) FlushAttacks() {
 		for k, v := range state.targets {
 			targetsCopy[k] = v
 		}
+		bodiesCopy := make(map[string]*string, len(state.targetBodies))
+		for k, v := range state.targetBodies {
+			bodiesCopy[k] = v
+		}
 		snapshots = append(snapshots, snapshot{
 			ip: ip, attackID: state.attackID, tier: state.tier,
 			hits: state.hits, banRenewals: state.banRenewals,
-			lastSeenAt: state.lastSeenAt, targets: targetsCopy,
+			lastSeenAt: state.lastSeenAt, targets: targetsCopy, targetBodies: bodiesCopy,
 		})
 		if now.Sub(state.lastSeenAt) > g.graceFor(state.tier) {
 			toClose = append(toClose, ip)
@@ -448,7 +454,7 @@ func (g *IPGuardSecurityLayer) FlushAttacks() {
 		}
 		for key, count := range snap.targets {
 			method, path := splitTargetKey(key)
-			if err := g.attackPersist.SetTargetCount(snap.attackID, path, method, count); err != nil {
+			if err := g.attackPersist.SetTargetCount(snap.attackID, path, method, count, snap.targetBodies[key]); err != nil {
 				g.errorf("ipguard: failed to flush attack target %s %s for %s: %v", method, path, snap.attackID, err)
 			}
 		}
@@ -530,15 +536,34 @@ func (g *IPGuardSecurityLayer) recordAttackHit(ip, tier, reason string, r *http.
 	targetKey := method + " " + path
 	now := time.Now()
 
+	// Read outside attacksMu — this may block on network I/O reading
+	// the client's body, and attacksMu is a single global lock guarding
+	// every IP's state, not just this one. Holding it across a body
+	// read would let a slow/malicious client stall rate-limit
+	// decisions for every other IP too.
+	bodySample := captureBodySample(r)
+
+	// Only computed for the loopback/private case — a genuine public
+	// attacker IP needs no fallback lead. Cheap (header map reads, no
+	// I/O), but only ever used below if this hit turns out to be the
+	// one that creates a new episode.
+	var originHint *string
+	if isLoopbackOrPrivate(ip) {
+		originHint = captureOriginHint(r)
+	}
+
 	g.attacksMu.Lock()
 	state, ok := g.attacks[ip]
 	if !ok {
-		state = &attackState{tier: tier, startedAt: now, targets: make(map[string]int)}
+		state = &attackState{tier: tier, startedAt: now, targets: make(map[string]int), targetBodies: make(map[string]*string)}
 		g.attacks[ip] = state
 	}
 	state.tier = tier
 	state.lastSeenAt = now
 	state.hits++
+	if _, seen := state.targets[targetKey]; !seen {
+		state.targetBodies[targetKey] = bodySample
+	}
 	state.targets[targetKey]++
 	if causedNewBan {
 		state.banRenewals++
@@ -554,8 +579,11 @@ func (g *IPGuardSecurityLayer) recordAttackHit(ip, tier, reason string, r *http.
 	g.attacksMu.Unlock()
 
 	if needsCreate {
-		if err := g.attackPersist.CreateAttack(attackID, ip, tier, now); err != nil {
+		if err := g.attackPersist.CreateAttack(attackID, ip, tier, now, originHint); err != nil {
 			g.errorf("ipguard: failed to create attack record for %s: %v", ip, err)
+		}
+		if originHint != nil {
+			g.logOriginHint(ip, tier, attackID, *originHint)
 		}
 	}
 
@@ -589,6 +617,20 @@ func (g *IPGuardSecurityLayer) logAttackHit(ip, tier, reason, method, path, atta
 	g.attackLog.Warning(
 		"ip=%s tier=%s path=%s method=%s attack_id=%s hit=%d reason=%q",
 		ip, tier, path, method, attackID, hits, reason,
+	)
+}
+
+// logOriginHint writes one line to the dedicated attack log the
+// moment an episode opens with a loopback/private ip — visible in
+// ip-attacks.log without needing the admin UI. See
+// plan/attack-ip-attribution/plan.md Fix 3.
+func (g *IPGuardSecurityLayer) logOriginHint(ip, tier, attackID, hint string) {
+	if g.attackLog == nil {
+		return
+	}
+	g.attackLog.Warning(
+		"ip=%s tier=%s attack_id=%s could not resolve a public ip, origin_hint=%s",
+		ip, tier, attackID, hint,
 	)
 }
 

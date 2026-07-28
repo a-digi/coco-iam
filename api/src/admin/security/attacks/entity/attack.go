@@ -16,6 +16,10 @@ type Attack struct {
 	EndedAt    string `json:"ended_at,omitempty" example:"2026-07-26T10:30:00Z"`
 	HitCount   int    `json:"hit_count" example:"143"`
 	BanCount   int    `json:"ban_count" example:"3"`
+	// OriginHint is a JSON snapshot of client-identifying request
+	// headers, captured only when IP resolved to a loopback/private
+	// address — populated on the detail fetch only, never on the list.
+	OriginHint string `json:"origin_hint,omitempty" example:"{\"x_forwarded_for\":\"203.0.113.7\",\"host\":\"coco-iam.example.com\"}"`
 }
 
 // AttackTarget is the aggregated hit count for one endpoint (method +
@@ -24,6 +28,10 @@ type AttackTarget struct {
 	Path     string `json:"path" example:"/admin/oauth/authenticate"`
 	Method   string `json:"method" example:"POST"`
 	HitCount int    `json:"hit_count" example:"89"`
+	// BodySample is the first-observed request body for this target,
+	// redacted and size-capped — nil if none was captured (a GET/HEAD
+	// hit, or a content type this app doesn't capture).
+	BodySample *string `json:"body_sample,omitempty" example:"{\"email\":\"admin@x.com\",\"password\":\"[REDACTED]\"}"`
 }
 
 // AttackListResponse is the list endpoint's payload — Total is the

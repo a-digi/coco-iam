@@ -12,6 +12,7 @@ interface AttackTarget {
     path: string;
     method: string;
     hit_count: number;
+    body_sample?: string;
 }
 
 interface AttackDetailResponse {
@@ -24,6 +25,7 @@ interface AttackDetailResponse {
     hit_count: number;
     ban_count: number;
     targets: AttackTarget[];
+    origin_hint?: string;
 }
 
 const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
@@ -32,6 +34,18 @@ const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, val
         <div className="text-sm text-gray-900 dark:text-gray-100">{value}</div>
     </div>
 );
+
+// origin_hint is stored as a compact JSON string (see
+// plan/attack-ip-attribution/plan.md Fix 3) — pretty-print it for
+// readability, falling back to the raw string if it's ever not valid
+// JSON (defensive only; the backend always writes valid JSON here).
+const formatOriginHint = (raw: string): string => {
+    try {
+        return JSON.stringify(JSON.parse(raw), null, 2);
+    } catch {
+        return raw;
+    }
+};
 
 // AttackDetail is a standalone page (own route, no SecurityPage tab
 // shell) — mirrors Queue/Task/TaskDetail.tsx's master-detail pattern
@@ -89,6 +103,18 @@ export const AttackDetail: React.FC = () => {
         { key: 'path', label: 'Path' },
         { key: 'method', label: 'Method' },
         { key: 'hit_count', label: 'Hits' },
+        {
+            key: 'body_sample',
+            label: 'Body sample',
+            render: value =>
+                value ? (
+                    <div className="max-w-xs whitespace-pre-wrap break-all font-mono text-xs text-gray-600 dark:text-gray-400">
+                        {value as string}
+                    </div>
+                ) : (
+                    <span className="text-gray-400 dark:text-gray-600">—</span>
+                ),
+        },
     ];
 
     const backTo = archiveId ? `/admin/security/archives/${archiveId}/attacks` : '/admin/security/attacks';
@@ -122,6 +148,20 @@ export const AttackDetail: React.FC = () => {
                         <Field label="Last seen" value={formatDate(attack.last_seen_at)} />
                         {attack.ended_at && <Field label="Ended" value={formatDate(attack.ended_at)} />}
                     </div>
+
+                    {attack.origin_hint && (
+                        <div>
+                            <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Origin hint</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                The IP above is loopback/private — no configured header resolved to a real
+                                address. These are the request headers that were present, captured for manual
+                                correlation against proxy logs.
+                            </div>
+                            <pre className="rounded-xl bg-gray-50 dark:bg-surface-900 ring-1 ring-gray-200/70 dark:ring-surface-700/80 p-3 text-xs font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all">
+                                {formatOriginHint(attack.origin_hint)}
+                            </pre>
+                        </div>
+                    )}
 
                     <div>
                         <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Targeted endpoints</div>
