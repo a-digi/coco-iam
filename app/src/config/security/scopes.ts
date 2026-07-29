@@ -102,6 +102,10 @@ export const AppScopes = {
     ApplicationsApiCredentials: 'applications:api_credentials',
     ApplicationsApiCredentialsRead: 'applications:api_credentials:read',
 
+    // Application end-user login-attempt audit log — see
+    // plan/login-audit-log/plan.md.
+    ApplicationsLoginLogRead: 'applications:login_log:read',
+
     // Application external-IdP OAuth providers — admin config for
     // Google / GitHub / Microsoft "Continue with …" buttons.
     ApplicationsOauth: 'applications:oauth',
@@ -201,6 +205,9 @@ export const AppScopes = {
     // plan/geoip-enrichment/plan.md.
     AdminSecurityGeoipRead: 'admin:security:geoip:read',
     AdminSecurityGeoipWrite: 'admin:security:geoip:write',
+
+    // Admin-console login attempt audit log — see plan/login-audit-log/plan.md.
+    AdminSecurityLoginLogRead: 'admin:security:login-log:read',
 } as const;
 
 export type AppScope = typeof AppScopes[keyof typeof AppScopes];

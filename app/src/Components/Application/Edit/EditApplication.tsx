@@ -11,6 +11,7 @@ import { Users } from './Partials/Users';
 import { Template } from './Partials/Template';
 import { Security } from './Partials/Security';
 import { ApiCredentials } from './Partials/ApiCredentials';
+import { LoginLogSection } from './Partials/LoginLog/LoginLogSection';
 import { RegistrationFields } from './Partials/RegistrationFields';
 import { Authentication } from './Partials/Authentication';
 import { OAuthClients } from './Partials/OAuthClients';
@@ -225,6 +226,16 @@ export const EditApplication: React.FC = () => {
           scopes: [
             AppScopes.ApplicationsApiCredentialsRead,
             AppScopes.ApplicationsApiCredentials,
+            AppScopes.Applications,
+            AppScopes.SuperAdmin,
+          ],
+        },
+        {
+          id: 'login-log',
+          label: 'Login log',
+          content: <LoginLogSection applicationId={appId} />,
+          scopes: [
+            AppScopes.ApplicationsLoginLogRead,
             AppScopes.Applications,
             AppScopes.SuperAdmin,
           ],

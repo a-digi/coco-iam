@@ -48,4 +48,10 @@ export const DEFAULT_SECURITY_MENU: SecurityMenuEntry[] = [
         matchPrefixes: ['/admin/security/geoip'],
         scopes: [AppScopes.AdminSecurityGeoipRead, AppScopes.SuperAdmin],
     },
+    {
+        label: 'Login log',
+        href: '/admin/security/login-log',
+        matchPrefixes: ['/admin/security/login-log'],
+        scopes: [AppScopes.AdminSecurityLoginLogRead, AppScopes.SuperAdmin],
+    },
 ];
