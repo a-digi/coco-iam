@@ -24,6 +24,18 @@ import { Submit, Cancel } from '../../../Shared/Components/Button';
 import { FormInput, FormTextarea } from '../../../Shared/Components/Form';
 import { AppScopes } from '../../../config/security/scopes';
 import { useBreadcrumbItems } from '../../../Layout/Breadcrumb/useBreadcrumb';
+import ScopeBasedComponentAccess from '../../../Shared/Components/Access/ScopeBasedComponentAccess';
+
+const RECOVERY_TOGGLE_SCOPES = [
+  AppScopes.ApplicationsLoginTemplatesRecoveryToggle,
+  AppScopes.ApplicationsWrite,
+  AppScopes.SuperAdmin,
+];
+const REGISTRATION_TOGGLE_SCOPES = [
+  AppScopes.ApplicationsLoginTemplatesRegistrationToggle,
+  AppScopes.ApplicationsWrite,
+  AppScopes.SuperAdmin,
+];
 
 export const EditApplication: React.FC = () => {
   useBreadcrumbItems([{ label: 'Workspaces', href: '/workspaces' }, { label: 'Applications' }, { label: 'Manage' }]);
@@ -142,18 +154,22 @@ export const EditApplication: React.FC = () => {
 
       <div className="flex flex-col gap-3 mt-4 p-4 bg-gray-50 dark:bg-surface-900 rounded-lg border border-gray-100 dark:border-gray-600">
         <Switch id="is_active" checked={isActive} onChange={setIsActive} label="Is Active" />
-        <Switch
-          id="allow_recovery"
-          checked={allowRecovery}
-          onChange={setAllowRecovery}
-          label="Allow password recovery"
-        />
-        <Switch
-          id="allow_registration"
-          checked={allowRegistration}
-          onChange={setAllowRegistration}
-          label="Allow registration"
-        />
+        <ScopeBasedComponentAccess requiredScopes={RECOVERY_TOGGLE_SCOPES}>
+          <Switch
+            id="allow_recovery"
+            checked={allowRecovery}
+            onChange={setAllowRecovery}
+            label="Allow password recovery"
+          />
+        </ScopeBasedComponentAccess>
+        <ScopeBasedComponentAccess requiredScopes={REGISTRATION_TOGGLE_SCOPES}>
+          <Switch
+            id="allow_registration"
+            checked={allowRegistration}
+            onChange={setAllowRegistration}
+            label="Allow registration"
+          />
+        </ScopeBasedComponentAccess>
       </div>
 
       <div className="flex justify-start gap-4 items-center pt-4">

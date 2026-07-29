@@ -350,6 +350,20 @@
                                 "description": "Allows viewing admin login attempts (success and failure) and their rotated-out archives."
                             }
                         ]
+                    },
+                    {
+                        "id": "admin:security:login-bans",
+                        "description": "Allows viewing and configuring automatic IP-ban rules for repeated failed logins, across both the admin console and application end-user logins.",
+                        "scopes": [
+                            {
+                                "id": "admin:security:login-bans:read",
+                                "description": "Allows viewing failed-login ban rule settings."
+                            },
+                            {
+                                "id": "admin:security:login-bans:write",
+                                "description": "Allows changing failed-login ban rule settings."
+                            }
+                        ]
                     }
                 ]
             }

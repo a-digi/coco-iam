@@ -118,6 +118,23 @@ func (r *ApplicationLoginQueryRepo) CountAttempts(filter ListFilter) (int, error
 	return n, nil
 }
 
+// CountRecentFailures returns how many failed attempts ip has made
+// since since — the failed-login ban-rule check's own query, backed
+// by application_login_attempts_ip_success_idx (ip, success,
+// created_at) so this stays cheap regardless of how large the table
+// grows. See plan/login-ban-rules/plan.md.
+func (r *ApplicationLoginQueryRepo) CountRecentFailures(ip string, since time.Time) (int, error) {
+	var n int
+	err := r.handle.DB().QueryRow(
+		`SELECT COUNT(*) FROM application_login_attempts WHERE ip = ? AND success = 0 AND created_at >= ?`,
+		ip, since.UTC().Format("2006-01-02 15:04:05"),
+	).Scan(&n)
+	if err != nil {
+		return 0, fmt.Errorf("application-login-attempt: count recent failures: %w", err)
+	}
+	return n, nil
+}
+
 // normalizeTimestamp rewrites created_at to a single consistent
 // RFC3339 format — same defensive parse the admin-login/ip-attacks
 // query repos use. Each package here keeps its own copy of this

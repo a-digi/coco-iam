@@ -63,6 +63,7 @@ import ScanDetail from '../../Components/Admin/Security/Scans/ScanDetail';
 import GeoIPSettings from '../../Components/Admin/Security/GeoIP/GeoIPSettings';
 import AdminLoginLogDashboard from '../../Components/Admin/Security/LoginLog/AdminLoginLogDashboard';
 import AdminLoginLogArchivesDashboard from '../../Components/Admin/Security/LoginLog/AdminLoginLogArchivesDashboard';
+import LoginBanRulesSettings from '../../Components/Admin/Security/LoginBans/LoginBanRulesSettings';
 
 export const routes: RouteConfig[] = [
   {
@@ -462,6 +463,16 @@ export const routes: RouteConfig[] = [
       <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityGeoipRead]}>
         <SecurityPage>
           <GeoIPSettings />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/login-bans',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityLoginBansRead]}>
+        <SecurityPage>
+          <LoginBanRulesSettings />
         </SecurityPage>
       </AuthGuard>
     ),

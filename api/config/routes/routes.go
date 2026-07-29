@@ -74,6 +74,7 @@ import (
 	geoip_handler "github.com/a-digi/coco-iam/src/security/geoip/handler"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
 	ipsearch_handler "github.com/a-digi/coco-iam/src/security/ipsearch/handler"
+	loginbans_handler "github.com/a-digi/coco-iam/src/security/loginbans/handler"
 	swagger_handler "github.com/a-digi/coco-iam/src/swagger"
 	userrules_handler "github.com/a-digi/coco-iam/src/userrules/handler"
 	lift_routes "github.com/a-digi/coco-lift/routes"
@@ -850,6 +851,9 @@ func Init(ctx serverdi.Context) {
 		"AdminLoginListHandler":            &admin_security_loginlog.AdminLoginListHandler{},
 		"AdminLoginArchiveListHandler":     &admin_security_loginlog.AdminLoginArchiveListHandler{},
 		"AdminLoginArchiveAttemptsHandler": &admin_security_loginlog.AdminLoginArchiveAttemptsHandler{},
+		// Failed-login ban-rule settings — see plan/login-ban-rules/plan.md.
+		"LoginBansGetSettingsHandler": &loginbans_handler.GetSettingsHandler{},
+		"LoginBansPutSettingsHandler": &loginbans_handler.PutSettingsHandler{},
 		// Admin GeoIP settings + process control — see
 		// plan/geoip-enrichment/plan.md.
 		"GeoIPGetSettingsHandler":              &geoip_handler.GetSettingsHandler{},

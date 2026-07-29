@@ -14,6 +14,7 @@ import (
 
 	"github.com/a-digi/coco-iam/src/applications/keys"
 	loginlog_dbregistry "github.com/a-digi/coco-iam/src/applications/loginlog/dbregistry"
+	"github.com/a-digi/coco-iam/src/auth/scopecheck"
 	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
@@ -301,6 +302,10 @@ func applicationUpdate(reqCtx request.RequestContext) {
 		return
 	}
 
+	if !authorizeApplicationUpdate(reqCtx, body, existing, w) {
+		return
+	}
+
 	newTitle := existing.Title
 	newDesc := existing.Description
 	newIsActive := existing.IsActive
@@ -348,6 +353,56 @@ func applicationUpdate(reqCtx request.RequestContext) {
 		return
 	}
 	response.SuccessResponse(w, http.StatusOK, row)
+}
+
+// authorizeApplicationUpdate lets a caller without applications:write still
+// reach this endpoint if they hold applications:login_templates:recovery_toggle
+// or :registration_toggle — but only to actually change the one flag their
+// scope covers. Every other field must be resubmitted unchanged (comparing
+// against existing, not just "field present in body", so normal form
+// resubmission of the current value isn't rejected). See
+// plan/todo.md and the login-templates scope catalog entry for the intent:
+// grant "can toggle recovery/registration" without full app-management power.
+func authorizeApplicationUpdate(reqCtx request.RequestContext, body applicationBody, existing applicationRow, w http.ResponseWriter) bool {
+	checker := scopecheck.NewChecker()
+	headers := reqCtx.GetRequest().Header
+
+	hasFullWrite, _ := checker.HasAnyScope(headers, "applications:write", "applications", scopecheck.SuperAdminScope)
+	if hasFullWrite {
+		return true
+	}
+
+	hasRecoveryToggle, _ := checker.HasScope(headers, "applications:login_templates:recovery_toggle")
+	hasRegToggle, _ := checker.HasScope(headers, "applications:login_templates:registration_toggle")
+
+	if body.Title != "" && body.Title != existing.Title {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:write is required to change title")
+		return false
+	}
+	if body.Description != "" && body.Description != existing.Description {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:write is required to change description")
+		return false
+	}
+	if body.IsActive != nil && *body.IsActive != existing.IsActive {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:write is required to change is_active")
+		return false
+	}
+	if body.AllowPasswordLogin != nil && *body.AllowPasswordLogin != existing.AllowPasswordLogin {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:write is required to change allow_password_login")
+		return false
+	}
+	if body.AllowRecovery != nil && *body.AllowRecovery != existing.AllowRecovery && !hasRecoveryToggle {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:login_templates:recovery_toggle or applications:write is required to change allow_recovery")
+		return false
+	}
+	registrationChanged := body.AllowRegistration != nil && *body.AllowRegistration != existing.AllowRegistration ||
+		body.RegistrationType != "" && body.RegistrationType != existing.RegistrationType
+	if registrationChanged && !hasRegToggle {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:login_templates:registration_toggle or applications:write is required to change allow_registration/registration_type")
+		return false
+	}
+
+	return true
 }
 
 // --- DELETE -------------------------------------------------------------

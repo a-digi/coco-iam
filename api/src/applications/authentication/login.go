@@ -14,14 +14,17 @@ package authentication
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/a-digi/coco-iam/config"
 	"github.com/a-digi/coco-iam/src/applications/keys"
 	loginlog_dbregistry "github.com/a-digi/coco-iam/src/applications/loginlog/dbregistry"
 	loginlog_persistent "github.com/a-digi/coco-iam/src/applications/loginlog/repository/persistent"
+	loginlog_query "github.com/a-digi/coco-iam/src/applications/loginlog/repository/query"
 	"github.com/a-digi/coco-iam/src/applications/loginpage"
 	oauthsession "github.com/a-digi/coco-iam/src/applications/oauthserverwiring"
 	auth_db "github.com/a-digi/coco-iam/src/auth/database"
@@ -31,7 +34,9 @@ import (
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	orgpwexpiry "github.com/a-digi/coco-iam/src/organizations/users/passwordexpiry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
+	"github.com/a-digi/coco-iam/src/security/dbhandle"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
+	"github.com/a-digi/coco-iam/src/security/loginbans"
 	oauth_lib "github.com/a-digi/coco-oauth/oauth"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
@@ -533,6 +538,47 @@ func recordLoginAttempt(reqCtx request.RequestContext, applicationID, applicatio
 	if err := repo.RecordAttempt(applicationUserID, username, success, failureReason, ip, r.UserAgent()); err != nil {
 		if log := reqCtx.GetDI().GetLogger(); log != nil {
 			log.Warning("application login-log: failed to record attempt for %s: %v", applicationID, err)
+		}
+		return
+	}
+
+	if !success && ip != "" {
+		checkApplicationFailureBan(reqCtx, handle, ip)
+	}
+}
+
+// checkApplicationFailureBan counts this IP's recent failed
+// application-login attempts and, if the configured (global, not
+// per-application) threshold is crossed, bans it through the existing
+// ipguard.Ban — reusing its allowlist bypass, firewall integration,
+// and admin bans UI rather than building a second enforcement path.
+// Best-effort, like recordLoginAttempt itself: an error here is
+// swallowed, never surfacing as a failure of the login attempt being
+// recorded. See plan/login-ban-rules/plan.md.
+func checkApplicationFailureBan(reqCtx request.RequestContext, handle *dbhandle.Handle, ip string) {
+	manager := reqCtx.GetDI().GetDatabaseManager()
+	if manager == nil || manager.Connector == nil || manager.Connector.DB == nil {
+		return
+	}
+	rules, err := loginbans.NewSettingsQueryRepo(manager.Connector.DB).LoadSettings()
+	if err != nil || !rules.Application.Enabled {
+		return
+	}
+
+	since := time.Now().UTC().Add(-time.Duration(rules.Application.WindowSeconds) * time.Second)
+	count, err := loginlog_query.NewApplicationLoginQueryRepo(handle).CountRecentFailures(ip, since)
+	if err != nil || count < rules.Application.Threshold {
+		return
+	}
+
+	guard := resolveIPGuard(reqCtx.GetDI())
+	if guard == nil {
+		return
+	}
+	reason := fmt.Sprintf("%d failed application login attempts within %ds", count, rules.Application.WindowSeconds)
+	if err := guard.Ban(ip, "application-login-failures", reason, time.Duration(rules.Application.BanSeconds)*time.Second, nil); err != nil {
+		if log := reqCtx.GetDI().GetLogger(); log != nil {
+			log.Warning("application login-log: failed to ban %s after %d failed logins: %v", ip, count, err)
 		}
 	}
 }

@@ -78,6 +78,65 @@ definitions:
         example: "2025-01-01T00:00:00Z"
         type: string
     type: object
+  entity.AdminLoginAttempt:
+    properties:
+      admin_user_id:
+        description: |-
+          AdminUserID is empty when the typed username never resolved to a
+          real admin account.
+        example: 793424dd-7913-4190-be88-b928559ab4ef
+        type: string
+      created_at:
+        example: "2026-07-29T20:41:00Z"
+        type: string
+      failure_reason:
+        description: |-
+          FailureReason is one of invalid_credentials, inactive_user,
+          no_scopes, mfa_required, mfa_failed — empty on success.
+          mfa_required is a provisional outcome (password was correct,
+          MFA verification still pending), not a hard failure.
+        example: invalid_credentials
+        type: string
+      id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      success:
+        example: false
+        type: boolean
+      user_agent:
+        example: Mozilla/5.0 ...
+        type: string
+      username:
+        example: jdoe
+        type: string
+    type: object
+  entity.AdminLoginAttemptListResponse:
+    properties:
+      attempts:
+        items:
+          $ref: '#/definitions/entity.AdminLoginAttempt'
+        type: array
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      total:
+        example: 128
+        type: integer
+    type: object
+  entity.AdminLoginAttemptListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.AdminLoginAttemptListResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.Application:
     properties:
       allow_password_login:
@@ -120,6 +179,65 @@ definitions:
         type: string
       workspace_id:
         type: string
+    type: object
+  entity.ApplicationLoginAttempt:
+    properties:
+      application_user_id:
+        description: |-
+          ApplicationUserID is empty when the typed username never
+          resolved to a real end-user account.
+        example: a3bead61-9f22-ff1f-8315-117b1ce373d0
+        type: string
+      created_at:
+        example: "2026-07-29T20:41:00Z"
+        type: string
+      failure_reason:
+        description: |-
+          FailureReason is one of invalid_credentials, inactive_user, or
+          empty on success. inactive_user covers the application-level
+          password-login-disabled rejection, not just an inactive user
+          account.
+        example: invalid_credentials
+        type: string
+      id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      success:
+        example: false
+        type: boolean
+      user_agent:
+        example: Mozilla/5.0 ...
+        type: string
+      username:
+        example: jdoe
+        type: string
+    type: object
+  entity.ApplicationLoginAttemptListResponse:
+    properties:
+      attempts:
+        items:
+          $ref: '#/definitions/entity.ApplicationLoginAttempt'
+        type: array
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      total:
+        example: 128
+        type: integer
+    type: object
+  entity.ApplicationLoginAttemptListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.ApplicationLoginAttemptListResponse'
+      success:
+        example: true
+        type: boolean
     type: object
   entity.ApplicationRequest:
     properties:
@@ -4933,6 +5051,100 @@ paths:
       summary: Unban an IP
       tags:
       - security
+  /admin/security/login-log/admin:
+    get:
+      description: Lists admin login attempts (success and failure), newest first.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AdminLoginAttemptListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List admin-console login attempts
+      tags:
+      - security
+  /admin/security/login-log/admin/archives:
+    get:
+      description: Lists rotated-out admin_login.db generations, newest first.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ArchiveListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List admin_login.db archives
+      tags:
+      - security
+  /admin/security/login-log/admin/archives/{id}/attempts:
+    get:
+      parameters:
+      - description: Archive id, as {id:<value>}
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AdminLoginAttemptListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List admin login attempts within one archive
+      tags:
+      - security
   /admin/security/scans:
     get:
       description: Lists historical (and currently ongoing) port-scan episodes, newest
@@ -5663,6 +5875,135 @@ paths:
       summary: Get public JWKS for an application
       tags:
       - app-keys
+  /applications/{id}/login-log:
+    get:
+      description: Lists login attempts (success and failure) for one application's
+        own end-users, newest first.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ApplicationLoginAttemptListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List application end-user login attempts
+      tags:
+      - applications
+  /applications/{id}/login-log/archives:
+    get:
+      description: Lists rotated-out <slug>_login.db generations for one application,
+        newest first.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ArchiveListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List an application's login-log archives
+      tags:
+      - applications
+  /applications/{id}/login-log/archives/{archiveId}/attempts:
+    get:
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Archive ID, as {archiveId:<value>}
+        in: path
+        name: archiveId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ApplicationLoginAttemptListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List login attempts within one application login-log archive
+      tags:
+      - applications
   /applications/applications:
     get:
       consumes:

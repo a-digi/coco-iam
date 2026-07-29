@@ -29,25 +29,27 @@ func IsValidTemplateKind(k TemplateKind) bool {
 }
 
 // AssetKind tags uploaded assets so the admin UI can show the right
-// picker (background vs. logo) without loading everything at once.
+// picker without loading everything at once. Logos are not uploaded
+// through this path — they live on the shared media subsystem
+// (media_files, resolved via FindLogoFilename) — see
+// plan/done/application-detail/plan.md.
 type AssetKind string
 
 const (
 	AssetKindBackground AssetKind = "background"
-	AssetKindLogo       AssetKind = "logo"
 	AssetKindOther      AssetKind = "other"
 )
 
 // IsValidAssetKind gates the upload endpoint.
 func IsValidAssetKind(k AssetKind) bool {
 	switch k {
-	case AssetKindBackground, AssetKindLogo, AssetKindOther:
+	case AssetKindBackground, AssetKindOther:
 		return true
 	}
 	return false
 }
 
-// Asset is an uploaded binary (background / logo / other).
+// Asset is an uploaded binary (background / other).
 type Asset struct {
 	ID            string    `json:"id"`
 	ApplicationID string    `json:"application_id"`

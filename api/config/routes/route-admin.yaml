@@ -603,6 +603,20 @@ routes:
             scopes:
               - admin:security:login-log:read
               - super:admin
+          - path: /security/login-bans/settings
+            method: GET
+            executor: LoginBansGetSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-bans:read
+              - super:admin
+          - path: /security/login-bans/settings
+            method: PUT
+            executor: LoginBansPutSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-bans:write
+              - super:admin
           - path: /security/status
             method: GET
             executor: SecurityStatusHandler

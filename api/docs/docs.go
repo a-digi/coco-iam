@@ -4988,6 +4988,155 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/security/login-log/admin": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists admin login attempts (success and failure), newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List admin-console login attempts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.AdminLoginAttemptListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/login-log/admin/archives": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists rotated-out admin_login.db generations, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List admin_login.db archives",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ArchiveListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/login-log/admin/archives/{id}/attempts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List admin login attempts within one archive",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Archive id, as {id:\u003cvalue\u003e}",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.AdminLoginAttemptListSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/scans": {
             "get": {
                 "security": [
@@ -7524,6 +7673,204 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        },
+        "/applications/{id}/login-log": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists login attempts (success and failure) for one application's own end-users, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "List application end-user login attempts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ApplicationLoginAttemptListSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/applications/{id}/login-log/archives": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists rotated-out \u003cslug\u003e_login.db generations for one application, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "List an application's login-log archives",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ArchiveListSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/applications/{id}/login-log/archives/{archiveId}/attempts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "List login attempts within one application login-log archive",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Archive ID, as {archiveId:\u003cvalue\u003e}",
+                        "name": "archiveId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ApplicationLoginAttemptListSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
             }
         },
         "/auth/change-password": {
@@ -10243,6 +10590,80 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.AdminLoginAttempt": {
+            "type": "object",
+            "properties": {
+                "admin_user_id": {
+                    "description": "AdminUserID is empty when the typed username never resolved to a\nreal admin account.",
+                    "type": "string",
+                    "example": "793424dd-7913-4190-be88-b928559ab4ef"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-29T20:41:00Z"
+                },
+                "failure_reason": {
+                    "description": "FailureReason is one of invalid_credentials, inactive_user,\nno_scopes, mfa_required, mfa_failed — empty on success.\nmfa_required is a provisional outcome (password was correct,\nMFA verification still pending), not a hard failure.",
+                    "type": "string",
+                    "example": "invalid_credentials"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0 ..."
+                },
+                "username": {
+                    "type": "string",
+                    "example": "jdoe"
+                }
+            }
+        },
+        "entity.AdminLoginAttemptListResponse": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.AdminLoginAttempt"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 128
+                }
+            }
+        },
+        "entity.AdminLoginAttemptListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.AdminLoginAttemptListResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "entity.Application": {
             "type": "object",
             "properties": {
@@ -10285,6 +10706,80 @@ const docTemplate = `{
                 },
                 "workspace_id": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.ApplicationLoginAttempt": {
+            "type": "object",
+            "properties": {
+                "application_user_id": {
+                    "description": "ApplicationUserID is empty when the typed username never\nresolved to a real end-user account.",
+                    "type": "string",
+                    "example": "a3bead61-9f22-ff1f-8315-117b1ce373d0"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-29T20:41:00Z"
+                },
+                "failure_reason": {
+                    "description": "FailureReason is one of invalid_credentials, inactive_user, or\nempty on success. inactive_user covers the application-level\npassword-login-disabled rejection, not just an inactive user\naccount.",
+                    "type": "string",
+                    "example": "invalid_credentials"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0 ..."
+                },
+                "username": {
+                    "type": "string",
+                    "example": "jdoe"
+                }
+            }
+        },
+        "entity.ApplicationLoginAttemptListResponse": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.ApplicationLoginAttempt"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 128
+                }
+            }
+        },
+        "entity.ApplicationLoginAttemptListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.ApplicationLoginAttemptListResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

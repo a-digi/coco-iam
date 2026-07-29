@@ -54,4 +54,10 @@ export const DEFAULT_SECURITY_MENU: SecurityMenuEntry[] = [
         matchPrefixes: ['/admin/security/login-log'],
         scopes: [AppScopes.AdminSecurityLoginLogRead, AppScopes.SuperAdmin],
     },
+    {
+        label: 'Login ban rules',
+        href: '/admin/security/login-bans',
+        matchPrefixes: ['/admin/security/login-bans'],
+        scopes: [AppScopes.AdminSecurityLoginBansRead, AppScopes.SuperAdmin],
+    },
 ];
