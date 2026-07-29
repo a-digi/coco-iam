@@ -4,6 +4,7 @@ import (
 	resource_handler "github.com/a-digi/coco-iam/config/resource"
 	"github.com/a-digi/coco-iam/src/security/dbarchive"
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
+	"github.com/a-digi/coco-iam/src/security/geoip"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
 	"github.com/a-digi/coco-iam/src/security/scanwatch"
 	lift_api "github.com/a-digi/coco-lift/resource"
@@ -54,6 +55,19 @@ type ContextBag struct {
 	// no admin-triggered action against it (no manual ban/allow
 	// equivalent), so only the Source's status is exposed.
 	ScanSource scanwatch.Source
+	// GeoIPManager is set by config/routes.Init once constructed (same
+	// timing as IPGuard, above) — resolved by the geoip settings/
+	// process-control admin handlers so Start/Stop act on the same
+	// instance the whole process shares, not a throwaway one built
+	// per-request. See plan/geoip-enrichment/plan.md's "Process
+	// control" section.
+	GeoIPManager *geoip.Manager
+	// GeoIP and GeoIPWatcher are set by config/routes.Init alongside
+	// GeoIPManager (same timing/reasoning). GeoIPWatcher is read back
+	// out by main.go to start its Run(queueCtx) goroutine — mirrors
+	// how ScanSource/DBArchiver are threaded through today.
+	GeoIP        geoip.Lookup
+	GeoIPWatcher *geoip.Watcher
 }
 
 func NewContextBag(manager *orm.DatabaseManager, log logger.Logger) *ContextBag {
@@ -104,4 +118,12 @@ func (c *ContextBag) GetDBArchiver() *dbarchive.Archiver {
 
 func (c *ContextBag) GetScanSource() scanwatch.Source {
 	return c.ScanSource
+}
+
+func (c *ContextBag) GetGeoIPManager() *geoip.Manager {
+	return c.GeoIPManager
+}
+
+func (c *ContextBag) GetGeoIP() geoip.Lookup {
+	return c.GeoIP
 }

@@ -206,6 +206,15 @@ func ExtractIPAttacksMigrationsToTemp() (string, error) {
 	return migrationsPath("db/ip_attacks_migrations")
 }
 
+// ExtractGeoIPMigrationsToTemp returns the on-disk path to the
+// geoip.db migrations folder — a self-contained DB, own migration
+// sequence (001_initial.sql), rebuilt wholesale by the geoip-updater
+// executable rather than grown in place. See
+// plan/geoip-enrichment/plan.md.
+func ExtractGeoIPMigrationsToTemp() (string, error) {
+	return migrationsPath("db/geoip_migrations")
+}
+
 func migrationsPath(rel string) (string, error) {
 	full := filepath.Join(resolved().Root(), filepath.FromSlash(rel))
 	info, err := os.Stat(full)

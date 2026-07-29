@@ -60,6 +60,7 @@ import ArchivesDashboard from '../../Components/Admin/Security/Archives/Archives
 import ArchiveDetail from '../../Components/Admin/Security/Archives/ArchiveDetail';
 import ScansDashboard from '../../Components/Admin/Security/Scans/ScansDashboard';
 import ScanDetail from '../../Components/Admin/Security/Scans/ScanDetail';
+import GeoIPSettings from '../../Components/Admin/Security/GeoIP/GeoIPSettings';
 
 export const routes: RouteConfig[] = [
   {
@@ -418,6 +419,16 @@ export const routes: RouteConfig[] = [
     element: (
       <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityScansRead]}>
         <ScanDetail />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/geoip',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityGeoipRead]}>
+        <SecurityPage>
+          <GeoIPSettings />
+        </SecurityPage>
       </AuthGuard>
     ),
   },

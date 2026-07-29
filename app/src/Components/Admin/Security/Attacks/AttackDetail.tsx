@@ -3,10 +3,12 @@ import { Link, useParams } from 'react-router-dom';
 import Table from '../../../../Shared/Components/Table/Table';
 import type { TableColumn } from '../../../../Shared/Components/Table/Table';
 import Title from '../../../../Shared/Components/Font/Title';
+import { AccordionItem } from '../../../../Shared/Components/Accordion';
 import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
 import { useBreadcrumbItems } from '../../../../Layout/Breadcrumb/useBreadcrumb';
 import { formatDate } from '../../../../config/data/date/date';
+import { parseGeoIPInfo, formatGeoIPCountry, formatGeoIPCity, formatGeoIPOrg } from '../geoipInfo';
 
 interface AttackTarget {
     path: string;
@@ -26,6 +28,7 @@ interface AttackDetailResponse {
     ban_count: number;
     targets: AttackTarget[];
     origin_hint?: string;
+    geoip_info?: string;
 }
 
 const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
@@ -73,11 +76,12 @@ export const AttackDetail: React.FC = () => {
               ]
             : [{ label: 'Admin' }, { label: 'Security', href: '/admin/security/attacks' }, { label: 'Attack' }]
     );
-    const { get } = useHttpClient();
-    const { errorMessage } = useSnackBar();
+    const { get, post } = useHttpClient();
+    const { errorMessage, successMessage, infoMessage } = useSnackBar();
 
     const [attack, setAttack] = useState<AttackDetailResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [fetchingGeo, setFetchingGeo] = useState(false);
 
     const load = useCallback(async () => {
         if (!id) return;
@@ -99,6 +103,34 @@ export const AttackDetail: React.FC = () => {
         void load();
     }, [load]);
 
+    // Backfills geoip_info for episodes recorded before the GeoIP
+    // feature existed — only ever called for the live table (never an
+    // archived one; there's no backend route for that, and the button
+    // itself is hidden whenever archiveId is set). matched:false is a
+    // normal outcome, not an error — nothing was persisted, so the
+    // button stays available for a later retry. See
+    // plan/geoip-enrichment/plan.md's "Extension: backfill GeoIP for
+    // historical attack episodes" section.
+    const handleFetchGeoIP = async () => {
+        if (!id) return;
+        setFetchingGeo(true);
+        try {
+            const resp = await post<{ message: { matched: boolean; geoip_info?: string } }>(
+                `admin/security/attacks/{id:${id}}/geoip`
+            );
+            if (resp.message.matched) {
+                setAttack(prev => (prev ? { ...prev, geoip_info: resp.message.geoip_info } : prev));
+                successMessage('GeoIP data fetched.');
+            } else {
+                infoMessage('No GeoIP data available for this IP.');
+            }
+        } catch (err: unknown) {
+            errorMessage(err instanceof Error ? err.message : 'Failed to fetch GeoIP data.');
+        } finally {
+            setFetchingGeo(false);
+        }
+    };
+
     const columns: TableColumn<AttackTarget>[] = [
         { key: 'path', label: 'Path' },
         { key: 'method', label: 'Method' },
@@ -118,6 +150,19 @@ export const AttackDetail: React.FC = () => {
     ];
 
     const backTo = archiveId ? `/admin/security/archives/${archiveId}/attacks` : '/admin/security/attacks';
+
+    const geo = attack ? parseGeoIPInfo(attack.geoip_info) : null;
+    const geoCountry = geo ? formatGeoIPCountry(geo) : null;
+    const geoCity = geo ? formatGeoIPCity(geo) : null;
+    const geoOrg = geo ? formatGeoIPOrg(geo) : null;
+    const hasGeoData = !!(geoCountry || geoCity || geoOrg);
+
+    // Collapsed by default when there's data (it's supplementary to the
+    // fields above); left open when there's none, so the "no data"
+    // case is visible without an extra click. `geoOpenOverride` only
+    // kicks in once the admin actually toggles it themselves.
+    const [geoOpenOverride, setGeoOpenOverride] = useState<boolean | null>(null);
+    const geoOpen = geoOpenOverride ?? !hasGeoData;
 
     return (
         <div>
@@ -148,6 +193,37 @@ export const AttackDetail: React.FC = () => {
                         <Field label="Last seen" value={formatDate(attack.last_seen_at)} />
                         {attack.ended_at && <Field label="Ended" value={formatDate(attack.ended_at)} />}
                     </div>
+
+                    <AccordionItem
+                        title="GeoIP info"
+                        isOpen={geoOpen}
+                        onToggle={() => setGeoOpenOverride(!geoOpen)}
+                        variant="standalone"
+                    >
+                        {hasGeoData ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {geoCountry && <Field label="Country" value={geoCountry} />}
+                                {geoCity && <Field label="City" value={geoCity} />}
+                                {geoOrg && <Field label="ISP / ASN" value={geoOrg} />}
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    No GeoIP data available for this IP.
+                                </p>
+                                {!archiveId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleFetchGeoIP()}
+                                        disabled={fetchingGeo}
+                                        className="px-4 py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                        {fetchingGeo ? 'Fetching…' : 'Fetch GeoIP data'}
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </AccordionItem>
 
                     {attack.origin_hint && (
                         <div>

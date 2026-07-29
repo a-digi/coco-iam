@@ -68,7 +68,8 @@ func freshAttacksDB(t *testing.T) *sql.DB {
 		    ended_at     DATETIME,
 		    hit_count    INTEGER NOT NULL DEFAULT 0,
 		    ban_count    INTEGER NOT NULL DEFAULT 1,
-		    origin_hint  TEXT
+		    origin_hint  TEXT,
+		    geoip_info   TEXT
 		);
 		CREATE TABLE ip_attack_targets (
 		    id          TEXT NOT NULL CONSTRAINT ip_attack_targets_pk PRIMARY KEY,
@@ -134,7 +135,7 @@ func testConfig() Config {
 
 func newTestGuard(t *testing.T, cfg Config) *IPGuardSecurityLayer {
 	t.Helper()
-	g, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, freshAttacksHandle(t), nil, nil)
+	g, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, freshAttacksHandle(t), nil, nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -150,7 +151,7 @@ func request(ip, path string) *http.Request {
 func TestAuthorize_AllowsWithinGlobalLimitThenBans(t *testing.T) {
 	cfg := testConfig()
 	inner := &spyInner{}
-	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil)
+	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -184,7 +185,7 @@ func TestAuthorize_AllowsWithinGlobalLimitThenBans(t *testing.T) {
 func TestAuthorize_BannedIPStaysBlockedOnSubsequentRequests(t *testing.T) {
 	cfg := testConfig()
 	inner := &spyInner{}
-	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil)
+	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -208,7 +209,7 @@ func TestAuthorize_BannedIPStaysBlockedOnSubsequentRequests(t *testing.T) {
 func TestAuthorize_SensitiveTierTripsBeforeGlobalOnGuessedLogins(t *testing.T) {
 	cfg := testConfig() // sensitive limit = 2, global limit = 3
 	inner := &spyInner{}
-	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil)
+	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -236,7 +237,7 @@ func TestAuthorize_SensitiveTierTripsBeforeGlobalOnGuessedLogins(t *testing.T) {
 func TestAuthorize_NonSensitivePathIgnoresSensitiveTier(t *testing.T) {
 	cfg := testConfig() // sensitive limit = 2, global limit = 3
 	inner := &spyInner{}
-	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil)
+	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -253,7 +254,7 @@ func TestAuthorize_NonSensitivePathIgnoresSensitiveTier(t *testing.T) {
 func TestAuthorize_AllowlistedIPBypassesEverything(t *testing.T) {
 	cfg := testConfig()
 	inner := &spyInner{}
-	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil)
+	g, err := NewWithDB(cfg, inner, freshDB(t), nil, freshAttacksHandle(t), nil, nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -371,7 +372,7 @@ func TestHydrate_LoadsActiveBansAndAllowlistFromDB(t *testing.T) {
 		t.Fatalf("seed ip_allowlist: %v", err)
 	}
 
-	g, err := NewWithDB(cfg, &spyInner{}, db, nil, freshAttacksHandle(t), nil, nil)
+	g, err := NewWithDB(cfg, &spyInner{}, db, nil, freshAttacksHandle(t), nil, nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -395,7 +396,7 @@ func TestHydrate_DoesNotLoadAlreadyExpiredBans(t *testing.T) {
 		t.Fatalf("seed ip_bans: %v", err)
 	}
 
-	g, err := NewWithDB(cfg, &spyInner{}, db, nil, freshAttacksHandle(t), nil, nil)
+	g, err := NewWithDB(cfg, &spyInner{}, db, nil, freshAttacksHandle(t), nil, nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}

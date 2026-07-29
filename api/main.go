@@ -157,11 +157,11 @@ func main() {
 		// operator-run iptables logging rule this depends on.
 		scanSource := scanwatch.Detect(log, scanwatch.DefaultSyslogFilePath)
 		scanPersist := scans_persistent.NewScanPersistentRepo(ipAttacksHandle)
-		scanWatcher, err := scanwatch.NewWatcher(scanPersist, scanwatch.DefaultThreshold, scanwatch.DefaultWindow, log)
-		if err != nil {
-			log.Error("scanwatch: failed to initialize: %v", err)
-			os.Exit(1)
-		}
+		// scanWatcher itself is constructed further down, right after
+		// routes.Init(ctx) — it needs the same real geoip.Lookup
+		// routes.Init builds (ctx.GeoIP), which doesn't exist yet at
+		// this point in boot. Nothing between here and there depends
+		// on scanWatcher already existing.
 
 		// Dedicated attack log — one line per rejected request while an
 		// IP is under an open attack episode, kept separate from the
@@ -639,6 +639,22 @@ func main() {
 		// from the sweeper above since rotation is a much rarer, distinct
 		// concern. See plan/ip-attacks-db-archiving/plan.md.
 		go dbArchiver.Run(queueCtx)
+
+		// geoip.db hot-reload watcher — notices when the separate
+		// geoip-updater process (started/stopped via the admin UI, see
+		// geoip.Manager) replaces geoip.db and reopens it, without this
+		// server ever needing a restart. ctx.GeoIPWatcher is set inside
+		// routes.Init above. See plan/geoip-enrichment/plan.md.
+		go ctx.GeoIPWatcher.Run(queueCtx)
+
+		// scanWatcher is constructed here rather than earlier, since it
+		// needs the same real geoip.Lookup routes.Init just built
+		// (ctx.GeoIP) — see plan/geoip-enrichment/plan.md.
+		scanWatcher, err := scanwatch.NewWatcher(scanPersist, scanwatch.DefaultThreshold, scanwatch.DefaultWindow, log, ctx.GeoIP)
+		if err != nil {
+			log.Error("scanwatch: failed to initialize: %v", err)
+			os.Exit(1)
+		}
 
 		// Port-scan detection: start the log source (a no-op if
 		// unavailable — Available()/Detail() report why on the admin

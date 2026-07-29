@@ -55,6 +55,26 @@ build-linux: swag-gen
 	    CXX="zig c++ -target $(ZIG_TARGET)" \
 	    go build -o ../versions/coco-iam-deploy .
 
+# geoipupdater is the separate, always-running executable from
+# plan/geoip-enrichment/plan.md — never launched via cron, kept
+# running by the same kind of process supervisor as the main server.
+.PHONY: build-geoipupdater
+build-geoipupdater:
+	@mkdir -p versions
+	cd api && go build -o ../versions/geoipupdater ./cmd/geoipupdater
+
+.PHONY: build-geoipupdater-linux
+build-geoipupdater-linux:
+	@mkdir -p versions
+	@command -v zig >/dev/null 2>&1 || { \
+	    echo "zig not found. Install with: brew install zig"; \
+	    exit 1; \
+	}
+	cd api && CGO_ENABLED=1 GOOS=linux GOARCH=$(DEPLOY_GOARCH) \
+	    CC="zig cc -target $(ZIG_TARGET)" \
+	    CXX="zig c++ -target $(ZIG_TARGET)" \
+	    go build -o ../versions/geoipupdater-deploy ./cmd/geoipupdater
+
 .PHONY: run-dev
 run-dev:
 	@if [ -f .env ]; then set -a; . ./.env; set +a; fi; \
@@ -174,7 +194,7 @@ deploy-tool-build:
 	cd deploy/app && go build -o bin/deploy ./cmd/deploy
 
 .PHONY: deploy-build
-deploy-build: build-linux
+deploy-build: build-linux build-geoipupdater-linux
 	cd app && npm install && npm run build
 
 .PHONY: deploy
@@ -184,6 +204,10 @@ deploy: deploy-tool-build deploy-build
 .PHONY: deploy-api
 deploy-api: deploy-tool-build build-linux
 	./$(DEPLOY_BIN) deploy --config $(DEPLOY_CONFIG) --artifact backend-binary $(FLAGS)
+
+.PHONY: deploy-geoipupdater
+deploy-geoipupdater: deploy-tool-build build-geoipupdater-linux
+	./$(DEPLOY_BIN) deploy --config $(DEPLOY_CONFIG) --artifact geoipupdater-binary $(FLAGS)
 
 .PHONY: deploy-frontend
 deploy-frontend: deploy-tool-build

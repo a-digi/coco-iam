@@ -213,6 +213,16 @@ definitions:
       ended_at:
         example: "2026-07-26T10:30:00Z"
         type: string
+      geoip_info:
+        description: |-
+          GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for
+          IP at the moment this episode opened — frozen then, never
+          re-derived later (geoip.db keeps no history of its own).
+          Populated on both the list and the detail fetch. Empty if geoip
+          was disabled, IP was loopback/private, or nothing matched.
+        example: '{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
+        type: string
       hit_count:
         example: 143
         type: integer
@@ -246,6 +256,16 @@ definitions:
         type: integer
       ended_at:
         example: "2026-07-26T10:30:00Z"
+        type: string
+      geoip_info:
+        description: |-
+          GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for
+          IP at the moment this episode opened — frozen then, never
+          re-derived later (geoip.db keeps no history of its own).
+          Populated on both the list and the detail fetch. Empty if geoip
+          was disabled, IP was loopback/private, or nothing matched.
+        example: '{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
         type: string
       hit_count:
         example: 143
@@ -405,6 +425,24 @@ definitions:
     properties:
       message:
         $ref: '#/definitions/entity.CreateUserResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.FetchGeoIPResponse:
+    properties:
+      geoip_info:
+        example: '{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
+        type: string
+      matched:
+        example: true
+        type: boolean
+    type: object
+  entity.FetchGeoIPSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.FetchGeoIPResponse'
       success:
         example: true
         type: boolean
@@ -715,6 +753,16 @@ definitions:
       ended_at:
         example: "2026-07-26T10:30:00Z"
         type: string
+      geoip_info:
+        description: |-
+          GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for
+          IP at the moment this episode opened — frozen then, never
+          re-derived later (geoip.db keeps no history of its own). Empty
+          if geoip was disabled, IP was loopback/private, or nothing
+          matched.
+        example: '{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
+        type: string
       hit_count:
         example: 37
         type: integer
@@ -967,6 +1015,54 @@ definitions:
         example: docs:read
         type: string
     type: object
+  handler.IPSearchResponse:
+    properties:
+      query:
+        example: 94.154.43.
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/handler.IPSearchResult'
+        type: array
+    type: object
+  handler.IPSearchResult:
+    properties:
+      as_org:
+        example: Deutsche Telekom AG
+        type: string
+      asn:
+        example: 3320
+        type: integer
+      city:
+        example: Berlin
+        type: string
+      country:
+        example: Germany
+        type: string
+      country_code:
+        example: DE
+        type: string
+      ip:
+        example: 94.154.43.188
+        type: string
+      matched:
+        example: true
+        type: boolean
+      postal_code:
+        example: "10115"
+        type: string
+      subdivision:
+        example: Berlin
+        type: string
+    type: object
+  handler.IPSearchSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/handler.IPSearchResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   handler.PatchScopeBody:
     properties:
       description:
@@ -989,6 +1085,79 @@ definitions:
     properties:
       message:
         $ref: '#/definitions/handler.ScopeDeleteStatus'
+      success:
+        example: true
+        type: boolean
+    type: object
+  handler.SettingsRequest:
+    properties:
+      check_interval_seconds:
+        example: 600
+        type: integer
+      enabled:
+        example: true
+        type: boolean
+      maxmind_account_id:
+        example: "123456"
+        type: string
+      maxmind_license_key:
+        example: a1b2c3d4e5f6
+        type: string
+      pull_interval_hours:
+        example: 24
+        type: integer
+    type: object
+  handler.SettingsResponse:
+    properties:
+      check_interval_seconds:
+        example: 600
+        type: integer
+      enabled:
+        example: true
+        type: boolean
+      maxmind_account_id:
+        example: "123456"
+        type: string
+      maxmind_license_key_mask:
+        example: ••••••••
+        type: string
+      pull_interval_hours:
+        example: 24
+        type: integer
+    type: object
+  handler.SettingsSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/handler.SettingsResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  handler.StatusResponse:
+    properties:
+      asn_range_count:
+        example: 573104
+        type: integer
+      city_range_count:
+        example: 1108580
+        type: integer
+      enabled:
+        example: true
+        type: boolean
+      last_pulled_at:
+        example: "2026-07-29T09:00:00Z"
+        type: string
+      pid:
+        example: 48213
+        type: integer
+      running:
+        example: true
+        type: boolean
+    type: object
+  handler.StatusSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/handler.StatusResponse'
       success:
         example: true
         type: boolean
@@ -4239,6 +4408,306 @@ paths:
       summary: Get one attack episode
       tags:
       - security
+  /admin/security/attacks/{id}/geoip:
+    post:
+      description: |-
+        Runs a live GeoIP lookup for this episode's IP and persists the result into
+        geoip_info — for historical episodes recorded before the GeoIP feature existed.
+        Fails with 409 if geoip_info is already set (never overwrites an existing frozen
+        snapshot) or if GeoIP is not currently enabled. matched:false (still 200) means the
+        IP is loopback/private or has no current GeoLite2 coverage — nothing is persisted,
+        so the button stays available for a future retry.
+      parameters:
+      - description: Attack episode id, as {id:<value>}
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.FetchGeoIPSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Backfill GeoIP data for an attack episode
+      tags:
+      - security
+  /admin/security/geoip/search:
+    get:
+      description: |-
+        Given a complete IP, returns a live GeoIP lookup for it. Given a
+        partial/incomplete input, returns up to `limit` known IPs (from
+        recorded attack/scan history) starting with that prefix, each with
+        its own live GeoIP lookup. See plan/geoip-enrichment/plan.md's
+        "Extension: IP search" section.
+      parameters:
+      - description: Full or partial IP address
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: Max autocomplete suggestions (default 10, max 25)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.IPSearchSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Search for an IP, full or partial
+      tags:
+      - security-geoip
+  /admin/security/geoip/settings:
+    get:
+      description: |-
+        Returns the current GeoIP enrichment settings. The MaxMind
+        license key is never returned — only a fixed mask when one is
+        stored. See plan/geoip-enrichment/plan.md.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SettingsSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get GeoIP settings
+      tags:
+      - security-geoip
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Updates GeoIP enrichment settings, including the MaxMind
+        account ID and license key. An empty/omitted
+        maxmind_license_key leaves the currently-stored key unchanged
+        — submit a non-empty value only when actually changing it.
+        Changes take effect the next time the geoip-updater process is
+        (re)started, not while it's already running.
+      parameters:
+      - description: GeoIP settings
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.SettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SettingsSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update GeoIP settings
+      tags:
+      - security-geoip
+  /admin/security/geoip/start:
+    post:
+      description: |-
+        Launches the geoip-updater executable, detached so it survives
+        this admin server's own restart. Refuses (409) if an instance
+        is already running — tracked via a PID file, not in-memory
+        state, so this is accurate even across an admin-server restart.
+        See plan/geoip-enrichment/plan.md's "Process control" section.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.StatusSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Start the geoip-updater process
+      tags:
+      - security-geoip
+  /admin/security/geoip/status:
+    get:
+      description: |-
+        Reports whether the geoip-updater process is currently
+        running, its PID, whether geoip is enabled, and when it last
+        successfully pulled fresh data (if ever).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.StatusSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: GeoIP updater process status
+      tags:
+      - security-geoip
+  /admin/security/geoip/stop:
+    post:
+      description: |-
+        Signals the running geoip-updater process to shut down
+        gracefully. A no-op (not an error) if nothing is currently
+        running.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.StatusSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Stop the geoip-updater process
+      tags:
+      - security-geoip
+  /admin/security/geoip/sync:
+    post:
+      description: |-
+        Signals the running geoip-updater process to pull fresh data
+        immediately, bypassing the normal pull_interval_hours staleness
+        check. Fails with 409 if the updater isn't currently running —
+        nothing to signal. See plan/geoip-enrichment/plan.md's
+        "Extension: database stats + manual sync" section.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.StatusSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Force an immediate GeoIP data sync
+      tags:
+      - security-geoip
   /admin/security/ip-allowlist:
     get:
       produces:

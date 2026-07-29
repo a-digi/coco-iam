@@ -300,6 +300,10 @@
                             {
                                 "id": "admin:security:attacks:read",
                                 "description": "Allows viewing recorded attack episodes and their targeted endpoints."
+                            },
+                            {
+                                "id": "admin:security:attacks:write",
+                                "description": "Allows manually backfilling GeoIP data for attack episodes recorded before the GeoIP feature existed."
                             }
                         ]
                     },
@@ -320,6 +324,20 @@
                             {
                                 "id": "admin:security:scans:read",
                                 "description": "Allows viewing recorded port-scan episodes."
+                            }
+                        ]
+                    },
+                    {
+                        "id": "admin:security:geoip",
+                        "description": "Allows viewing and managing GeoIP enrichment settings and the update process.",
+                        "scopes": [
+                            {
+                                "id": "admin:security:geoip:read",
+                                "description": "Allows viewing GeoIP settings (credentials masked) and update-process status."
+                            },
+                            {
+                                "id": "admin:security:geoip:write",
+                                "description": "Allows editing GeoIP settings (including MaxMind credentials) and starting/stopping the update process."
                             }
                         ]
                     }

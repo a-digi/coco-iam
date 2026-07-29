@@ -42,4 +42,10 @@ export const DEFAULT_SECURITY_MENU: SecurityMenuEntry[] = [
         matchPrefixes: ['/admin/security/scans'],
         scopes: [AppScopes.AdminSecurityScansRead, AppScopes.SuperAdmin],
     },
+    {
+        label: 'GeoIP',
+        href: '/admin/security/geoip',
+        matchPrefixes: ['/admin/security/geoip'],
+        scopes: [AppScopes.AdminSecurityGeoipRead, AppScopes.SuperAdmin],
+    },
 ];

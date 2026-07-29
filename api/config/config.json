@@ -20,5 +20,15 @@
         "/public/applications/recover/request", "/public/applications/recover/reset"
       ]
     }
+  },
+  "geoip": {
+    "enabled": false,
+    "db_path": "./data/db/security/geoip.db",
+    "check_interval_seconds": 600,
+    "pull_interval_hours": 24,
+    "maxmind_account_id": "",
+    "maxmind_license_key": "",
+    "pid_file": "./data/geoip-updater.pid",
+    "updater_binary_path": "./versions/geoipupdater"
   }
 }

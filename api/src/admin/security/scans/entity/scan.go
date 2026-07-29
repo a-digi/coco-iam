@@ -16,6 +16,12 @@ type Scan struct {
 	DistinctPorts int    `json:"distinct_ports" example:"14"`
 	HitCount      int    `json:"hit_count" example:"37"`
 	SamplePorts   string `json:"sample_ports" example:"22,80,443,3306,8080"`
+	// GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for
+	// IP at the moment this episode opened — frozen then, never
+	// re-derived later (geoip.db keeps no history of its own). Empty
+	// if geoip was disabled, IP was loopback/private, or nothing
+	// matched.
+	GeoIPInfo string `json:"geoip_info,omitempty" example:"{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"`
 }
 
 // ScanListResponse is the list endpoint's payload — Total is the

@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Title from '../../../../Shared/Components/Font/Title';
+import { AccordionItem } from '../../../../Shared/Components/Accordion';
 import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
 import { useBreadcrumbItems } from '../../../../Layout/Breadcrumb/useBreadcrumb';
 import { formatDate } from '../../../../config/data/date/date';
+import { parseGeoIPInfo, formatGeoIPCountry, formatGeoIPCity, formatGeoIPOrg } from '../geoipInfo';
 
 interface ScanDetailResponse {
     id: string;
@@ -15,6 +17,7 @@ interface ScanDetailResponse {
     distinct_ports: number;
     hit_count: number;
     sample_ports: string;
+    geoip_info?: string;
 }
 
 const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
@@ -54,6 +57,17 @@ export const ScanDetail: React.FC = () => {
         void load();
     }, [load]);
 
+    const geo = scan ? parseGeoIPInfo(scan.geoip_info) : null;
+    const geoCountry = geo ? formatGeoIPCountry(geo) : null;
+    const geoCity = geo ? formatGeoIPCity(geo) : null;
+    const geoOrg = geo ? formatGeoIPOrg(geo) : null;
+    const hasGeoData = !!(geoCountry || geoCity || geoOrg);
+
+    // Collapsed by default when there's data, left open when there's
+    // none — see AttackDetail.tsx's identical pattern.
+    const [geoOpenOverride, setGeoOpenOverride] = useState<boolean | null>(null);
+    const geoOpen = geoOpenOverride ?? !hasGeoData;
+
     return (
         <div>
             <div className="mb-4">
@@ -82,6 +96,25 @@ export const ScanDetail: React.FC = () => {
                         <Field label="Last seen" value={formatDate(scan.last_seen_at)} />
                         {scan.ended_at && <Field label="Ended" value={formatDate(scan.ended_at)} />}
                     </div>
+
+                    <AccordionItem
+                        title="GeoIP info"
+                        isOpen={geoOpen}
+                        onToggle={() => setGeoOpenOverride(!geoOpen)}
+                        variant="standalone"
+                    >
+                        {hasGeoData ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {geoCountry && <Field label="Country" value={geoCountry} />}
+                                {geoCity && <Field label="City" value={geoCity} />}
+                                {geoOrg && <Field label="ISP / ASN" value={geoOrg} />}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                No GeoIP data available for this IP.
+                            </p>
+                        )}
+                    </AccordionItem>
 
                     <div>
                         <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Sample ports</div>

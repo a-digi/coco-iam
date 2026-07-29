@@ -533,6 +533,13 @@ routes:
             scopes:
               - admin:security:attacks:read
               - super:admin
+          - path: /security/attacks/{id}/geoip
+            method: POST
+            executor: AttackFetchGeoIPHandler
+            security: authenticated
+            scopes:
+              - admin:security:attacks:write
+              - super:admin
           - path: /security/archives
             method: GET
             executor: ArchiveListHandler
@@ -581,6 +588,55 @@ routes:
             security: authenticated
             scopes:
               - admin:security:attacks:read
+              - super:admin
+          - path: /security/geoip/settings
+            method: GET
+            executor: GeoIPGetSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:geoip:read
+              - super:admin
+          - path: /security/geoip/settings
+            method: PUT
+            executor: GeoIPPutSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:geoip:write
+              - super:admin
+          - path: /security/geoip/status
+            method: GET
+            executor: GeoIPStatusHandler
+            security: authenticated
+            scopes:
+              - admin:security:geoip:read
+              - super:admin
+          - path: /security/geoip/start
+            method: POST
+            executor: GeoIPStartHandler
+            security: authenticated
+            scopes:
+              - admin:security:geoip:write
+              - super:admin
+          - path: /security/geoip/stop
+            method: POST
+            executor: GeoIPStopHandler
+            security: authenticated
+            scopes:
+              - admin:security:geoip:write
+              - super:admin
+          - path: /security/geoip/sync
+            method: POST
+            executor: GeoIPSyncHandler
+            security: authenticated
+            scopes:
+              - admin:security:geoip:write
+              - super:admin
+          - path: /security/geoip/search
+            method: GET
+            executor: IPSearchHandler
+            security: authenticated
+            scopes:
+              - admin:security:geoip:read
               - super:admin
           - path: /queue/queues
             method: GET

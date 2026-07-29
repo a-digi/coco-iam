@@ -49,20 +49,3 @@ func ClientIP(r *http.Request, trustHeaders []string) string {
 	}
 	return host
 }
-
-// isLoopbackOrPrivate reports whether ip parses as a loopback
-// (127.0.0.0/8, ::1) or RFC1918/ULA private address. Used to decide
-// whether an ip resolved by ClientIP is worth capturing an origin-hint
-// diagnostic snapshot for (see recordAttackHit and
-// plan/attack-ip-attribution/plan.md Fix 3): a genuine public attacker
-// IP needs no such fallback, but a loopback/private result usually
-// means none of the configured trust headers resolved on this
-// particular request, and the raw headers actually present are the
-// only lead left for tracing the real source by hand.
-func isLoopbackOrPrivate(ip string) bool {
-	parsed := net.ParseIP(ip)
-	if parsed == nil {
-		return false
-	}
-	return parsed.IsLoopback() || parsed.IsPrivate()
-}

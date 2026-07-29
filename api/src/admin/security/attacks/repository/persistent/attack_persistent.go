@@ -37,18 +37,25 @@ func NewAttackPersistentRepo(handle *dbhandle.Handle) *AttackPersistentRepo {
 // captured only when ip resolved to a loopback/private address (i.e.
 // the configured trust header(s) found nothing usable) — nil in the
 // normal case where ip was resolved successfully. See
-// plan/attack-ip-attribution/plan.md Fix 3.
-func (r *AttackPersistentRepo) CreateAttack(id, ip, tier string, startedAt time.Time, originHint *string) error {
+// plan/attack-ip-attribution/plan.md Fix 3. geoInfo is a JSON snapshot
+// of the geoip.Info resolved for ip at this exact moment (nil if
+// geoip is disabled, ip is loopback/private, or nothing matched) —
+// frozen here and never re-derived later, since geoip.db keeps no
+// history of its own. See plan/geoip-enrichment/plan.md.
+func (r *AttackPersistentRepo) CreateAttack(id, ip, tier string, startedAt time.Time, originHint, geoInfo *string) error {
 	db := r.handle.DB()
 	ts := startedAt.UTC().Format(timeLayout)
-	var originHintArg interface{}
+	var originHintArg, geoInfoArg interface{}
 	if originHint != nil {
 		originHintArg = *originHint
 	}
+	if geoInfo != nil {
+		geoInfoArg = *geoInfo
+	}
 	_, err := db.Exec(
-		`INSERT INTO ip_attacks (id, ip, tier, started_at, last_seen_at, hit_count, ban_count, origin_hint)
-		 VALUES (?, ?, ?, ?, ?, 0, 1, ?)`,
-		id, ip, tier, ts, ts, originHintArg,
+		`INSERT INTO ip_attacks (id, ip, tier, started_at, last_seen_at, hit_count, ban_count, origin_hint, geoip_info)
+		 VALUES (?, ?, ?, ?, ?, 0, 1, ?, ?)`,
+		id, ip, tier, ts, ts, originHintArg, geoInfoArg,
 	)
 	if err != nil {
 		return fmt.Errorf("ip-attack: create: %w", err)
@@ -82,6 +89,25 @@ func (r *AttackPersistentRepo) CloseAttack(id string, endedAt time.Time) error {
 	)
 	if err != nil {
 		return fmt.Errorf("ip-attack: close: %w", err)
+	}
+	return nil
+}
+
+// SetGeoIPInfo backfills geoip_info for an episode recorded before the
+// GeoIP feature existed. Never creates a row, so it never touches the
+// entry counter. Callers must check the row's current geoip_info is
+// empty before calling this — SetGeoIPInfo itself has no such guard,
+// since that check requires a read this write-only repo doesn't own;
+// see FetchGeoIPHandler's 409-on-already-set check. See
+// plan/geoip-enrichment/plan.md's "Extension: backfill GeoIP for
+// historical attack episodes" section.
+func (r *AttackPersistentRepo) SetGeoIPInfo(id, geoInfo string) error {
+	_, err := r.handle.DB().Exec(
+		`UPDATE ip_attacks SET geoip_info = ? WHERE id = ?`,
+		geoInfo, id,
+	)
+	if err != nil {
+		return fmt.Errorf("ip-attack: set geoip info: %w", err)
 	}
 	return nil
 }

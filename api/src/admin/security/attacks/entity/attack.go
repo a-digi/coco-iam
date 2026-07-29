@@ -20,6 +20,12 @@ type Attack struct {
 	// headers, captured only when IP resolved to a loopback/private
 	// address — populated on the detail fetch only, never on the list.
 	OriginHint string `json:"origin_hint,omitempty" example:"{\"x_forwarded_for\":\"203.0.113.7\",\"host\":\"coco-iam.example.com\"}"`
+	// GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for
+	// IP at the moment this episode opened — frozen then, never
+	// re-derived later (geoip.db keeps no history of its own).
+	// Populated on both the list and the detail fetch. Empty if geoip
+	// was disabled, IP was loopback/private, or nothing matched.
+	GeoIPInfo string `json:"geoip_info,omitempty" example:"{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"`
 }
 
 // AttackTarget is the aggregated hit count for one endpoint (method +

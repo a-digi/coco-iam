@@ -127,7 +127,8 @@ func newArchivedFile(t *testing.T) string {
 		    ended_at     DATETIME,
 		    hit_count    INTEGER NOT NULL DEFAULT 0,
 		    ban_count    INTEGER NOT NULL DEFAULT 1,
-		    origin_hint  TEXT
+		    origin_hint  TEXT,
+		    geoip_info   TEXT
 		);
 		CREATE TABLE ip_attack_targets (
 		    id          TEXT NOT NULL CONSTRAINT ip_attack_targets_pk PRIMARY KEY,

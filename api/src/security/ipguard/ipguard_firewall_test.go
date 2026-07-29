@@ -74,7 +74,7 @@ func waitFor(t *testing.T, cond func() bool) {
 
 func newTestGuardWithFirewall(t *testing.T, cfg Config, fw *fakeFirewall) *IPGuardSecurityLayer {
 	t.Helper()
-	g, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, freshAttacksHandle(t), nil, fw)
+	g, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, freshAttacksHandle(t), nil, fw, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}

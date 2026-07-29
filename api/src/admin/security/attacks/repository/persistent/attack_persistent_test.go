@@ -32,7 +32,8 @@ func freshDB(t *testing.T) *sql.DB {
 		    ended_at     DATETIME,
 		    hit_count    INTEGER NOT NULL DEFAULT 0,
 		    ban_count    INTEGER NOT NULL DEFAULT 1,
-		    origin_hint  TEXT
+		    origin_hint  TEXT,
+		    geoip_info   TEXT
 		);
 		CREATE TABLE ip_attack_targets (
 		    id          TEXT NOT NULL CONSTRAINT ip_attack_targets_pk PRIMARY KEY,
@@ -71,7 +72,7 @@ func TestCreateAttack_ThenFindable(t *testing.T) {
 	query := attacks_query.NewAttackQueryRepo(handle)
 
 	now := time.Now()
-	if err := persist.CreateAttack("attack-1", "203.0.113.7", "sensitive", now, nil); err != nil {
+	if err := persist.CreateAttack("attack-1", "203.0.113.7", "sensitive", now, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 
@@ -100,7 +101,7 @@ func TestCreateAttack_StoresOriginHintWhenProvided(t *testing.T) {
 	query := attacks_query.NewAttackQueryRepo(handle)
 
 	hint := `{"x_forwarded_for":"198.51.100.9","host":"coco-iam.example.com"}`
-	if err := persist.CreateAttack("attack-1", "127.0.0.1", "unmatched", time.Now(), &hint); err != nil {
+	if err := persist.CreateAttack("attack-1", "127.0.0.1", "unmatched", time.Now(), &hint, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 
@@ -113,6 +114,73 @@ func TestCreateAttack_StoresOriginHintWhenProvided(t *testing.T) {
 	}
 }
 
+func TestCreateAttack_StoresGeoIPInfoWhenProvided(t *testing.T) {
+	db := freshDB(t)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
+
+	geoInfo := `{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche Telekom AG"}`
+	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", time.Now(), nil, &geoInfo); err != nil {
+		t.Fatalf("CreateAttack() error = %v", err)
+	}
+
+	a, err := query.FindAttack("attack-1")
+	if err != nil {
+		t.Fatalf("FindAttack() error = %v", err)
+	}
+	if a.GeoIPInfo != geoInfo {
+		t.Fatalf("GeoIPInfo = %q, want %q", a.GeoIPInfo, geoInfo)
+	}
+
+	// Confirm ListAttacks also carries geoip_info — unlike origin_hint,
+	// this field is populated on the list view too.
+	all, err := query.ListAttacks(attacks_query.ListFilter{Limit: 50})
+	if err != nil {
+		t.Fatalf("ListAttacks() error = %v", err)
+	}
+	if len(all) != 1 || all[0].GeoIPInfo != geoInfo {
+		t.Fatalf("ListAttacks() = %+v, want a single entry with GeoIPInfo = %q", all, geoInfo)
+	}
+}
+
+func TestSetGeoIPInfo_BackfillsAnEmptyRow(t *testing.T) {
+	db := freshDB(t)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
+
+	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", time.Now(), nil, nil); err != nil {
+		t.Fatalf("CreateAttack() error = %v", err)
+	}
+	a, err := query.FindAttack("attack-1")
+	if err != nil {
+		t.Fatalf("FindAttack() error = %v", err)
+	}
+	if a.GeoIPInfo != "" {
+		t.Fatalf("GeoIPInfo = %q before backfill, want empty", a.GeoIPInfo)
+	}
+
+	geoInfo := `{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche Telekom AG"}`
+	if err := persist.SetGeoIPInfo("attack-1", geoInfo); err != nil {
+		t.Fatalf("SetGeoIPInfo() error = %v", err)
+	}
+
+	a, err = query.FindAttack("attack-1")
+	if err != nil {
+		t.Fatalf("FindAttack() error = %v", err)
+	}
+	if a.GeoIPInfo != geoInfo {
+		t.Fatalf("GeoIPInfo after backfill = %q, want %q", a.GeoIPInfo, geoInfo)
+	}
+
+	// SetGeoIPInfo never creates a row and must not touch the entry
+	// counter, unlike CreateAttack/a new SetTargetCount row.
+	if got := persist.handle.EntryCount(); got != 1 {
+		t.Fatalf("EntryCount() after SetGeoIPInfo = %d, want 1 (unchanged from CreateAttack)", got)
+	}
+}
+
 func TestUpdateAttackCounts_FlushesLatestTotals(t *testing.T) {
 	db := freshDB(t)
 	handle := mustHandle(t, db)
@@ -120,7 +188,7 @@ func TestUpdateAttackCounts_FlushesLatestTotals(t *testing.T) {
 	query := attacks_query.NewAttackQueryRepo(handle)
 
 	now := time.Now()
-	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", now, nil); err != nil {
+	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", now, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 	if err := persist.UpdateAttackCounts("attack-1", 42, 3, now.Add(time.Minute)); err != nil {
@@ -143,7 +211,7 @@ func TestCloseAttack_SetsEndedAt(t *testing.T) {
 	query := attacks_query.NewAttackQueryRepo(handle)
 
 	now := time.Now()
-	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", now, nil); err != nil {
+	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", now, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 	if err := persist.CloseAttack("attack-1", now.Add(5*time.Minute)); err != nil {
@@ -166,13 +234,13 @@ func TestCloseAllOpen_ClosesOnlyOpenRows(t *testing.T) {
 	query := attacks_query.NewAttackQueryRepo(handle)
 
 	now := time.Now()
-	if err := persist.CreateAttack("open-1", "1.1.1.1", "global", now, nil); err != nil {
+	if err := persist.CreateAttack("open-1", "1.1.1.1", "global", now, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
-	if err := persist.CreateAttack("open-2", "2.2.2.2", "sensitive", now, nil); err != nil {
+	if err := persist.CreateAttack("open-2", "2.2.2.2", "sensitive", now, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
-	if err := persist.CreateAttack("already-closed", "3.3.3.3", "global", now, nil); err != nil {
+	if err := persist.CreateAttack("already-closed", "3.3.3.3", "global", now, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 	if err := persist.CloseAttack("already-closed", now); err != nil {
@@ -204,7 +272,7 @@ func TestSetTargetCount_CreatesThenUpdatesInPlace(t *testing.T) {
 	persist := NewAttackPersistentRepo(handle)
 	query := attacks_query.NewAttackQueryRepo(handle)
 
-	if err := persist.CreateAttack("attack-1", "203.0.113.7", "sensitive", time.Now(), nil); err != nil {
+	if err := persist.CreateAttack("attack-1", "203.0.113.7", "sensitive", time.Now(), nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 	if got := persist.handle.EntryCount(); got != 1 {
@@ -250,7 +318,7 @@ func TestSetTargetCount_BodySampleWrittenOnceAndNeverOverwritten(t *testing.T) {
 	persist := NewAttackPersistentRepo(handle)
 	query := attacks_query.NewAttackQueryRepo(handle)
 
-	if err := persist.CreateAttack("attack-1", "203.0.113.7", "sensitive", time.Now(), nil); err != nil {
+	if err := persist.CreateAttack("attack-1", "203.0.113.7", "sensitive", time.Now(), nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 
@@ -290,7 +358,7 @@ func TestSetTargetCount_DifferentEndpointsAreSeparateRows(t *testing.T) {
 	persist := NewAttackPersistentRepo(handle)
 	query := attacks_query.NewAttackQueryRepo(handle)
 
-	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", time.Now(), nil); err != nil {
+	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", time.Now(), nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 	if err := persist.SetTargetCount("attack-1", "/a", "GET", 3, nil); err != nil {
@@ -316,10 +384,10 @@ func TestListAttacks_NewestFirstAndPaginated(t *testing.T) {
 	query := attacks_query.NewAttackQueryRepo(handle)
 
 	base := time.Now()
-	if err := persist.CreateAttack("older", "1.1.1.1", "global", base, nil); err != nil {
+	if err := persist.CreateAttack("older", "1.1.1.1", "global", base, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
-	if err := persist.CreateAttack("newer", "2.2.2.2", "global", base.Add(time.Minute), nil); err != nil {
+	if err := persist.CreateAttack("newer", "2.2.2.2", "global", base.Add(time.Minute), nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 
@@ -355,13 +423,13 @@ func TestListAttacks_FiltersByIPTierAndActiveOnly(t *testing.T) {
 	query := attacks_query.NewAttackQueryRepo(handle)
 
 	base := time.Now()
-	if err := persist.CreateAttack("a", "1.1.1.1", "global", base, nil); err != nil {
+	if err := persist.CreateAttack("a", "1.1.1.1", "global", base, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
-	if err := persist.CreateAttack("b", "1.1.1.1", "sensitive", base, nil); err != nil {
+	if err := persist.CreateAttack("b", "1.1.1.1", "sensitive", base, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
-	if err := persist.CreateAttack("c", "2.2.2.2", "global", base, nil); err != nil {
+	if err := persist.CreateAttack("c", "2.2.2.2", "global", base, nil, nil); err != nil {
 		t.Fatalf("CreateAttack() error = %v", err)
 	}
 	if err := persist.CloseAttack("a", base); err != nil {
