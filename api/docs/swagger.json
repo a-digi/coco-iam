@@ -4382,7 +4382,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.SettingsSuccess"
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsSuccess"
                         }
                     },
                     "401": {
@@ -4429,7 +4429,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.SettingsRequest"
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsRequest"
                         }
                     }
                 ],
@@ -4437,7 +4437,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.SettingsSuccess"
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsSuccess"
                         }
                     },
                     "400": {
@@ -4969,6 +4969,110 @@
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/login-bans/settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the current admin-console and application-login failed-login ban-rule settings. Both default to disabled until explicitly turned on.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-login-bans"
+                ],
+                "summary": "Get failed-login ban-rule settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates the admin-console and application-login failed-login ban-rule settings. A domain with enabled=false stores its numbers as submitted but skips validation on them, since no live rule depends on them yet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-login-bans"
+                ],
+                "summary": "Update failed-login ban-rule settings",
+                "parameters": [
+                    {
+                        "description": "Ban-rule settings",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorBody"
                         }
@@ -11949,6 +12053,102 @@
                 }
             }
         },
+        "github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsRequest": {
+            "type": "object",
+            "properties": {
+                "check_interval_seconds": {
+                    "type": "integer",
+                    "example": 600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "maxmind_account_id": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "maxmind_license_key": {
+                    "type": "string",
+                    "example": "a1b2c3d4e5f6"
+                },
+                "pull_interval_hours": {
+                    "type": "integer",
+                    "example": 24
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "check_interval_seconds": {
+                    "type": "integer",
+                    "example": 600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "maxmind_account_id": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "maxmind_license_key_mask": {
+                    "type": "string",
+                    "example": "••••••••"
+                },
+                "pull_interval_hours": {
+                    "type": "integer",
+                    "example": 24
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsRequest": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "$ref": "#/definitions/handler.DomainRuleResponse"
+                },
+                "application": {
+                    "$ref": "#/definitions/handler.DomainRuleResponse"
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "$ref": "#/definitions/handler.DomainRuleResponse"
+                },
+                "application": {
+                    "$ref": "#/definitions/handler.DomainRuleResponse"
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "handler.ApplicationScopeListPayload": {
             "type": "object",
             "properties": {
@@ -12033,6 +12233,27 @@
                     "description": "ScopeID must match acl.ScopeIDFormat: letters/underscores per\nsegment, separated by colons. Immutable once created.",
                     "type": "string",
                     "example": "docs:read"
+                }
+            }
+        },
+        "handler.DomainRuleResponse": {
+            "type": "object",
+            "properties": {
+                "ban_seconds": {
+                    "type": "integer",
+                    "example": 3600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "threshold": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "window_seconds": {
+                    "type": "integer",
+                    "example": 600
                 }
             }
         },
@@ -12135,68 +12356,6 @@
             "properties": {
                 "message": {
                     "$ref": "#/definitions/handler.ScopeDeleteStatus"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "handler.SettingsRequest": {
-            "type": "object",
-            "properties": {
-                "check_interval_seconds": {
-                    "type": "integer",
-                    "example": 600
-                },
-                "enabled": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "maxmind_account_id": {
-                    "type": "string",
-                    "example": "123456"
-                },
-                "maxmind_license_key": {
-                    "type": "string",
-                    "example": "a1b2c3d4e5f6"
-                },
-                "pull_interval_hours": {
-                    "type": "integer",
-                    "example": 24
-                }
-            }
-        },
-        "handler.SettingsResponse": {
-            "type": "object",
-            "properties": {
-                "check_interval_seconds": {
-                    "type": "integer",
-                    "example": 600
-                },
-                "enabled": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "maxmind_account_id": {
-                    "type": "string",
-                    "example": "123456"
-                },
-                "maxmind_license_key_mask": {
-                    "type": "string",
-                    "example": "••••••••"
-                },
-                "pull_interval_hours": {
-                    "type": "integer",
-                    "example": 24
-                }
-            }
-        },
-        "handler.SettingsSuccess": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "$ref": "#/definitions/handler.SettingsResponse"
                 },
                 "success": {
                     "type": "boolean",
