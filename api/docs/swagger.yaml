@@ -745,6 +745,26 @@ definitions:
         items: {}
         type: array
     type: object
+  entity.ResetPasswordRequest:
+    properties:
+      new_password:
+        example: a-new-strong-password
+        type: string
+    type: object
+  entity.ResetPasswordResponse:
+    properties:
+      ok:
+        example: true
+        type: boolean
+    type: object
+  entity.ResetPasswordSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.ResetPasswordResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.Scan:
     properties:
       distinct_ports:
@@ -874,12 +894,6 @@ definitions:
       is_super_admin:
         example: false
         type: boolean
-      old_password:
-        example: OldPass1!
-        type: string
-      password:
-        example: NewPass1!
-        type: string
     type: object
   entity.UserSuccess:
     properties:
@@ -5236,6 +5250,58 @@ paths:
       security:
       - BearerAuth: []
       summary: Update admin user
+      tags:
+      - admin-users
+  /admin/users/{id}/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Sets a new password for the target user without requiring their current
+        one — an explicitly privileged admin action, distinct from the self-service
+        account/password/change flow.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ResetPasswordSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Reset another user's password (admin-privileged)
       tags:
       - admin-users
   /admin/users/me:

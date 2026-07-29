@@ -4,15 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/a-digi/coco-lift/resource/uri"
 	user_entity "github.com/a-digi/coco-iam/src/admin/users/entity"
 	user_query_repository "github.com/a-digi/coco-iam/src/admin/users/repository/query"
 	"github.com/a-digi/coco-iam/src/admin/users/validator"
-	crypto_bcrypt "github.com/a-digi/coco-iam/src/auth/crypto/bcrypt"
-	auth_db "github.com/a-digi/coco-iam/src/auth/database"
-	password_entity "github.com/a-digi/coco-iam/src/auth/database/entity"
-	auth_query "github.com/a-digi/coco-iam/src/auth/database/repository/query"
 	jwt_token "github.com/a-digi/coco-iam/src/auth/security/jwt"
+	"github.com/a-digi/coco-lift/resource/uri"
 	db "github.com/a-digi/coco-orm/orm"
 	"github.com/a-digi/coco-orm/orm/model"
 	"github.com/a-digi/coco-orm/orm/orm"
@@ -89,63 +85,15 @@ func CustomUpdateUserHandler(reqCtx request.RequestContext) {
 		}
 	}
 
-	// Hash password if present
-	if pwdRaw, ok := payload["password"]; ok {
-		pwdStr, isString := pwdRaw.(string)
-		if !isString || pwdStr == "" {
-			response.ErrorResponse(w, http.StatusBadRequest, "password must be a non-empty string")
-			return
-		}
-
-		oldPwdRaw, ok := payload["old_password"]
-		if !ok {
-			response.ErrorResponse(w, http.StatusBadRequest, "old_password is required when changing password")
-			return
-		}
-
-		oldPwdStr, isString := oldPwdRaw.(string)
-		if !isString || oldPwdStr == "" {
-			response.ErrorResponse(w, http.StatusBadRequest, "old_password must be a non-empty string")
-			return
-		}
-
-		pwrepo := auth_query.NewPasswordQueryRepository(manager)
-		authenticator := auth_db.NewPasswordAuthenticator(pwrepo)
-		validOld, err := authenticator.Verify(value, oldPwdStr)
-		if err != nil {
-			response.ErrorResponse(w, http.StatusInternalServerError, "error verifying old password: "+err.Error())
-			return
-		}
-		if !validOld {
-			response.ErrorResponse(w, http.StatusUnauthorized, "invalid old password")
-			return
-		}
-
-		hashed, err := crypto_bcrypt.HashPassword(pwdStr, 0)
-		if err != nil {
-			response.ErrorResponse(w, http.StatusInternalServerError, "failed to hash password: "+err.Error())
-			return
-		}
-
-		pwBuilder := &orm.UpdateObjectQueryBuilder{}
-		pwQuery, pwArgs, err := pwBuilder.BuildFrom(&password_entity.Password{
-			Password: hashed,
-		}, orm.IdentityBag{
-			"user_id": value,
-		})
-		if err == nil {
-			_, err = manager.Connector.DB.Exec(pwQuery, pwArgs...)
-			if err != nil {
-				response.ErrorResponse(w, http.StatusInternalServerError, "failed to update password: "+err.Error())
-				return
-			}
-		} else {
-			response.ErrorResponse(w, http.StatusInternalServerError, "failed to build password query: "+err.Error())
-			return
-		}
-
-		delete(payload, "password")
-		delete(payload, "old_password")
+	// Password changes no longer go through this generic patch — see
+	// AdminUserResetPasswordHandler (admin-privileged reset, no old
+	// password required) and the separate self-service
+	// account/password/change flow. Reject explicitly rather than
+	// silently ignoring, since a caller sending these fields here
+	// almost certainly expects them to take effect.
+	if _, ok := payload["password"]; ok {
+		response.ErrorResponse(w, http.StatusBadRequest, "password changes are not supported here — use POST /admin/users/{id}/reset-password")
+		return
 	}
 
 	// Fetch user. Always do this so we can return the complete user entity (and apply patches if needed).

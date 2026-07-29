@@ -6004,6 +6004,82 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/users/{id}/reset-password": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sets a new password for the target user without requiring their current\none — an explicitly privileged admin action, distinct from the self-service\naccount/password/change flow.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin-users"
+                ],
+                "summary": "Reset another user's password (admin-privileged)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New password",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ResetPasswordSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/applications/applications": {
             "get": {
                 "security": [
@@ -11087,6 +11163,36 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.ResetPasswordRequest": {
+            "type": "object",
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "example": "a-new-strong-password"
+                }
+            }
+        },
+        "entity.ResetPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.ResetPasswordSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.ResetPasswordResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "entity.Scan": {
             "type": "object",
             "properties": {
@@ -11248,14 +11354,6 @@ const docTemplate = `{
                 "is_super_admin": {
                     "type": "boolean",
                     "example": false
-                },
-                "old_password": {
-                    "type": "string",
-                    "example": "OldPass1!"
-                },
-                "password": {
-                    "type": "string",
-                    "example": "NewPass1!"
                 }
             }
         },

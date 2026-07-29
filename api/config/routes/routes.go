@@ -1042,6 +1042,7 @@ func Init(ctx serverdi.Context) {
 		"MediaDeleteFileHandler":            &app_media_handler.DeleteFileHandler{},
 		"MediaFileServer":                   mediaFileServer(ctx),
 		"AdminUserSendActivationHandler":    &admin_users.AdminUserSendActivationHandler{},
+		"AdminUserResetPasswordHandler":     &admin_users.AdminUserResetPasswordHandler{},
 		"ActivationResendAdminHandler":      &activation_admin.ResendAdminHandler{},
 		"ActivationResendUserHandler":       &activation_admin.ResendUserHandler{},
 		"AdminGeneralSettingsGetHandler":    &general_admin.AdminGeneralSettingsGetHandler{},

@@ -859,6 +859,13 @@ routes:
             scopes:
               - admin:users:write
               - super:admin
+          - path: /users/{id}/reset-password
+            method: POST
+            executor: AdminUserResetPasswordHandler
+            security: authenticated
+            scopes:
+              - admin:users:write
+              - super:admin
           - path: /activation/admin/{id}/resend
             method: POST
             executor: ActivationResendAdminHandler
