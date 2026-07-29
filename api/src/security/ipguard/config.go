@@ -28,14 +28,18 @@ type RateLimitConfig struct {
 // same pattern already used for the existing "auth" key, which
 // NewScopeSecurityLayer re-reads raw from the same file.
 type Config struct {
-	// TrustProxyIPHeader names the header to trust for the caller's
-	// real IP (e.g. "X-Real-IP"). Empty means trust r.RemoteAddr
-	// directly — the safe default with no reverse proxy in front.
-	// See plan/ip-abuse-protection/plan.md, Open Question 1: only set
-	// this once the reverse proxy in front is confirmed to set/
-	// overwrite the header itself.
-	TrustProxyIPHeader string          `json:"trust_proxy_ip_header"`
-	RateLimit          RateLimitConfig `json:"rate_limit"`
+	// TrustProxyIPHeaders names, in priority order, the headers to try
+	// for the caller's real IP (e.g. ["X-Real-IP", "X-Forwarded-For"]).
+	// The first one present on a given request that parses as a valid
+	// IP wins. An empty list means trust r.RemoteAddr directly — the
+	// safe default with no reverse proxy in front.
+	// See plan/ip-abuse-protection/plan.md, Open Question 1, and
+	// plan/attack-ip-attribution/plan.md: only include a header once
+	// the reverse proxy in front is confirmed to set/overwrite it
+	// itself, and prefer listing more than one candidate header since
+	// not every vhost/location block on the proxy may set the same one.
+	TrustProxyIPHeaders []string        `json:"trust_proxy_ip_headers"`
+	RateLimit           RateLimitConfig `json:"rate_limit"`
 }
 
 // DefaultConfig returns the starting values from
@@ -43,7 +47,7 @@ type Config struct {
 // this is hardcoded into the enforcement logic itself.
 func DefaultConfig() Config {
 	return Config{
-		TrustProxyIPHeader: "",
+		TrustProxyIPHeaders: nil,
 		RateLimit: RateLimitConfig{
 			Global:    TierConfig{Requests: 300, WindowSeconds: 60, BanSeconds: 900},
 			Sensitive: TierConfig{Requests: 15, WindowSeconds: 300, BanSeconds: 3600},
@@ -61,7 +65,7 @@ func DefaultConfig() Config {
 // LoadConfig parses the "security" key out of raw config.json bytes.
 // Fields absent from cfgBytes (including the whole "security" key)
 // keep their DefaultConfig() value — this lets an operator override
-// just one field (e.g. trust_proxy_ip_header) without having to
+// just one field (e.g. trust_proxy_ip_headers) without having to
 // restate the whole block.
 func LoadConfig(cfgBytes []byte) (Config, error) {
 	cfg := DefaultConfig()

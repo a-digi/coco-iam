@@ -32,14 +32,23 @@ func NewAttackPersistentRepo(handle *dbhandle.Handle) *AttackPersistentRepo {
 
 // CreateAttack inserts a new attack episode row with the given id —
 // called once, the moment an IP's first rejected request has no
-// already-open episode.
-func (r *AttackPersistentRepo) CreateAttack(id, ip, tier string, startedAt time.Time) error {
+// already-open episode. originHint is a JSON snapshot of whatever
+// client-identifying headers were present on that first request,
+// captured only when ip resolved to a loopback/private address (i.e.
+// the configured trust header(s) found nothing usable) — nil in the
+// normal case where ip was resolved successfully. See
+// plan/attack-ip-attribution/plan.md Fix 3.
+func (r *AttackPersistentRepo) CreateAttack(id, ip, tier string, startedAt time.Time, originHint *string) error {
 	db := r.handle.DB()
 	ts := startedAt.UTC().Format(timeLayout)
+	var originHintArg interface{}
+	if originHint != nil {
+		originHintArg = *originHint
+	}
 	_, err := db.Exec(
-		`INSERT INTO ip_attacks (id, ip, tier, started_at, last_seen_at, hit_count, ban_count)
-		 VALUES (?, ?, ?, ?, ?, 0, 1)`,
-		id, ip, tier, ts, ts,
+		`INSERT INTO ip_attacks (id, ip, tier, started_at, last_seen_at, hit_count, ban_count, origin_hint)
+		 VALUES (?, ?, ?, ?, ?, 0, 1, ?)`,
+		id, ip, tier, ts, ts, originHintArg,
 	)
 	if err != nil {
 		return fmt.Errorf("ip-attack: create: %w", err)
@@ -106,7 +115,15 @@ func (r *AttackPersistentRepo) CloseAllOpen() (int64, error) {
 // updated, so a target that's already been flushed once (the common
 // case — targets are flushed on every sweeper tick) has to be checked
 // for first; the entry counter must only move on a genuine new row.
-func (r *AttackPersistentRepo) SetTargetCount(attackID, path, method string, hitCount int) error {
+//
+// bodySample is the first-observed (redacted, size-capped) request
+// body for this target — nil if none was captured. Only ever written
+// on the INSERT branch: the ON CONFLICT clause below deliberately
+// omits body_sample from its SET list, so a target that already has a
+// stored sample keeps it across every later flush instead of being
+// overwritten by whatever the most recent hit happened to send. See
+// plan/attack-ip-attribution/plan.md Fix 2.
+func (r *AttackPersistentRepo) SetTargetCount(attackID, path, method string, hitCount int, bodySample *string) error {
 	db := r.handle.DB()
 
 	var exists int
@@ -119,11 +136,15 @@ func (r *AttackPersistentRepo) SetTargetCount(attackID, path, method string, hit
 		return fmt.Errorf("ip-attack: set target count: check existing: %w", err)
 	}
 
+	var bodySampleArg interface{}
+	if bodySample != nil {
+		bodySampleArg = *bodySample
+	}
 	_, err = db.Exec(
-		`INSERT INTO ip_attack_targets (id, attack_id, path, method, hit_count)
-		 VALUES (?, ?, ?, ?, ?)
+		`INSERT INTO ip_attack_targets (id, attack_id, path, method, hit_count, body_sample)
+		 VALUES (?, ?, ?, ?, ?, ?)
 		 ON CONFLICT(attack_id, path, method) DO UPDATE SET hit_count = excluded.hit_count`,
-		uuid.New().String(), attackID, path, method, hitCount,
+		uuid.New().String(), attackID, path, method, hitCount, bodySampleArg,
 	)
 	if err != nil {
 		return fmt.Errorf("ip-attack: set target count: %w", err)

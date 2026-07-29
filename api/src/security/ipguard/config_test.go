@@ -8,8 +8,8 @@ func TestLoadConfig_DefaultsWhenSecurityKeyAbsent(t *testing.T) {
 		t.Fatalf("LoadConfig() error = %v", err)
 	}
 	want := DefaultConfig()
-	if cfg.TrustProxyIPHeader != want.TrustProxyIPHeader {
-		t.Errorf("TrustProxyIPHeader = %q, want %q", cfg.TrustProxyIPHeader, want.TrustProxyIPHeader)
+	if len(cfg.TrustProxyIPHeaders) != len(want.TrustProxyIPHeaders) {
+		t.Errorf("TrustProxyIPHeaders = %v, want %v", cfg.TrustProxyIPHeaders, want.TrustProxyIPHeaders)
 	}
 	if cfg.RateLimit.Global != want.RateLimit.Global {
 		t.Errorf("RateLimit.Global = %+v, want %+v", cfg.RateLimit.Global, want.RateLimit.Global)
@@ -23,15 +23,21 @@ func TestLoadConfig_DefaultsWhenSecurityKeyAbsent(t *testing.T) {
 }
 
 func TestLoadConfig_PartialOverrideKeepsOtherDefaults(t *testing.T) {
-	cfg, err := LoadConfig([]byte(`{"security": {"trust_proxy_ip_header": "X-Real-IP"}}`))
+	cfg, err := LoadConfig([]byte(`{"security": {"trust_proxy_ip_headers": ["X-Real-IP", "X-Forwarded-For"]}}`))
 	if err != nil {
 		t.Fatalf("LoadConfig() error = %v", err)
 	}
-	if cfg.TrustProxyIPHeader != "X-Real-IP" {
-		t.Errorf("TrustProxyIPHeader = %q, want %q", cfg.TrustProxyIPHeader, "X-Real-IP")
+	want := []string{"X-Real-IP", "X-Forwarded-For"}
+	if len(cfg.TrustProxyIPHeaders) != len(want) {
+		t.Fatalf("TrustProxyIPHeaders = %v, want %v", cfg.TrustProxyIPHeaders, want)
 	}
-	want := DefaultConfig()
-	if cfg.RateLimit.Global != want.RateLimit.Global {
+	for i, h := range want {
+		if cfg.TrustProxyIPHeaders[i] != h {
+			t.Errorf("TrustProxyIPHeaders[%d] = %q, want %q", i, cfg.TrustProxyIPHeaders[i], h)
+		}
+	}
+	defaultCfg := DefaultConfig()
+	if cfg.RateLimit.Global != defaultCfg.RateLimit.Global {
 		t.Errorf("RateLimit.Global should keep its default when omitted, got %+v", cfg.RateLimit.Global)
 	}
 }
@@ -39,7 +45,7 @@ func TestLoadConfig_PartialOverrideKeepsOtherDefaults(t *testing.T) {
 func TestLoadConfig_FullOverride(t *testing.T) {
 	cfg, err := LoadConfig([]byte(`{
 		"security": {
-			"trust_proxy_ip_header": "X-Forwarded-For",
+			"trust_proxy_ip_headers": ["X-Forwarded-For"],
 			"rate_limit": {
 				"global":    {"requests": 100, "window_seconds": 30, "ban_seconds": 600},
 				"sensitive": {"requests": 5,   "window_seconds": 120, "ban_seconds": 1800},

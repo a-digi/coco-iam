@@ -96,15 +96,18 @@ func (r *AttackQueryRepo) CountAttacks(filter ListFilter) (int, error) {
 	return n, nil
 }
 
-// FindAttack returns a single episode by id, or ErrNotFound.
+// FindAttack returns a single episode by id, or ErrNotFound. Unlike
+// ListAttacks, this also selects origin_hint — that field is a
+// drill-down diagnostic (see entity.Attack.OriginHint's doc comment),
+// only ever populated on the single-episode detail fetch.
 func (r *AttackQueryRepo) FindAttack(id string) (*attacks_entity.Attack, error) {
 	row := r.handle.DB().QueryRow(
-		`SELECT id, ip, tier, started_at, last_seen_at, COALESCE(ended_at, ''), hit_count, ban_count
+		`SELECT id, ip, tier, started_at, last_seen_at, COALESCE(ended_at, ''), hit_count, ban_count, COALESCE(origin_hint, '')
 		 FROM ip_attacks WHERE id = ?`,
 		id,
 	)
 	var a attacks_entity.Attack
-	if err := row.Scan(&a.ID, &a.IP, &a.Tier, &a.StartedAt, &a.LastSeenAt, &a.EndedAt, &a.HitCount, &a.BanCount); err != nil {
+	if err := row.Scan(&a.ID, &a.IP, &a.Tier, &a.StartedAt, &a.LastSeenAt, &a.EndedAt, &a.HitCount, &a.BanCount, &a.OriginHint); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
@@ -144,7 +147,7 @@ func normalizeTimestamp(s string) string {
 // episode, highest-hit-count first.
 func (r *AttackQueryRepo) ListTargets(attackID string) ([]attacks_entity.AttackTarget, error) {
 	rows, err := r.handle.DB().Query(
-		`SELECT path, method, hit_count FROM ip_attack_targets WHERE attack_id = ? ORDER BY hit_count DESC`,
+		`SELECT path, method, hit_count, body_sample FROM ip_attack_targets WHERE attack_id = ? ORDER BY hit_count DESC`,
 		attackID,
 	)
 	if err != nil {
@@ -155,7 +158,7 @@ func (r *AttackQueryRepo) ListTargets(attackID string) ([]attacks_entity.AttackT
 	var out []attacks_entity.AttackTarget
 	for rows.Next() {
 		var t attacks_entity.AttackTarget
-		if err := rows.Scan(&t.Path, &t.Method, &t.HitCount); err != nil {
+		if err := rows.Scan(&t.Path, &t.Method, &t.HitCount, &t.BodySample); err != nil {
 			return nil, fmt.Errorf("ip-attack: scan target: %w", err)
 		}
 		out = append(out, t)
