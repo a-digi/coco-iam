@@ -156,6 +156,16 @@
                         "description": "Allows reading an application's configured OAuth providers."
                     }
                 ]
+            },
+            {
+                "id": "applications:login_log",
+                "description": "Allows viewing an application's end-user login attempt history and its rotated-out archives.",
+                "scopes": [
+                    {
+                        "id": "applications:login_log:read",
+                        "description": "Allows viewing application end-user login attempts (success and failure) and their archives."
+                    }
+                ]
             }
         ]
     }

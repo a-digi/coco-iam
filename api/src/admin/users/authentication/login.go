@@ -9,6 +9,7 @@ import (
 	user_acl_repo "github.com/a-digi/coco-iam/src/admin/acl/repository"
 	mfa_entity "github.com/a-digi/coco-iam/src/admin/mfa/entity"
 	mfa_query "github.com/a-digi/coco-iam/src/admin/mfa/repository/query"
+	"github.com/a-digi/coco-iam/src/admin/security/loginlog"
 	passwordexpiry "github.com/a-digi/coco-iam/src/admin/users/passwordexpiry"
 	user_repository "github.com/a-digi/coco-iam/src/admin/users/repository/query"
 	auth_db "github.com/a-digi/coco-iam/src/auth/database"
@@ -76,7 +77,16 @@ func (h *DatabaseAuthenticationLogin) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(w, http.StatusInternalServerError, "user lookup failed")
 		return
 	}
-	if !found || user == nil || !user.IsActive {
+	if !found || user == nil {
+		// Same response as a wrong password below — deliberately no
+		// user-enumeration signal — but the logged reason still
+		// distinguishes the two internally.
+		loginlog.Record(reqCtx, "", creds.Username, false, "invalid_credentials")
+		response.ErrorResponse(w, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+	if !user.IsActive {
+		loginlog.Record(reqCtx, user.ID, creds.Username, false, "inactive_user")
 		response.ErrorResponse(w, http.StatusUnauthorized, "invalid credentials")
 		return
 	}
@@ -91,6 +101,7 @@ func (h *DatabaseAuthenticationLogin) ServeHTTP(reqCtx request.RequestContext) {
 	}
 
 	if !ok2 {
+		loginlog.Record(reqCtx, user.ID, creds.Username, false, "invalid_credentials")
 		response.ErrorResponse(w, http.StatusUnauthorized, "invalid credentials")
 		return
 	}
@@ -140,6 +151,7 @@ func (h *DatabaseAuthenticationLogin) ServeHTTP(reqCtx request.RequestContext) {
 			return
 		}
 		if len(scopes) == 0 {
+			loginlog.Record(reqCtx, user.ID, creds.Username, false, "no_scopes")
 			response.ErrorResponse(w, http.StatusForbidden, "No access rights have been assigned to your account. Please contact your administrator.")
 			return
 		}
@@ -164,6 +176,7 @@ func (h *DatabaseAuthenticationLogin) ServeHTTP(reqCtx request.RequestContext) {
 				response.ErrorResponse(w, http.StatusInternalServerError, "token signing failed")
 				return
 			}
+			loginlog.Record(reqCtx, user.ID, creds.Username, false, "mfa_required")
 			response.SuccessResponse(w, http.StatusAccepted, mfa_entity.MfaRequiredResponse{
 				MfaRequired: true,
 				MfaToken:    pendingResp.AccessToken,
@@ -180,6 +193,7 @@ func (h *DatabaseAuthenticationLogin) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 
+	loginlog.Record(reqCtx, user.ID, creds.Username, true, "")
 	response.SuccessResponse(w, http.StatusOK, tokenResp)
 }
 

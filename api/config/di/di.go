@@ -68,6 +68,15 @@ type ContextBag struct {
 	// how ScanSource/DBArchiver are threaded through today.
 	GeoIP        geoip.Lookup
 	GeoIPWatcher *geoip.Watcher
+	// AdminLoginHandle and AdminLoginArchiver are set directly in
+	// main.go (constructed the same way as IPAttacksHandle/DBArchiver,
+	// just against admin_login.db instead of ip-attacks.db). Exposed
+	// here so admin login-log handlers can query the current
+	// connection and the admin security status endpoint can report
+	// rotation stats, the same way IPAttacksHandle/DBArchiver already
+	// are. See plan/login-audit-log/plan.md Step 2.
+	AdminLoginHandle   *dbhandle.Handle
+	AdminLoginArchiver *dbarchive.Archiver
 }
 
 func NewContextBag(manager *orm.DatabaseManager, log logger.Logger) *ContextBag {
@@ -126,4 +135,12 @@ func (c *ContextBag) GetGeoIPManager() *geoip.Manager {
 
 func (c *ContextBag) GetGeoIP() geoip.Lookup {
 	return c.GeoIP
+}
+
+func (c *ContextBag) GetAdminLoginHandle() *dbhandle.Handle {
+	return c.AdminLoginHandle
+}
+
+func (c *ContextBag) GetAdminLoginArchiver() *dbarchive.Archiver {
+	return c.AdminLoginArchiver
 }

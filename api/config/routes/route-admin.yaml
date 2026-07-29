@@ -582,6 +582,27 @@ routes:
             scopes:
               - admin:security:scans:read
               - super:admin
+          - path: /security/login-log/admin
+            method: GET
+            executor: AdminLoginListHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-log:read
+              - super:admin
+          - path: /security/login-log/admin/archives
+            method: GET
+            executor: AdminLoginArchiveListHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-log:read
+              - super:admin
+          - path: /security/login-log/admin/archives/{id}/attempts
+            method: GET
+            executor: AdminLoginArchiveAttemptsHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-log:read
+              - super:admin
           - path: /security/status
             method: GET
             executor: SecurityStatusHandler

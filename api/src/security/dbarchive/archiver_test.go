@@ -8,10 +8,48 @@ import (
 	"time"
 
 	dbmanager "github.com/a-digi/coco-orm/orm"
+	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
 )
+
+// timeLayout matches ip_attacks_archives' own storage format — test-
+// local since production timeLayout constants now live with whichever
+// domain-specific RegistryRecorder needs them (see registry.go), not
+// with the now-domain-agnostic Archiver itself.
+const timeLayout = "2006-01-02 15:04:05"
+
+// testRecorder implements RegistryRecorder against a real on-disk
+// ip_attacks_archives table, mirroring the production ip-attacks
+// recorder (src/admin/security/archives/repository/persistent)
+// closely enough to exercise Archiver faithfully, without this
+// package importing that (much larger) domain just for a test double.
+type testRecorder struct {
+	mainDB *sql.DB
+}
+
+func (r *testRecorder) EarliestStartedAt(db *sql.DB) string {
+	var raw sql.NullString
+	if err := db.QueryRow(`SELECT MIN(started_at) FROM ip_attacks`).Scan(&raw); err != nil || !raw.Valid {
+		return time.Now().UTC().Format(timeLayout)
+	}
+	for _, layout := range []string{timeLayout, time.RFC3339, time.RFC3339Nano} {
+		if t, err := time.Parse(layout, raw.String); err == nil {
+			return t.UTC().Format(timeLayout)
+		}
+	}
+	return time.Now().UTC().Format(timeLayout)
+}
+
+func (r *testRecorder) RecordArchive(rec ArchiveRecord) error {
+	_, err := r.mainDB.Exec(
+		`INSERT INTO ip_attacks_archives (id, file_path, started_at, archived_at, row_count, size_bytes)
+		 VALUES (?, ?, ?, ?, ?, ?)`,
+		uuid.New().String(), rec.FilePath, rec.StartedAt, rec.ArchivedAt.Format(timeLayout), rec.RowCount, rec.SizeBytes,
+	)
+	return err
+}
 
 // migration001 and migration002 mirror
 // api/config/db/ip_attacks_migrations/001_initial.sql and
@@ -114,7 +152,7 @@ func newTestFixture(t *testing.T, threshold int64) *testFixture {
 	}
 
 	archiveDir := filepath.Join(root, "archives")
-	archiver := New(handle, manager, mainDB, dbName, dbDir, migrationsDir, archiveDir, threshold, nil)
+	archiver := New(handle, manager, &testRecorder{mainDB: mainDB}, dbName, dbDir, migrationsDir, archiveDir, threshold, nil)
 
 	return &testFixture{
 		archiver:   archiver,

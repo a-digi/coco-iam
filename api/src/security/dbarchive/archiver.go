@@ -1,13 +1,20 @@
-// Package dbarchive rotates ip-attacks.db out once its running entry
-// count crosses a configured threshold, registering the rotated-out
-// file in the main DB's ip_attacks_archives table so it stays
-// queryable later instead of becoming an opaque, forgotten file on
-// disk. See plan/ip-attacks-db-archiving/plan.md.
+// Package dbarchive rotates a live SQLite database out once its
+// running entry count crosses a configured threshold, moving the old
+// generation into an archive directory (never deleting it) and
+// handing every existing consumer a fresh connection to a brand-new
+// generation transparently, via dbhandle.Handle. Where the
+// rotated-out file gets registered so it stays queryable later is
+// left to a pluggable RegistryRecorder (see registry.go) — different
+// domains keep their registry table in different databases entirely,
+// so Archiver itself holds no opinion on where that is. Originally
+// built for ip-attacks.db (see plan/ip-attacks-db-archiving/plan.md)
+// and generalized in plan/login-audit-log/plan.md Step 1 so
+// admin_login.db and every per-application login log can reuse the
+// same rotation logic instead of each hand-rolling a copy.
 package dbarchive
 
 import (
 	"context"
-	"database/sql"
 	"sync"
 	"time"
 
@@ -23,28 +30,25 @@ import (
 // rotation is a distinct, much rarer concern.
 const sweepInterval = 10 * time.Minute
 
-// timeLayout matches every other ip-attacks.db/ip_attacks_archives
-// timestamp in this codebase — see ipguard's and
-// AttackPersistentRepo's own timeLayout constants.
-const timeLayout = "2006-01-02 15:04:05"
-
 // DefaultThreshold is the entry count (summed across every table in
-// ip-attacks.db, via the single db_meta counter) at which a rotation
-// fires — the "100 million entries" requirement in
-// plan/ip-attacks-db-archiving/plan.md.
+// the live database, via its own single db_meta counter) at which a
+// rotation fires — the "100 million entries" default first used by
+// plan/ip-attacks-db-archiving/plan.md, reused as-is by every other
+// domain built on Archiver unless a specific one calls for tuning it.
 const DefaultThreshold = 100_000_000
 
-// Archiver rotates ip-attacks.db once handle's entry counter crosses
-// threshold. Nothing here ever deletes a rotated-out file — it's
-// moved into archiveDir and registered in the main DB's
-// ip_attacks_archives table so it stays queryable (see Open Question 1
-// in the plan for what "reused" was taken to mean).
+// Archiver rotates a live database out once handle's entry counter
+// crosses threshold. Nothing here ever deletes a rotated-out file —
+// it's moved into archiveDir and handed to recorder to register
+// wherever that domain's registry table actually lives (see Open
+// Question 1 in plan/ip-attacks-db-archiving/plan.md for what
+// "reused" was taken to mean).
 type Archiver struct {
 	mu sync.Mutex
 
-	handle  *dbhandle.Handle
-	manager *dbmanager.DatabaseManager // the live ip-attacks.db manager; replaced on every successful rotation
-	mainDB  *sql.DB                    // holds ip_attacks_archives — the main DB, never itself rotated
+	handle   *dbhandle.Handle
+	manager  *dbmanager.DatabaseManager // the live database's manager; replaced on every successful rotation
+	recorder RegistryRecorder           // where/how this domain registers a rotated-out file
 
 	dbName         string
 	dbDir          string
@@ -58,11 +62,11 @@ type Archiver struct {
 // New builds an Archiver. manager must be the same DatabaseManager
 // currently backing handle (i.e. manager.Connector.DB == handle.DB()) —
 // the two are kept in lockstep across every rotation. log may be nil.
-func New(handle *dbhandle.Handle, manager *dbmanager.DatabaseManager, mainDB *sql.DB, dbName, dbDir, migrationsPath, archiveDir string, threshold int64, log logger.Logger) *Archiver {
+func New(handle *dbhandle.Handle, manager *dbmanager.DatabaseManager, recorder RegistryRecorder, dbName, dbDir, migrationsPath, archiveDir string, threshold int64, log logger.Logger) *Archiver {
 	return &Archiver{
 		handle:         handle,
 		manager:        manager,
-		mainDB:         mainDB,
+		recorder:       recorder,
 		dbName:         dbName,
 		dbDir:          dbDir,
 		migrationsPath: migrationsPath,
