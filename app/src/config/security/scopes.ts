@@ -196,6 +196,11 @@ export const AppScopes = {
 
     // Port-scan detection — see plan/port-scan-detection/plan.md.
     AdminSecurityScansRead: 'admin:security:scans:read',
+
+    // GeoIP enrichment settings + update-process control — see
+    // plan/geoip-enrichment/plan.md.
+    AdminSecurityGeoipRead: 'admin:security:geoip:read',
+    AdminSecurityGeoipWrite: 'admin:security:geoip:write',
 } as const;
 
 export type AppScope = typeof AppScopes[keyof typeof AppScopes];

@@ -3,6 +3,7 @@ package ipguard
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,7 +14,44 @@ import (
 
 	"github.com/a-digi/coco-logger/logger"
 	"github.com/a-digi/coco-server/server/security"
+
+	"github.com/a-digi/coco-iam/src/security/geoip"
 )
+
+// stubGeoLookup is a minimal geoip.Lookup for tests — returns a fixed
+// Info for any IP present in its map, false (a miss) otherwise.
+type stubGeoLookup struct {
+	data map[string]geoip.Info
+}
+
+func (s *stubGeoLookup) Lookup(ip string) (geoip.Info, bool) {
+	info, ok := s.data[ip]
+	return info, ok
+}
+func (s *stubGeoLookup) Enabled() bool { return true }
+
+// mutableGeoLookup always hits, but its Info can be changed mid-test
+// — used to prove a stored geoip_info snapshot is frozen at episode
+// creation and never re-derived from a later lookup, even against the
+// same still-open episode. See
+// TestRecordAttackHit_GeoIPSnapshotFrozenAfterEpisodeCreation.
+type mutableGeoLookup struct {
+	mu   sync.Mutex
+	info geoip.Info
+}
+
+func (m *mutableGeoLookup) setInfo(info geoip.Info) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.info = info
+}
+
+func (m *mutableGeoLookup) Lookup(ip string) (geoip.Info, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.info, true
+}
+func (m *mutableGeoLookup) Enabled() bool { return true }
 
 // requestWithBody mirrors request() but attaches a body + content
 // type, for tests exercising captureBodySample end to end.
@@ -55,7 +93,19 @@ func newTestGuardWithAttacks(t *testing.T, cfg Config, attackLog *spyLogger) (*I
 	if attackLog != nil {
 		l = attackLog
 	}
-	g, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, mustAttacksHandle(t, attacksDB), l, nil)
+	g, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, mustAttacksHandle(t, attacksDB), l, nil, nil)
+	if err != nil {
+		t.Fatalf("NewWithDB() error = %v", err)
+	}
+	return g, attacksDB
+}
+
+// newTestGuardWithGeo mirrors newTestGuardWithAttacks but wires a
+// geoip.Lookup — for tests exercising geoip_info snapshot capture.
+func newTestGuardWithGeo(t *testing.T, cfg Config, geo geoip.Lookup) (*IPGuardSecurityLayer, *sql.DB) {
+	t.Helper()
+	attacksDB := freshAttacksDB(t)
+	g, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, mustAttacksHandle(t, attacksDB), nil, nil, geo)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}
@@ -237,6 +287,117 @@ func TestRecordAttackHit_NoOriginHintForResolvedPublicIP(t *testing.T) {
 	}
 }
 
+func TestRecordAttackHit_CapturesGeoIPSnapshotForPublicIP(t *testing.T) {
+	cfg := testConfig() // global limit 3: calls 1-3 allowed, call 4+ rejected
+	geo := &stubGeoLookup{data: map[string]geoip.Info{
+		"203.0.113.7": {CountryCode: "DE", Country: "Germany", ASN: 3320, ASOrg: "Deutsche Telekom AG"},
+	}}
+	g, attacksDB := newTestGuardWithGeo(t, cfg, geo)
+
+	route := &security.Route{Path: "/a"}
+	for i := 0; i < 4; i++ {
+		w := httptest.NewRecorder()
+		_ = g.Authorize(w, request("203.0.113.7", "/a"), nil, route)
+	}
+
+	var geoInfoRaw sql.NullString
+	if err := attacksDB.QueryRow(`SELECT geoip_info FROM ip_attacks WHERE ip = ?`, "203.0.113.7").Scan(&geoInfoRaw); err != nil {
+		t.Fatalf("query attack row: %v", err)
+	}
+	if !geoInfoRaw.Valid || geoInfoRaw.String == "" {
+		t.Fatal("geoip_info should be populated for a public ip the lookup has data for")
+	}
+	var got geoip.Info
+	if err := json.Unmarshal([]byte(geoInfoRaw.String), &got); err != nil {
+		t.Fatalf("unmarshal geoip_info: %v", err)
+	}
+	want := geoip.Info{CountryCode: "DE", Country: "Germany", ASN: 3320, ASOrg: "Deutsche Telekom AG"}
+	if got != want {
+		t.Errorf("geoip_info = %+v, want %+v", got, want)
+	}
+}
+
+func TestRecordAttackHit_NoGeoIPSnapshotForLoopbackIP(t *testing.T) {
+	cfg := testConfig() // global limit 3: calls 1-3 allowed, call 4+ rejected
+	geo := &stubGeoLookup{data: map[string]geoip.Info{
+		// If this ever shows up in geoip_info, the loopback gate broke.
+		"127.0.0.1": {CountryCode: "XX", Country: "Should never be used"},
+	}}
+	g, attacksDB := newTestGuardWithGeo(t, cfg, geo)
+
+	route := &security.Route{Path: "/wp-admin"}
+	for i := 0; i < 4; i++ {
+		w := httptest.NewRecorder()
+		_ = g.Authorize(w, request("127.0.0.1", "/wp-admin"), nil, route)
+	}
+
+	var geoInfoRaw sql.NullString
+	if err := attacksDB.QueryRow(`SELECT geoip_info FROM ip_attacks WHERE ip = ?`, "127.0.0.1").Scan(&geoInfoRaw); err != nil {
+		t.Fatalf("query attack row: %v", err)
+	}
+	if geoInfoRaw.Valid && geoInfoRaw.String != "" {
+		t.Fatalf("geoip_info = %q, want empty for a loopback ip (the geoip lookup must be skipped entirely)", geoInfoRaw.String)
+	}
+}
+
+func TestRecordAttackHit_NoGeoIPSnapshotWhenLookupMisses(t *testing.T) {
+	cfg := testConfig()                                  // global limit 3: calls 1-3 allowed, call 4+ rejected
+	geo := &stubGeoLookup{data: map[string]geoip.Info{}} // always misses
+	g, attacksDB := newTestGuardWithGeo(t, cfg, geo)
+
+	route := &security.Route{Path: "/a"}
+	for i := 0; i < 4; i++ {
+		w := httptest.NewRecorder()
+		_ = g.Authorize(w, request("203.0.113.7", "/a"), nil, route)
+	}
+
+	var geoInfoRaw sql.NullString
+	if err := attacksDB.QueryRow(`SELECT geoip_info FROM ip_attacks WHERE ip = ?`, "203.0.113.7").Scan(&geoInfoRaw); err != nil {
+		t.Fatalf("query attack row: %v", err)
+	}
+	if geoInfoRaw.Valid && geoInfoRaw.String != "" {
+		t.Fatalf("geoip_info = %q, want empty when the lookup found nothing for this ip", geoInfoRaw.String)
+	}
+}
+
+func TestRecordAttackHit_GeoIPSnapshotFrozenAfterEpisodeCreation(t *testing.T) {
+	cfg := testConfig() // global limit 3: calls 1-3 allowed, call 4+ rejected
+	geo := &mutableGeoLookup{info: geoip.Info{CountryCode: "DE", Country: "Germany"}}
+	g, attacksDB := newTestGuardWithGeo(t, cfg, geo)
+
+	route := &security.Route{Path: "/a"}
+	// Call 4 trips the ban and creates the episode with the DE
+	// snapshot below.
+	for i := 0; i < 4; i++ {
+		w := httptest.NewRecorder()
+		_ = g.Authorize(w, request("203.0.113.7", "/a"), nil, route)
+	}
+
+	// Simulate geoip.db being refreshed with different data for this
+	// same ip — e.g. the geoip-updater swapped in a new generation
+	// between this episode opening and now.
+	geo.setInfo(geoip.Info{CountryCode: "FR", Country: "France"})
+
+	// More rejected hits against the SAME already-open episode must
+	// not touch the stored snapshot.
+	for i := 0; i < 3; i++ {
+		w := httptest.NewRecorder()
+		_ = g.Authorize(w, request("203.0.113.7", "/a"), nil, route)
+	}
+
+	var geoInfoRaw string
+	if err := attacksDB.QueryRow(`SELECT geoip_info FROM ip_attacks WHERE ip = ?`, "203.0.113.7").Scan(&geoInfoRaw); err != nil {
+		t.Fatalf("query attack row: %v", err)
+	}
+	var got geoip.Info
+	if err := json.Unmarshal([]byte(geoInfoRaw), &got); err != nil {
+		t.Fatalf("unmarshal geoip_info: %v", err)
+	}
+	if got.CountryCode != "DE" {
+		t.Fatalf("geoip_info = %+v, want the original DE snapshot frozen at episode creation, not the later FR data", got)
+	}
+}
+
 func TestFlushAttacks_WritesCurrentTotals(t *testing.T) {
 	cfg := testConfig() // global limit 3: calls 1-3 allowed, call 4+ rejected
 	g, attacksDB := newTestGuardWithAttacks(t, cfg, nil)
@@ -335,7 +496,7 @@ func TestHydrate_ClosesAttacksOrphanedByAPreviousProcess(t *testing.T) {
 		t.Fatalf("seed orphaned attack: %v", err)
 	}
 
-	_, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, mustAttacksHandle(t, attacksDB), nil, nil)
+	_, err := NewWithDB(cfg, &spyInner{}, freshDB(t), nil, mustAttacksHandle(t, attacksDB), nil, nil, nil)
 	if err != nil {
 		t.Fatalf("NewWithDB() error = %v", err)
 	}

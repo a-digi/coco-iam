@@ -20,6 +20,25 @@ artifacts:
     pre_deploy: systemctl stop coco-iam
     post_deploy: systemctl start coco-iam
 
+  # The geoip-updater is a second, independent executable (see
+  # plan/geoip-enrichment/plan.md) — not managed by systemd, so there's
+  # no service to stop/start around it. `pre_deploy` here is a no-op
+  # shell command that exists only to make the ssh engine's
+  # rm-then-upload path fire (engine.go: it unlinks the old file before
+  # uploading a new one whenever pre_deploy is non-empty). That matters
+  # because the geoip-updater may be actively running when a deploy
+  # happens: unlinking leaves its already-open binary file intact under
+  # the old (now nameless) inode, so the running process is unaffected
+  # and only a future exec (i.e. the next Start()) picks up the new
+  # binary. Without this, uploads would truncate-in-place via SFTP,
+  # which would corrupt a running instance's mapped executable.
+  - name: geoipupdater-binary
+    type: binary
+    source: ../../versions/geoipupdater-deploy
+    target: /app/coco-iam-api/versions/geoipupdater
+    mode: "0755"
+    pre_deploy: "true"
+
   - name: frontend-bundle
     type: directory
     source: ../../app/dist

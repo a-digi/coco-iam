@@ -8,6 +8,7 @@ import { LinkAction } from '../../../../Shared/Components/Actions/Link';
 import { FormInput } from '../../../../Shared/Components/Form';
 import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
+import { formatGeoIPSummary } from '../geoipInfo';
 
 interface Attack {
     id: string;
@@ -18,6 +19,7 @@ interface Attack {
     ended_at?: string;
     hit_count: number;
     ban_count: number;
+    geoip_info?: string;
 }
 
 interface AttackListResponse {
@@ -109,6 +111,11 @@ export const AttacksDashboard: React.FC = () => {
         { key: 'tier', label: 'Tier' },
         { key: 'hit_count', label: 'Hits' },
         { key: 'ban_count', label: 'Bans' },
+        {
+            key: 'geoip_info',
+            label: 'Country / ISP',
+            render: (_value, row) => <span className="text-xs">{formatGeoIPSummary(row.geoip_info)}</span>,
+        },
         {
             key: 'started_at',
             label: 'Started',

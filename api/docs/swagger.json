@@ -4235,6 +4235,245 @@
                 }
             }
         },
+        "/admin/security/geoip/settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the current GeoIP enrichment settings. The MaxMind\nlicense key is never returned — only a fixed mask when one is\nstored. See plan/geoip-enrichment/plan.md.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-geoip"
+                ],
+                "summary": "Get GeoIP settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.SettingsSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates GeoIP enrichment settings, including the MaxMind\naccount ID and license key. An empty/omitted\nmaxmind_license_key leaves the currently-stored key unchanged\n— submit a non-empty value only when actually changing it.\nChanges take effect the next time the geoip-updater process is\n(re)started, not while it's already running.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-geoip"
+                ],
+                "summary": "Update GeoIP settings",
+                "parameters": [
+                    {
+                        "description": "GeoIP settings",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.SettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.SettingsSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/geoip/start": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Launches the geoip-updater executable, detached so it survives\nthis admin server's own restart. Refuses (409) if an instance\nis already running — tracked via a PID file, not in-memory\nstate, so this is accurate even across an admin-server restart.\nSee plan/geoip-enrichment/plan.md's \"Process control\" section.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-geoip"
+                ],
+                "summary": "Start the geoip-updater process",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.StatusSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/geoip/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reports whether the geoip-updater process is currently\nrunning, its PID, whether geoip is enabled, and when it last\nsuccessfully pulled fresh data (if ever).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-geoip"
+                ],
+                "summary": "GeoIP updater process status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.StatusSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/geoip/stop": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Signals the running geoip-updater process to shut down\ngracefully. A no-op (not an error) if nothing is currently\nrunning.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-geoip"
+                ],
+                "summary": "Stop the geoip-updater process",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.StatusSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/ip-allowlist": {
             "get": {
                 "security": [
@@ -9922,6 +10161,11 @@
                     "type": "string",
                     "example": "2026-07-26T10:30:00Z"
                 },
+                "geoip_info": {
+                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later (geoip.db keeps no history of its own).\nPopulated on both the list and the detail fetch. Empty if geoip\nwas disabled, IP was loopback/private, or nothing matched.",
+                    "type": "string",
+                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
+                },
                 "hit_count": {
                     "type": "integer",
                     "example": 143
@@ -9963,6 +10207,11 @@
                 "ended_at": {
                     "type": "string",
                     "example": "2026-07-26T10:30:00Z"
+                },
+                "geoip_info": {
+                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later (geoip.db keeps no history of its own).\nPopulated on both the list and the detail fetch. Empty if geoip\nwas disabled, IP was loopback/private, or nothing matched.",
+                    "type": "string",
+                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
                 },
                 "hit_count": {
                     "type": "integer",
@@ -10641,6 +10890,11 @@
                     "type": "string",
                     "example": "2026-07-26T10:30:00Z"
                 },
+                "geoip_info": {
+                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later (geoip.db keeps no history of its own). Empty\nif geoip was disabled, IP was loopback/private, or nothing\nmatched.",
+                    "type": "string",
+                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
+                },
                 "hit_count": {
                     "type": "integer",
                     "example": 37
@@ -11018,6 +11272,101 @@
             "properties": {
                 "message": {
                     "$ref": "#/definitions/handler.ScopeDeleteStatus"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handler.SettingsRequest": {
+            "type": "object",
+            "properties": {
+                "check_interval_seconds": {
+                    "type": "integer",
+                    "example": 600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "maxmind_account_id": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "maxmind_license_key": {
+                    "type": "string",
+                    "example": "a1b2c3d4e5f6"
+                },
+                "pull_interval_hours": {
+                    "type": "integer",
+                    "example": 24
+                }
+            }
+        },
+        "handler.SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "check_interval_seconds": {
+                    "type": "integer",
+                    "example": 600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "maxmind_account_id": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "maxmind_license_key_mask": {
+                    "type": "string",
+                    "example": "••••••••"
+                },
+                "pull_interval_hours": {
+                    "type": "integer",
+                    "example": 24
+                }
+            }
+        },
+        "handler.SettingsSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/handler.SettingsResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handler.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "last_pulled_at": {
+                    "type": "string",
+                    "example": "2026-07-29T09:00:00Z"
+                },
+                "pid": {
+                    "type": "integer",
+                    "example": 48213
+                },
+                "running": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handler.StatusSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/handler.StatusResponse"
                 },
                 "success": {
                     "type": "boolean",

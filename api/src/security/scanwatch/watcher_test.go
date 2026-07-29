@@ -1,10 +1,47 @@
 package scanwatch
 
 import (
+	"encoding/json"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/a-digi/coco-iam/src/security/geoip"
 )
+
+// stubGeoLookup is a minimal geoip.Lookup for tests — returns a fixed
+// Info for any IP present in its map, false (a miss) otherwise.
+type stubGeoLookup struct {
+	data map[string]geoip.Info
+}
+
+func (s *stubGeoLookup) Lookup(ip string) (geoip.Info, bool) {
+	info, ok := s.data[ip]
+	return info, ok
+}
+func (s *stubGeoLookup) Enabled() bool { return true }
+
+// mutableGeoLookup always hits, but its Info can be changed mid-test —
+// used to prove a stored geoip_info snapshot is frozen at episode
+// creation and never re-derived from a later lookup against the same
+// still-open episode.
+type mutableGeoLookup struct {
+	mu   sync.Mutex
+	info geoip.Info
+}
+
+func (m *mutableGeoLookup) setInfo(info geoip.Info) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.info = info
+}
+
+func (m *mutableGeoLookup) Lookup(ip string) (geoip.Info, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.info, true
+}
+func (m *mutableGeoLookup) Enabled() bool { return true }
 
 // fakePersister is a scanPersister test double recording every call —
 // lets Watcher's aggregation logic be tested without a real
@@ -22,6 +59,7 @@ type fakePersister struct {
 type createCall struct {
 	id, ip    string
 	startedAt time.Time
+	geoInfo   *string
 }
 type updateCall struct {
 	id                      string
@@ -34,10 +72,10 @@ type closeCall struct {
 	endedAt time.Time
 }
 
-func (f *fakePersister) CreateScan(id, ip string, startedAt time.Time) error {
+func (f *fakePersister) CreateScan(id, ip string, startedAt time.Time, geoInfo *string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	f.created = append(f.created, createCall{id, ip, startedAt})
+	f.created = append(f.created, createCall{id, ip, startedAt, geoInfo})
 	return f.createErr
 }
 
@@ -67,7 +105,18 @@ func (f *fakePersister) createCount() int {
 
 func mustWatcher(t *testing.T, persist scanPersister, threshold int, window time.Duration) *Watcher {
 	t.Helper()
-	w, err := NewWatcher(persist, threshold, window, nil)
+	w, err := NewWatcher(persist, threshold, window, nil, nil)
+	if err != nil {
+		t.Fatalf("NewWatcher() error = %v", err)
+	}
+	return w
+}
+
+// mustWatcherWithGeo mirrors mustWatcher but wires a geoip.Lookup —
+// for tests exercising geoip_info snapshot capture.
+func mustWatcherWithGeo(t *testing.T, persist scanPersister, threshold int, window time.Duration, geo geoip.Lookup) *Watcher {
+	t.Helper()
+	w, err := NewWatcher(persist, threshold, window, nil, geo)
 	if err != nil {
 		t.Fatalf("NewWatcher() error = %v", err)
 	}
@@ -121,6 +170,106 @@ func TestRecordHit_AdditionalHitsAfterThresholdDoNotCreateAgain(t *testing.T) {
 
 	if got := persist.createCount(); got != 1 {
 		t.Fatalf("CreateScan calls = %d, want exactly 1 (one episode, not one per port)", got)
+	}
+}
+
+func TestRecordHit_CapturesGeoIPSnapshotForPublicIP(t *testing.T) {
+	persist := &fakePersister{}
+	geo := &stubGeoLookup{data: map[string]geoip.Info{
+		"203.0.113.7": {CountryCode: "DE", Country: "Germany", ASN: 3320, ASOrg: "Deutsche Telekom AG"},
+	}}
+	w := mustWatcherWithGeo(t, persist, 5, time.Minute, geo)
+
+	now := time.Now()
+	for _, port := range []int{22, 80, 443, 3306, 8080} {
+		w.RecordHit("203.0.113.7", port, now)
+	}
+
+	if got := persist.createCount(); got != 1 {
+		t.Fatalf("CreateScan calls = %d, want exactly 1", got)
+	}
+	call := persist.created[0]
+	if call.geoInfo == nil {
+		t.Fatal("geoInfo should be populated for a public ip the lookup has data for")
+	}
+	var got geoip.Info
+	if err := json.Unmarshal([]byte(*call.geoInfo), &got); err != nil {
+		t.Fatalf("unmarshal geoInfo: %v", err)
+	}
+	want := geoip.Info{CountryCode: "DE", Country: "Germany", ASN: 3320, ASOrg: "Deutsche Telekom AG"}
+	if got != want {
+		t.Errorf("geoInfo = %+v, want %+v", got, want)
+	}
+}
+
+func TestRecordHit_NoGeoIPSnapshotForLoopbackIP(t *testing.T) {
+	persist := &fakePersister{}
+	geo := &stubGeoLookup{data: map[string]geoip.Info{
+		// If this ever shows up, the loopback gate broke.
+		"127.0.0.1": {CountryCode: "XX", Country: "Should never be used"},
+	}}
+	w := mustWatcherWithGeo(t, persist, 5, time.Minute, geo)
+
+	now := time.Now()
+	for _, port := range []int{22, 80, 443, 3306, 8080} {
+		w.RecordHit("127.0.0.1", port, now)
+	}
+
+	if got := persist.createCount(); got != 1 {
+		t.Fatalf("CreateScan calls = %d, want exactly 1", got)
+	}
+	if call := persist.created[0]; call.geoInfo != nil {
+		t.Fatalf("geoInfo = %q, want nil for a loopback ip (the geoip lookup must be skipped entirely)", *call.geoInfo)
+	}
+}
+
+func TestRecordHit_NoGeoIPSnapshotWhenLookupMisses(t *testing.T) {
+	persist := &fakePersister{}
+	geo := &stubGeoLookup{data: map[string]geoip.Info{}} // always misses
+	w := mustWatcherWithGeo(t, persist, 5, time.Minute, geo)
+
+	now := time.Now()
+	for _, port := range []int{22, 80, 443, 3306, 8080} {
+		w.RecordHit("203.0.113.7", port, now)
+	}
+
+	if call := persist.created[0]; call.geoInfo != nil {
+		t.Fatalf("geoInfo = %q, want nil when the lookup found nothing for this ip", *call.geoInfo)
+	}
+}
+
+func TestRecordHit_GeoIPSnapshotNeverRecomputedAfterEpisodeCreation(t *testing.T) {
+	persist := &fakePersister{}
+	geo := &mutableGeoLookup{info: geoip.Info{CountryCode: "DE", Country: "Germany"}}
+	w := mustWatcherWithGeo(t, persist, 3, time.Minute, geo)
+
+	now := time.Now()
+	// Crosses the threshold on the 3rd hit, capturing the DE snapshot.
+	for _, port := range []int{22, 80, 443} {
+		w.RecordHit("203.0.113.7", port, now)
+	}
+
+	// Simulate geoip.db being refreshed with different data for this
+	// same ip between episode creation and further hits.
+	geo.setInfo(geoip.Info{CountryCode: "FR", Country: "France"})
+
+	// More hits against the same already-open episode must not call
+	// CreateScan again — there is no update path for geoip_info at
+	// all, so this alone proves the original snapshot can never be
+	// overwritten.
+	for _, port := range []int{8080, 9090} {
+		w.RecordHit("203.0.113.7", port, now)
+	}
+
+	if got := persist.createCount(); got != 1 {
+		t.Fatalf("CreateScan calls = %d, want exactly 1", got)
+	}
+	var got geoip.Info
+	if err := json.Unmarshal([]byte(*persist.created[0].geoInfo), &got); err != nil {
+		t.Fatalf("unmarshal geoInfo: %v", err)
+	}
+	if got.CountryCode != "DE" {
+		t.Fatalf("geoInfo = %+v, want the original DE snapshot captured at episode creation", got)
 	}
 }
 

@@ -53,7 +53,7 @@ func (f ListFilter) whereClause() (string, []interface{}) {
 // paginated per filter.
 func (r *ScanQueryRepo) ListScans(filter ListFilter) ([]scans_entity.Scan, error) {
 	where, args := filter.whereClause()
-	q := `SELECT id, ip, started_at, last_seen_at, COALESCE(ended_at, ''), distinct_ports, hit_count, sample_ports
+	q := `SELECT id, ip, started_at, last_seen_at, COALESCE(ended_at, ''), distinct_ports, hit_count, sample_ports, COALESCE(geoip_info, '')
 	      FROM scan_episodes` + where + ` ORDER BY started_at DESC LIMIT ? OFFSET ?`
 	args = append(args, filter.Limit, filter.Offset)
 
@@ -66,7 +66,7 @@ func (r *ScanQueryRepo) ListScans(filter ListFilter) ([]scans_entity.Scan, error
 	var out []scans_entity.Scan
 	for rows.Next() {
 		var s scans_entity.Scan
-		if err := rows.Scan(&s.ID, &s.IP, &s.StartedAt, &s.LastSeenAt, &s.EndedAt, &s.DistinctPorts, &s.HitCount, &s.SamplePorts); err != nil {
+		if err := rows.Scan(&s.ID, &s.IP, &s.StartedAt, &s.LastSeenAt, &s.EndedAt, &s.DistinctPorts, &s.HitCount, &s.SamplePorts, &s.GeoIPInfo); err != nil {
 			return nil, fmt.Errorf("scan-episode: scan: %w", err)
 		}
 		normalizeTimestamps(&s)
@@ -93,12 +93,12 @@ func (r *ScanQueryRepo) CountScans(filter ListFilter) (int, error) {
 // FindScan returns a single episode by id, or ErrNotFound.
 func (r *ScanQueryRepo) FindScan(id string) (*scans_entity.Scan, error) {
 	row := r.handle.DB().QueryRow(
-		`SELECT id, ip, started_at, last_seen_at, COALESCE(ended_at, ''), distinct_ports, hit_count, sample_ports
+		`SELECT id, ip, started_at, last_seen_at, COALESCE(ended_at, ''), distinct_ports, hit_count, sample_ports, COALESCE(geoip_info, '')
 		 FROM scan_episodes WHERE id = ?`,
 		id,
 	)
 	var s scans_entity.Scan
-	if err := row.Scan(&s.ID, &s.IP, &s.StartedAt, &s.LastSeenAt, &s.EndedAt, &s.DistinctPorts, &s.HitCount, &s.SamplePorts); err != nil {
+	if err := row.Scan(&s.ID, &s.IP, &s.StartedAt, &s.LastSeenAt, &s.EndedAt, &s.DistinctPorts, &s.HitCount, &s.SamplePorts, &s.GeoIPInfo); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}

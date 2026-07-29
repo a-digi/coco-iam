@@ -5,6 +5,7 @@ import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
 import { useBreadcrumbItems } from '../../../../Layout/Breadcrumb/useBreadcrumb';
 import { formatDate } from '../../../../config/data/date/date';
+import { parseGeoIPInfo, formatGeoIPCountry, formatGeoIPOrg } from '../geoipInfo';
 
 interface ScanDetailResponse {
     id: string;
@@ -15,6 +16,7 @@ interface ScanDetailResponse {
     distinct_ports: number;
     hit_count: number;
     sample_ports: string;
+    geoip_info?: string;
 }
 
 const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
@@ -54,6 +56,10 @@ export const ScanDetail: React.FC = () => {
         void load();
     }, [load]);
 
+    const geo = scan ? parseGeoIPInfo(scan.geoip_info) : null;
+    const geoCountry = geo ? formatGeoIPCountry(geo) : null;
+    const geoOrg = geo ? formatGeoIPOrg(geo) : null;
+
     return (
         <div>
             <div className="mb-4">
@@ -75,6 +81,8 @@ export const ScanDetail: React.FC = () => {
                 <div className="mt-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Field label="IP address" value={<span className="font-mono text-sm">{scan.ip}</span>} />
+                        {geoCountry && <Field label="Country" value={geoCountry} />}
+                        {geoOrg && <Field label="ISP / ASN" value={geoOrg} />}
                         <Field label="Status" value={scan.ended_at ? 'Closed' : 'Active'} />
                         <Field label="Distinct ports" value={scan.distinct_ports} />
                         <Field label="Hits" value={scan.hit_count} />

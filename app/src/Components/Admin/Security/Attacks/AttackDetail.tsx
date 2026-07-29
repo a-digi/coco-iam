@@ -7,6 +7,7 @@ import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
 import { useBreadcrumbItems } from '../../../../Layout/Breadcrumb/useBreadcrumb';
 import { formatDate } from '../../../../config/data/date/date';
+import { parseGeoIPInfo, formatGeoIPCountry, formatGeoIPOrg } from '../geoipInfo';
 
 interface AttackTarget {
     path: string;
@@ -26,6 +27,7 @@ interface AttackDetailResponse {
     ban_count: number;
     targets: AttackTarget[];
     origin_hint?: string;
+    geoip_info?: string;
 }
 
 const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
@@ -119,6 +121,10 @@ export const AttackDetail: React.FC = () => {
 
     const backTo = archiveId ? `/admin/security/archives/${archiveId}/attacks` : '/admin/security/attacks';
 
+    const geo = attack ? parseGeoIPInfo(attack.geoip_info) : null;
+    const geoCountry = geo ? formatGeoIPCountry(geo) : null;
+    const geoOrg = geo ? formatGeoIPOrg(geo) : null;
+
     return (
         <div>
             <div className="mb-4">
@@ -141,6 +147,8 @@ export const AttackDetail: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Field label="IP address" value={<span className="font-mono text-sm">{attack.ip}</span>} />
                         <Field label="Tier" value={attack.tier} />
+                        {geoCountry && <Field label="Country" value={geoCountry} />}
+                        {geoOrg && <Field label="ISP / ASN" value={geoOrg} />}
                         <Field label="Status" value={attack.ended_at ? 'Closed' : 'Active'} />
                         <Field label="Hits" value={attack.hit_count} />
                         <Field label="Ban triggers" value={attack.ban_count} />

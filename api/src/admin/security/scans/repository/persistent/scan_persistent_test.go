@@ -31,7 +31,8 @@ func freshDB(t *testing.T) *sql.DB {
 		    ended_at       DATETIME,
 		    distinct_ports INTEGER NOT NULL DEFAULT 0,
 		    hit_count      INTEGER NOT NULL DEFAULT 0,
-		    sample_ports   TEXT NOT NULL DEFAULT ''
+		    sample_ports   TEXT NOT NULL DEFAULT '',
+		    geoip_info     TEXT
 		);
 		CREATE TABLE db_meta (key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL);
 		INSERT INTO db_meta (key, value) VALUES ('entry_count', '0');
@@ -58,7 +59,7 @@ func TestCreateScan_ThenFindable(t *testing.T) {
 	query := scans_query.NewScanQueryRepo(handle)
 
 	now := time.Now()
-	if err := persist.CreateScan("scan-1", "203.0.113.7", now); err != nil {
+	if err := persist.CreateScan("scan-1", "203.0.113.7", now, nil); err != nil {
 		t.Fatalf("CreateScan() error = %v", err)
 	}
 	if got := handle.EntryCount(); got != 1 {
@@ -80,6 +81,34 @@ func TestCreateScan_ThenFindable(t *testing.T) {
 	}
 }
 
+func TestCreateScan_StoresGeoIPInfoWhenProvided(t *testing.T) {
+	db := freshDB(t)
+	handle := mustHandle(t, db)
+	persist := NewScanPersistentRepo(handle)
+	query := scans_query.NewScanQueryRepo(handle)
+
+	geoInfo := `{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche Telekom AG"}`
+	if err := persist.CreateScan("scan-1", "203.0.113.7", time.Now(), &geoInfo); err != nil {
+		t.Fatalf("CreateScan() error = %v", err)
+	}
+
+	s, err := query.FindScan("scan-1")
+	if err != nil {
+		t.Fatalf("FindScan() error = %v", err)
+	}
+	if s.GeoIPInfo != geoInfo {
+		t.Fatalf("GeoIPInfo = %q, want %q", s.GeoIPInfo, geoInfo)
+	}
+
+	all, err := query.ListScans(scans_query.ListFilter{Limit: 50})
+	if err != nil {
+		t.Fatalf("ListScans() error = %v", err)
+	}
+	if len(all) != 1 || all[0].GeoIPInfo != geoInfo {
+		t.Fatalf("ListScans() = %+v, want a single entry with GeoIPInfo = %q", all, geoInfo)
+	}
+}
+
 func TestUpdateScan_FlushesLatestTotals(t *testing.T) {
 	db := freshDB(t)
 	handle := mustHandle(t, db)
@@ -87,7 +116,7 @@ func TestUpdateScan_FlushesLatestTotals(t *testing.T) {
 	query := scans_query.NewScanQueryRepo(handle)
 
 	now := time.Now()
-	if err := persist.CreateScan("scan-1", "203.0.113.7", now); err != nil {
+	if err := persist.CreateScan("scan-1", "203.0.113.7", now, nil); err != nil {
 		t.Fatalf("CreateScan() error = %v", err)
 	}
 	if err := persist.UpdateScan("scan-1", 14, 37, "22,80,443", now.Add(time.Minute)); err != nil {
@@ -113,7 +142,7 @@ func TestCloseScan_SetsEndedAt(t *testing.T) {
 	query := scans_query.NewScanQueryRepo(handle)
 
 	now := time.Now()
-	if err := persist.CreateScan("scan-1", "203.0.113.7", now); err != nil {
+	if err := persist.CreateScan("scan-1", "203.0.113.7", now, nil); err != nil {
 		t.Fatalf("CreateScan() error = %v", err)
 	}
 	if err := persist.CloseScan("scan-1", now.Add(5*time.Minute)); err != nil {
@@ -136,13 +165,13 @@ func TestCloseAllOpen_ClosesOnlyOpenRows(t *testing.T) {
 	query := scans_query.NewScanQueryRepo(handle)
 
 	now := time.Now()
-	if err := persist.CreateScan("open-1", "1.1.1.1", now); err != nil {
+	if err := persist.CreateScan("open-1", "1.1.1.1", now, nil); err != nil {
 		t.Fatalf("CreateScan() error = %v", err)
 	}
-	if err := persist.CreateScan("open-2", "2.2.2.2", now); err != nil {
+	if err := persist.CreateScan("open-2", "2.2.2.2", now, nil); err != nil {
 		t.Fatalf("CreateScan() error = %v", err)
 	}
-	if err := persist.CreateScan("already-closed", "3.3.3.3", now); err != nil {
+	if err := persist.CreateScan("already-closed", "3.3.3.3", now, nil); err != nil {
 		t.Fatalf("CreateScan() error = %v", err)
 	}
 	if err := persist.CloseScan("already-closed", now); err != nil {
@@ -175,13 +204,13 @@ func TestListScans_NewestFirstAndFiltered(t *testing.T) {
 	query := scans_query.NewScanQueryRepo(handle)
 
 	base := time.Now()
-	if err := persist.CreateScan("scan-a", "1.1.1.1", base.Add(-2*time.Hour)); err != nil {
+	if err := persist.CreateScan("scan-a", "1.1.1.1", base.Add(-2*time.Hour), nil); err != nil {
 		t.Fatalf("CreateScan() error = %v", err)
 	}
-	if err := persist.CreateScan("scan-b", "2.2.2.2", base.Add(-1*time.Hour)); err != nil {
+	if err := persist.CreateScan("scan-b", "2.2.2.2", base.Add(-1*time.Hour), nil); err != nil {
 		t.Fatalf("CreateScan() error = %v", err)
 	}
-	if err := persist.CreateScan("scan-c", "1.1.1.1", base); err != nil {
+	if err := persist.CreateScan("scan-c", "1.1.1.1", base, nil); err != nil {
 		t.Fatalf("CreateScan() error = %v", err)
 	}
 

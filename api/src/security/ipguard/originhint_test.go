@@ -7,27 +7,6 @@ import (
 	"testing"
 )
 
-func TestIsLoopbackOrPrivate(t *testing.T) {
-	cases := []struct {
-		ip   string
-		want bool
-	}{
-		{"127.0.0.1", true},
-		{"::1", true},
-		{"10.0.0.1", true},
-		{"172.16.5.9", true},
-		{"192.168.1.1", true},
-		{"203.0.113.7", false},
-		{"91.230.168.240", false},
-		{"not-an-ip", false},
-	}
-	for _, c := range cases {
-		if got := isLoopbackOrPrivate(c.ip); got != c.want {
-			t.Errorf("isLoopbackOrPrivate(%q) = %v, want %v", c.ip, got, c.want)
-		}
-	}
-}
-
 func TestCaptureOriginHint_NilWhenNoCandidateHeadersPresent(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.Host = ""

@@ -2,6 +2,7 @@ package ipguard
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -19,6 +20,7 @@ import (
 	security_persistent "github.com/a-digi/coco-iam/src/admin/security/repository/persistent"
 	security_query "github.com/a-digi/coco-iam/src/admin/security/repository/query"
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
+	"github.com/a-digi/coco-iam/src/security/geoip"
 	"github.com/a-digi/coco-iam/src/security/ipguard/firewall"
 )
 
@@ -74,6 +76,7 @@ type IPGuardSecurityLayer struct {
 	attackLog     logger.Logger // dedicated log file — see plan section 12
 
 	firewall firewall.Banner // OS-level enforcement, see plan section 14
+	geo      geoip.Lookup    // country/ASN/ISP enrichment, may be nil — see plan/geoip-enrichment/plan.md
 
 	bansMu sync.RWMutex
 	bans   map[string]banEntry
@@ -93,24 +96,27 @@ type IPGuardSecurityLayer struct {
 // plan/ip-attacks-db-archiving/plan.md. attackLog is the dedicated
 // attack log file (section 12). The OS-level firewall backend is
 // auto-detected via firewall.Detect — callers don't choose it
-// explicitly.
-func New(cfg Config, inner security.SecurityLayer, ctx di.Context, attacksHandle *dbhandle.Handle, attackLog logger.Logger) (*IPGuardSecurityLayer, error) {
+// explicitly. geo is the geoip.Lookup used to enrich new attack
+// episodes (see plan/geoip-enrichment/plan.md) — may be nil, same
+// nil-safe convention as fw below.
+func New(cfg Config, inner security.SecurityLayer, ctx di.Context, attacksHandle *dbhandle.Handle, attackLog logger.Logger, geo geoip.Lookup) (*IPGuardSecurityLayer, error) {
 	manager := ctx.GetDatabaseManager()
 	if manager == nil || manager.Connector == nil || manager.Connector.DB == nil {
 		return nil, fmt.Errorf("ipguard: database manager not available")
 	}
 	fw := firewall.Detect(ctx.GetLogger())
-	return NewWithDB(cfg, inner, manager.Connector.DB, ctx.GetLogger(), attacksHandle, attackLog, fw)
+	return NewWithDB(cfg, inner, manager.Connector.DB, ctx.GetLogger(), attacksHandle, attackLog, fw, geo)
 }
 
 // NewWithDB builds an IPGuardSecurityLayer directly from a *sql.DB (the
 // main database, for bans/allowlist), a *dbhandle.Handle (the
-// rotatable ip-attacks.db connection), loggers, and a firewall.Banner —
-// the lower-level constructor, easiest to unit test without faking the
-// full di.Context interface. log, attackLog, and fw may all be
-// nil/absent (fw nil disables OS-level enforcement entirely, same as a
-// NoopBanner).
-func NewWithDB(cfg Config, inner security.SecurityLayer, db *sql.DB, log logger.Logger, attacksHandle *dbhandle.Handle, attackLog logger.Logger, fw firewall.Banner) (*IPGuardSecurityLayer, error) {
+// rotatable ip-attacks.db connection), loggers, a firewall.Banner, and
+// a geoip.Lookup — the lower-level constructor, easiest to unit test
+// without faking the full di.Context interface. log, attackLog, fw,
+// and geo may all be nil/absent (fw nil disables OS-level enforcement
+// entirely, same as a NoopBanner; geo nil disables geoip enrichment
+// entirely — every use is guarded the same way firewall's is).
+func NewWithDB(cfg Config, inner security.SecurityLayer, db *sql.DB, log logger.Logger, attacksHandle *dbhandle.Handle, attackLog logger.Logger, fw firewall.Banner, geo geoip.Lookup) (*IPGuardSecurityLayer, error) {
 	g := &IPGuardSecurityLayer{
 		inner:         inner,
 		cfg:           cfg,
@@ -123,6 +129,7 @@ func NewWithDB(cfg Config, inner security.SecurityLayer, db *sql.DB, log logger.
 		attackPersist: attacks_persistent.NewAttackPersistentRepo(attacksHandle),
 		attackLog:     attackLog,
 		firewall:      fw,
+		geo:           geo,
 		bans:          make(map[string]banEntry),
 		allow:         make(map[string]struct{}),
 		attacks:       make(map[string]*attackState),
@@ -548,8 +555,23 @@ func (g *IPGuardSecurityLayer) recordAttackHit(ip, tier, reason string, r *http.
 	// I/O), but only ever used below if this hit turns out to be the
 	// one that creates a new episode.
 	var originHint *string
-	if isLoopbackOrPrivate(ip) {
+	if geoip.IsLoopbackOrPrivate(ip) {
 		originHint = captureOriginHint(r)
+	}
+
+	// Only computed for the opposite case — loopback/private addresses
+	// have no useful geoip data. Frozen into the episode row once,
+	// below, and never re-derived later: geoip.db keeps no history of
+	// its own, so this snapshot is the only place that fact survives.
+	// See plan/geoip-enrichment/plan.md.
+	var geoInfo *string
+	if g.geo != nil && !geoip.IsLoopbackOrPrivate(ip) {
+		if info, ok := g.geo.Lookup(ip); ok {
+			if raw, err := json.Marshal(info); err == nil {
+				s := string(raw)
+				geoInfo = &s
+			}
+		}
 	}
 
 	g.attacksMu.Lock()
@@ -579,7 +601,7 @@ func (g *IPGuardSecurityLayer) recordAttackHit(ip, tier, reason string, r *http.
 	g.attacksMu.Unlock()
 
 	if needsCreate {
-		if err := g.attackPersist.CreateAttack(attackID, ip, tier, now, originHint); err != nil {
+		if err := g.attackPersist.CreateAttack(attackID, ip, tier, now, originHint, geoInfo); err != nil {
 			g.errorf("ipguard: failed to create attack record for %s: %v", ip, err)
 		}
 		if originHint != nil {

@@ -6,6 +6,7 @@ import { LinkAction } from '../../../../Shared/Components/Actions/Link';
 import { FormInput } from '../../../../Shared/Components/Form';
 import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
+import { formatGeoIPSummary } from '../geoipInfo';
 
 interface Scan {
     id: string;
@@ -16,6 +17,7 @@ interface Scan {
     distinct_ports: number;
     hit_count: number;
     sample_ports: string;
+    geoip_info?: string;
 }
 
 interface ScanListResponse {
@@ -76,6 +78,11 @@ export const ScansDashboard: React.FC = () => {
         { key: 'ip', label: 'IP address' },
         { key: 'distinct_ports', label: 'Distinct ports' },
         { key: 'hit_count', label: 'Hits' },
+        {
+            key: 'geoip_info',
+            label: 'Country / ISP',
+            render: (_value, row) => <span className="text-xs">{formatGeoIPSummary(row.geoip_info)}</span>,
+        },
         {
             key: 'sample_ports',
             label: 'Sample ports',

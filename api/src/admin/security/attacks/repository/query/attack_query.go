@@ -56,10 +56,13 @@ func (f ListFilter) whereClause() (string, []interface{}) {
 }
 
 // ListAttacks returns attack episodes newest-first, filtered and
-// paginated per filter.
+// paginated per filter. Includes geoip_info (unlike origin_hint,
+// which is detail-only) — country/ISP is exactly the kind of
+// at-a-glance triage signal the list view benefits from. See
+// plan/geoip-enrichment/plan.md.
 func (r *AttackQueryRepo) ListAttacks(filter ListFilter) ([]attacks_entity.Attack, error) {
 	where, args := filter.whereClause()
-	query := `SELECT id, ip, tier, started_at, last_seen_at, COALESCE(ended_at, ''), hit_count, ban_count
+	query := `SELECT id, ip, tier, started_at, last_seen_at, COALESCE(ended_at, ''), hit_count, ban_count, COALESCE(geoip_info, '')
 	          FROM ip_attacks` + where + ` ORDER BY started_at DESC LIMIT ? OFFSET ?`
 	args = append(args, filter.Limit, filter.Offset)
 
@@ -72,7 +75,7 @@ func (r *AttackQueryRepo) ListAttacks(filter ListFilter) ([]attacks_entity.Attac
 	var out []attacks_entity.Attack
 	for rows.Next() {
 		var a attacks_entity.Attack
-		if err := rows.Scan(&a.ID, &a.IP, &a.Tier, &a.StartedAt, &a.LastSeenAt, &a.EndedAt, &a.HitCount, &a.BanCount); err != nil {
+		if err := rows.Scan(&a.ID, &a.IP, &a.Tier, &a.StartedAt, &a.LastSeenAt, &a.EndedAt, &a.HitCount, &a.BanCount, &a.GeoIPInfo); err != nil {
 			return nil, fmt.Errorf("ip-attack: scan: %w", err)
 		}
 		normalizeTimestamps(&a)
@@ -102,12 +105,12 @@ func (r *AttackQueryRepo) CountAttacks(filter ListFilter) (int, error) {
 // only ever populated on the single-episode detail fetch.
 func (r *AttackQueryRepo) FindAttack(id string) (*attacks_entity.Attack, error) {
 	row := r.handle.DB().QueryRow(
-		`SELECT id, ip, tier, started_at, last_seen_at, COALESCE(ended_at, ''), hit_count, ban_count, COALESCE(origin_hint, '')
+		`SELECT id, ip, tier, started_at, last_seen_at, COALESCE(ended_at, ''), hit_count, ban_count, COALESCE(origin_hint, ''), COALESCE(geoip_info, '')
 		 FROM ip_attacks WHERE id = ?`,
 		id,
 	)
 	var a attacks_entity.Attack
-	if err := row.Scan(&a.ID, &a.IP, &a.Tier, &a.StartedAt, &a.LastSeenAt, &a.EndedAt, &a.HitCount, &a.BanCount, &a.OriginHint); err != nil {
+	if err := row.Scan(&a.ID, &a.IP, &a.Tier, &a.StartedAt, &a.LastSeenAt, &a.EndedAt, &a.HitCount, &a.BanCount, &a.OriginHint, &a.GeoIPInfo); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}

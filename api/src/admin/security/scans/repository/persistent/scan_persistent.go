@@ -30,14 +30,22 @@ func NewScanPersistentRepo(handle *dbhandle.Handle) *ScanPersistentRepo {
 
 // CreateScan inserts a new scan episode row — called once, the moment
 // an IP first crosses the distinct-port threshold within the
-// aggregation window.
-func (r *ScanPersistentRepo) CreateScan(id, ip string, startedAt time.Time) error {
+// aggregation window. geoInfo is a JSON snapshot of the geoip.Info
+// resolved for ip at this exact moment (nil if geoip is disabled, ip
+// is loopback/private, or nothing matched) — frozen here and never
+// re-derived later, since geoip.db keeps no history of its own. See
+// plan/geoip-enrichment/plan.md.
+func (r *ScanPersistentRepo) CreateScan(id, ip string, startedAt time.Time, geoInfo *string) error {
 	db := r.handle.DB()
 	ts := startedAt.UTC().Format(timeLayout)
+	var geoInfoArg interface{}
+	if geoInfo != nil {
+		geoInfoArg = *geoInfo
+	}
 	_, err := db.Exec(
-		`INSERT INTO scan_episodes (id, ip, started_at, last_seen_at, distinct_ports, hit_count, sample_ports)
-		 VALUES (?, ?, ?, ?, 0, 0, '')`,
-		id, ip, ts, ts,
+		`INSERT INTO scan_episodes (id, ip, started_at, last_seen_at, distinct_ports, hit_count, sample_ports, geoip_info)
+		 VALUES (?, ?, ?, ?, 0, 0, '', ?)`,
+		id, ip, ts, ts, geoInfoArg,
 	)
 	if err != nil {
 		return fmt.Errorf("scan-episode: create: %w", err)

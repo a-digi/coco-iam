@@ -2,6 +2,7 @@ package scanwatch
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -12,6 +13,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/a-digi/coco-logger/logger"
+
+	"github.com/a-digi/coco-iam/src/security/geoip"
 )
 
 // DefaultThreshold and DefaultWindow are the "N distinct ports within
@@ -36,7 +39,7 @@ const sweepInterval = 1 * time.Minute
 // every test; production wiring passes the real
 // scans/repository/persistent.ScanPersistentRepo.
 type scanPersister interface {
-	CreateScan(id, ip string, startedAt time.Time) error
+	CreateScan(id, ip string, startedAt time.Time, geoInfo *string) error
 	UpdateScan(id string, distinctPorts, hitCount int, samplePorts string, lastSeenAt time.Time) error
 	CloseScan(id string, endedAt time.Time) error
 	CloseAllOpen() (int64, error)
@@ -67,6 +70,7 @@ type Watcher struct {
 
 	persist scanPersister
 	log     logger.Logger
+	geo     geoip.Lookup // country/ASN/ISP enrichment, may be nil — see plan/geoip-enrichment/plan.md
 }
 
 // NewWatcher builds a Watcher and force-closes any scan_episodes row
@@ -75,14 +79,17 @@ type Watcher struct {
 // once closed (a later scan from the same IP is a new row — see
 // RecordHit's "stale window" reset and Flush's grace-close), so any
 // row still open at construction time is definitionally orphaned.
-// Mirrors ipguard.hydrate's CloseAllOpen call exactly.
-func NewWatcher(persist scanPersister, threshold int, window time.Duration, log logger.Logger) (*Watcher, error) {
+// Mirrors ipguard.hydrate's CloseAllOpen call exactly. geo may be nil
+// (disables geoip enrichment entirely, guarded the same way ipguard's
+// own geo dependency is).
+func NewWatcher(persist scanPersister, threshold int, window time.Duration, log logger.Logger, geo geoip.Lookup) (*Watcher, error) {
 	w := &Watcher{
 		ips:       make(map[string]*ipState),
 		threshold: threshold,
 		window:    window,
 		persist:   persist,
 		log:       log,
+		geo:       geo,
 	}
 	if n, err := persist.CloseAllOpen(); err != nil {
 		return nil, fmt.Errorf("scanwatch: hydrate: %w", err)
@@ -142,7 +149,26 @@ func (w *Watcher) RecordHit(ip string, port int, now time.Time) {
 	w.mu.Unlock()
 
 	if needsCreate {
-		if err := w.persist.CreateScan(episodeID, ip, startedAt); err != nil && w.log != nil {
+		// Only computed for the hit that actually creates a new
+		// episode — RecordHit fires on every raw port-scan packet
+		// (potentially very high volume, e.g. an IP hammering one
+		// port repeatedly without ever crossing the distinct-port
+		// threshold), so a geoip lookup here must not run
+		// unconditionally on every hit the way ipguard's already
+		// rate-limited hit volume can afford to. Read outside w.mu
+		// regardless — same "no I/O under the lock" discipline as
+		// ipguard. Frozen into the episode row once and never
+		// re-derived later. See plan/geoip-enrichment/plan.md.
+		var geoInfo *string
+		if w.geo != nil && !geoip.IsLoopbackOrPrivate(ip) {
+			if info, ok := w.geo.Lookup(ip); ok {
+				if raw, err := json.Marshal(info); err == nil {
+					s := string(raw)
+					geoInfo = &s
+				}
+			}
+		}
+		if err := w.persist.CreateScan(episodeID, ip, startedAt, geoInfo); err != nil && w.log != nil {
 			w.log.Error("scanwatch: failed to create scan episode for %s: %v", ip, err)
 		}
 	}

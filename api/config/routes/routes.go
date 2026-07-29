@@ -68,6 +68,8 @@ import (
 	organization_users_admin "github.com/a-digi/coco-iam/src/organizations/users/admin"
 	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
+	"github.com/a-digi/coco-iam/src/security/geoip"
+	geoip_handler "github.com/a-digi/coco-iam/src/security/geoip/handler"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
 	swagger_handler "github.com/a-digi/coco-iam/src/swagger"
 	userrules_handler "github.com/a-digi/coco-iam/src/userrules/handler"
@@ -841,6 +843,13 @@ func Init(ctx serverdi.Context) {
 		"ArchiveAttackDetailHandler":           &admin_security_archives.ArchiveAttackDetailHandler{},
 		"ScanListHandler":                      &admin_security_scans.ScanListHandler{},
 		"ScanDetailHandler":                    &admin_security_scans.ScanDetailHandler{},
+		// Admin GeoIP settings + process control — see
+		// plan/geoip-enrichment/plan.md.
+		"GeoIPGetSettingsHandler": &geoip_handler.GetSettingsHandler{},
+		"GeoIPPutSettingsHandler": &geoip_handler.PutSettingsHandler{},
+		"GeoIPStatusHandler":      &geoip_handler.StatusHandler{},
+		"GeoIPStartHandler":       &geoip_handler.StartHandler{},
+		"GeoIPStopHandler":        &geoip_handler.StopHandler{},
 		"AdminQueueStatsHandler":               &queue_admin.AdminQueueStatsHandler{},
 		"AdminQueueRetryHandler":               &queue_admin.AdminQueueRetryHandler{},
 		"AdminQueueCreateHandler":              &queue_admin.AdminQueueCreateHandler{},
@@ -1067,7 +1076,39 @@ func Init(ctx serverdi.Context) {
 	if bag.IPAttacksHandle == nil {
 		panic("routes.Init: ip-attacks db handle not available")
 	}
-	ipGuard, err := ipguard.New(ipGuardCfg, scopeLayer, ctx, bag.IPAttacksHandle, bag.IPAttacksLog)
+
+	// geoip enrichment — see plan/geoip-enrichment/plan.md. geoipCfg's
+	// static (config.json) values are merged with whatever's been
+	// saved via the admin settings UI (main DB, geoip_settings) — the
+	// DB values win when present, config.json is the fallback for a
+	// fresh install nobody has configured yet.
+	geoipCfg, err := geoip.LoadConfig(authCfgBytes)
+	if err != nil {
+		panic(err)
+	}
+	if manager := bag.GetDatabaseManager(); manager != nil && manager.Connector != nil && manager.Connector.DB != nil {
+		if settings, err := geoip.NewSettingsQueryRepo(manager.Connector.DB).LoadSettings(); err != nil {
+			ctx.GetLogger().Warning("geoip: failed to load settings from the main database: %v (using config.json defaults only)", err)
+		} else {
+			geoipCfg = geoipCfg.WithSettings(settings)
+		}
+	}
+	// Constructed unconditionally, regardless of geoipCfg.Enabled: geo
+	// and the Watcher are always safe to have running — geoip.db
+	// simply won't exist (or will be empty) until an admin actually
+	// starts the updater, and SQLLookup/Watcher already handle that
+	// gracefully (a miss, not an error). This also means enabling
+	// geoip later via the admin UI + Start button takes effect
+	// immediately, without needing to restart this admin server too —
+	// the already-ticking Watcher picks up geoip.db on its very next
+	// tick once the updater actually creates it.
+	geo := geoip.NewSQLLookup(nil)
+	geoWatcher := geoip.NewWatcher(geoipCfg.DBPath, geo, geoipCfg.CheckInterval(), ctx.GetLogger())
+	bag.GeoIP = geo
+	bag.GeoIPWatcher = geoWatcher
+	bag.GeoIPManager = geoip.NewManager(geoipCfg.UpdaterBinaryPath, geoipCfg.PIDFile, geoipCfg.DBPath, ctx.GetLogger())
+
+	ipGuard, err := ipguard.New(ipGuardCfg, scopeLayer, ctx, bag.IPAttacksHandle, bag.IPAttacksLog, geo)
 	if err != nil {
 		panic(err)
 	}
