@@ -533,6 +533,13 @@ routes:
             scopes:
               - admin:security:attacks:read
               - super:admin
+          - path: /security/attacks/{id}/geoip
+            method: POST
+            executor: AttackFetchGeoIPHandler
+            security: authenticated
+            scopes:
+              - admin:security:attacks:write
+              - super:admin
           - path: /security/archives
             method: GET
             executor: ArchiveListHandler

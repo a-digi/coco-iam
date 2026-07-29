@@ -76,11 +76,12 @@ export const AttackDetail: React.FC = () => {
               ]
             : [{ label: 'Admin' }, { label: 'Security', href: '/admin/security/attacks' }, { label: 'Attack' }]
     );
-    const { get } = useHttpClient();
-    const { errorMessage } = useSnackBar();
+    const { get, post } = useHttpClient();
+    const { errorMessage, successMessage, infoMessage } = useSnackBar();
 
     const [attack, setAttack] = useState<AttackDetailResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [fetchingGeo, setFetchingGeo] = useState(false);
 
     const load = useCallback(async () => {
         if (!id) return;
@@ -101,6 +102,34 @@ export const AttackDetail: React.FC = () => {
     useEffect(() => {
         void load();
     }, [load]);
+
+    // Backfills geoip_info for episodes recorded before the GeoIP
+    // feature existed — only ever called for the live table (never an
+    // archived one; there's no backend route for that, and the button
+    // itself is hidden whenever archiveId is set). matched:false is a
+    // normal outcome, not an error — nothing was persisted, so the
+    // button stays available for a later retry. See
+    // plan/geoip-enrichment/plan.md's "Extension: backfill GeoIP for
+    // historical attack episodes" section.
+    const handleFetchGeoIP = async () => {
+        if (!id) return;
+        setFetchingGeo(true);
+        try {
+            const resp = await post<{ message: { matched: boolean; geoip_info?: string } }>(
+                `admin/security/attacks/{id:${id}}/geoip`
+            );
+            if (resp.message.matched) {
+                setAttack(prev => (prev ? { ...prev, geoip_info: resp.message.geoip_info } : prev));
+                successMessage('GeoIP data fetched.');
+            } else {
+                infoMessage('No GeoIP data available for this IP.');
+            }
+        } catch (err: unknown) {
+            errorMessage(err instanceof Error ? err.message : 'Failed to fetch GeoIP data.');
+        } finally {
+            setFetchingGeo(false);
+        }
+    };
 
     const columns: TableColumn<AttackTarget>[] = [
         { key: 'path', label: 'Path' },
@@ -176,9 +205,21 @@ export const AttackDetail: React.FC = () => {
                                 {geoOrg && <Field label="ISP / ASN" value={geoOrg} />}
                             </div>
                         ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                No GeoIP data available for this IP.
-                            </p>
+                            <div className="space-y-3">
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    No GeoIP data available for this IP.
+                                </p>
+                                {!archiveId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleFetchGeoIP()}
+                                        disabled={fetchingGeo}
+                                        className="px-4 py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                        {fetchingGeo ? 'Fetching…' : 'Fetch GeoIP data'}
+                                    </button>
+                                )}
+                            </div>
                         )}
                     </AccordionItem>
 

@@ -4235,6 +4235,70 @@
                 }
             }
         },
+        "/admin/security/attacks/{id}/geoip": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Runs a live GeoIP lookup for this episode's IP and persists the result into\ngeoip_info — for historical episodes recorded before the GeoIP feature existed.\nFails with 409 if geoip_info is already set (never overwrites an existing frozen\nsnapshot) or if GeoIP is not currently enabled. matched:false (still 200) means the\nIP is loopback/private or has no current GeoLite2 coverage — nothing is persisted,\nso the button stays available for a future retry.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Backfill GeoIP data for an attack episode",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Attack episode id, as {id:\u003cvalue\u003e}",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.FetchGeoIPSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/geoip/search": {
             "get": {
                 "security": [
@@ -10545,6 +10609,31 @@
             "properties": {
                 "message": {
                     "$ref": "#/definitions/entity.CreateUserResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.FetchGeoIPResponse": {
+            "type": "object",
+            "properties": {
+                "geoip_info": {
+                    "type": "string",
+                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
+                },
+                "matched": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.FetchGeoIPSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.FetchGeoIPResponse"
                 },
                 "success": {
                     "type": "boolean",

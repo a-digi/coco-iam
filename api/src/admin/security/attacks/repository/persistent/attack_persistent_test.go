@@ -144,6 +144,43 @@ func TestCreateAttack_StoresGeoIPInfoWhenProvided(t *testing.T) {
 	}
 }
 
+func TestSetGeoIPInfo_BackfillsAnEmptyRow(t *testing.T) {
+	db := freshDB(t)
+	handle := mustHandle(t, db)
+	persist := NewAttackPersistentRepo(handle)
+	query := attacks_query.NewAttackQueryRepo(handle)
+
+	if err := persist.CreateAttack("attack-1", "203.0.113.7", "global", time.Now(), nil, nil); err != nil {
+		t.Fatalf("CreateAttack() error = %v", err)
+	}
+	a, err := query.FindAttack("attack-1")
+	if err != nil {
+		t.Fatalf("FindAttack() error = %v", err)
+	}
+	if a.GeoIPInfo != "" {
+		t.Fatalf("GeoIPInfo = %q before backfill, want empty", a.GeoIPInfo)
+	}
+
+	geoInfo := `{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche Telekom AG"}`
+	if err := persist.SetGeoIPInfo("attack-1", geoInfo); err != nil {
+		t.Fatalf("SetGeoIPInfo() error = %v", err)
+	}
+
+	a, err = query.FindAttack("attack-1")
+	if err != nil {
+		t.Fatalf("FindAttack() error = %v", err)
+	}
+	if a.GeoIPInfo != geoInfo {
+		t.Fatalf("GeoIPInfo after backfill = %q, want %q", a.GeoIPInfo, geoInfo)
+	}
+
+	// SetGeoIPInfo never creates a row and must not touch the entry
+	// counter, unlike CreateAttack/a new SetTargetCount row.
+	if got := persist.handle.EntryCount(); got != 1 {
+		t.Fatalf("EntryCount() after SetGeoIPInfo = %d, want 1 (unchanged from CreateAttack)", got)
+	}
+}
+
 func TestUpdateAttackCounts_FlushesLatestTotals(t *testing.T) {
 	db := freshDB(t)
 	handle := mustHandle(t, db)

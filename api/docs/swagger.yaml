@@ -429,6 +429,24 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.FetchGeoIPResponse:
+    properties:
+      geoip_info:
+        example: '{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
+        type: string
+      matched:
+        example: true
+        type: boolean
+    type: object
+  entity.FetchGeoIPSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.FetchGeoIPResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.FieldAvailability:
     properties:
       available:
@@ -4379,6 +4397,53 @@ paths:
       security:
       - BearerAuth: []
       summary: Get one attack episode
+      tags:
+      - security
+  /admin/security/attacks/{id}/geoip:
+    post:
+      description: |-
+        Runs a live GeoIP lookup for this episode's IP and persists the result into
+        geoip_info — for historical episodes recorded before the GeoIP feature existed.
+        Fails with 409 if geoip_info is already set (never overwrites an existing frozen
+        snapshot) or if GeoIP is not currently enabled. matched:false (still 200) means the
+        IP is loopback/private or has no current GeoLite2 coverage — nothing is persisted,
+        so the button stays available for a future retry.
+      parameters:
+      - description: Attack episode id, as {id:<value>}
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.FetchGeoIPSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Backfill GeoIP data for an attack episode
       tags:
       - security
   /admin/security/geoip/search:

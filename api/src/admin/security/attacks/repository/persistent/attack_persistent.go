@@ -93,6 +93,25 @@ func (r *AttackPersistentRepo) CloseAttack(id string, endedAt time.Time) error {
 	return nil
 }
 
+// SetGeoIPInfo backfills geoip_info for an episode recorded before the
+// GeoIP feature existed. Never creates a row, so it never touches the
+// entry counter. Callers must check the row's current geoip_info is
+// empty before calling this — SetGeoIPInfo itself has no such guard,
+// since that check requires a read this write-only repo doesn't own;
+// see FetchGeoIPHandler's 409-on-already-set check. See
+// plan/geoip-enrichment/plan.md's "Extension: backfill GeoIP for
+// historical attack episodes" section.
+func (r *AttackPersistentRepo) SetGeoIPInfo(id, geoInfo string) error {
+	_, err := r.handle.DB().Exec(
+		`UPDATE ip_attacks SET geoip_info = ? WHERE id = ?`,
+		geoInfo, id,
+	)
+	if err != nil {
+		return fmt.Errorf("ip-attack: set geoip info: %w", err)
+	}
+	return nil
+}
+
 // CloseAllOpen force-closes every row still open (ended_at IS NULL)
 // by setting ended_at = last_seen_at, and reports how many were
 // closed. Intended to be called once at startup: a fresh process's

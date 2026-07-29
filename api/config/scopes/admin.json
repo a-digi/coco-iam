@@ -300,6 +300,10 @@
                             {
                                 "id": "admin:security:attacks:read",
                                 "description": "Allows viewing recorded attack episodes and their targeted endpoints."
+                            },
+                            {
+                                "id": "admin:security:attacks:write",
+                                "description": "Allows manually backfilling GeoIP data for attack episodes recorded before the GeoIP feature existed."
                             }
                         ]
                     },

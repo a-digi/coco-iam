@@ -838,6 +838,7 @@ func Init(ctx serverdi.Context) {
 		"SecurityStatusHandler":                &admin_security.SecurityStatusHandler{},
 		"AttackListHandler":                    &admin_security_attacks.AttackListHandler{},
 		"AttackDetailHandler":                  &admin_security_attacks.AttackDetailHandler{},
+		"AttackFetchGeoIPHandler":              &admin_security_attacks.FetchGeoIPHandler{},
 		"ArchiveListHandler":                   &admin_security_archives.ArchiveListHandler{},
 		"ArchiveDetailHandler":                 &admin_security_archives.ArchiveDetailHandler{},
 		"ArchiveAttacksListHandler":            &admin_security_archives.ArchiveAttacksListHandler{},
