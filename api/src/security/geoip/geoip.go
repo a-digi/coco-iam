@@ -24,8 +24,21 @@ import (
 type Info struct {
 	CountryCode string `json:"country_code,omitempty"`
 	Country     string `json:"country,omitempty"`
-	ASN         uint   `json:"asn,omitempty"`
-	ASOrg       string `json:"as_org,omitempty"`
+	// Subdivision, City, PostalCode, Latitude, and Longitude come from
+	// the same GeoLite2-City dataset Country/CountryCode now do (City
+	// is a strict superset of the old Country-only edition — see
+	// plan/geoip-enrichment/plan.md's "Extension: city-level GeoIP"
+	// section). omitempty on Latitude/Longitude means a genuine 0,0
+	// coordinate is indistinguishable from "not set" — acceptable
+	// here, since MaxMind itself uses 0,0 as its own "unknown
+	// location" placeholder.
+	Subdivision string  `json:"subdivision,omitempty"`
+	City        string  `json:"city,omitempty"`
+	PostalCode  string  `json:"postal_code,omitempty"`
+	Latitude    float64 `json:"latitude,omitempty"`
+	Longitude   float64 `json:"longitude,omitempty"`
+	ASN         uint    `json:"asn,omitempty"`
+	ASOrg       string  `json:"as_org,omitempty"`
 }
 
 // Lookup resolves an IP to whatever ownership/location info is
@@ -77,12 +90,12 @@ var _ Lookup = (*SQLLookup)(nil)
 // Enabled.
 func (l *SQLLookup) Enabled() bool { return true }
 
-// Lookup queries geoip_country_ranges and geoip_asn_ranges
-// independently — country and ASN data can each be present or absent
-// on their own (GeoLite2 ships them as separate editions), so a miss
-// in one must not suppress a hit in the other. Returns false only if
-// neither query found anything (or geoip.db isn't open yet, or ip
-// doesn't parse).
+// Lookup queries geoip_city_ranges and geoip_asn_ranges
+// independently — city/country and ASN data can each be present or
+// absent on their own (GeoLite2 ships them as separate editions), so
+// a miss in one must not suppress a hit in the other. Returns false
+// only if neither query found anything (or geoip.db isn't open yet,
+// or ip doesn't parse).
 func (l *SQLLookup) Lookup(ip string) (Info, bool) {
 	db := l.slot.DB()
 	if db == nil {
@@ -96,9 +109,8 @@ func (l *SQLLookup) Lookup(ip string) (Info, bool) {
 	var info Info
 	found := false
 
-	if countryCode, country, ok := lookupCountry(db, family, encoded); ok {
-		info.CountryCode = countryCode
-		info.Country = country
+	if city, ok := lookupCity(db, family, encoded); ok {
+		info = city
 		found = true
 	}
 	if asn, asOrg, ok := lookupASN(db, family, encoded); ok {
@@ -110,27 +122,36 @@ func (l *SQLLookup) Lookup(ip string) (Info, bool) {
 	return info, found
 }
 
-// lookupCountry finds the country range whose start_ip is the
-// largest one not exceeding encoded, then confirms encoded actually
-// falls within that range (end_ip >= encoded) — the standard
-// "nearest-start-below, then confirm coverage" technique for CIDR
-// range lookups, using the (family, start_ip DESC) index for an O(log
-// n) seek instead of a full range scan. A false result here means
-// either no block covers encoded (an unallocated gap) or the query
-// itself failed — both are legitimate "no data" outcomes for this
-// enrichment feature, never worth surfacing as an error.
-func lookupCountry(db *sql.DB, family, encoded string) (countryCode, country string, ok bool) {
+// lookupCity finds the city range whose start_ip is the largest one
+// not exceeding encoded, then confirms encoded actually falls within
+// that range (end_ip >= encoded) — the standard "nearest-start-below,
+// then confirm coverage" technique for CIDR range lookups, using the
+// (family, start_ip DESC) index for an O(log n) seek instead of a
+// full range scan. A false result here means either no block covers
+// encoded (an unallocated gap) or the query itself failed — both are
+// legitimate "no data" outcomes for this enrichment feature, never
+// worth surfacing as an error.
+func lookupCity(db *sql.DB, family, encoded string) (Info, bool) {
 	var startIP, endIP string
-	var cc, name sql.NullString
+	var cc, country, subdivision, city, postal sql.NullString
+	var lat, lon sql.NullFloat64
 	err := db.QueryRow(
-		`SELECT start_ip, end_ip, country_code, country_name FROM geoip_country_ranges
-		 WHERE family = ? AND start_ip <= ? ORDER BY start_ip DESC LIMIT 1`,
+		`SELECT start_ip, end_ip, country_code, country_name, subdivision, city, postal_code, latitude, longitude
+		 FROM geoip_city_ranges WHERE family = ? AND start_ip <= ? ORDER BY start_ip DESC LIMIT 1`,
 		family, encoded,
-	).Scan(&startIP, &endIP, &cc, &name)
+	).Scan(&startIP, &endIP, &cc, &country, &subdivision, &city, &postal, &lat, &lon)
 	if err != nil || endIP < encoded {
-		return "", "", false
+		return Info{}, false
 	}
-	return cc.String, name.String, true
+	return Info{
+		CountryCode: cc.String,
+		Country:     country.String,
+		Subdivision: subdivision.String,
+		City:        city.String,
+		PostalCode:  postal.String,
+		Latitude:    lat.Float64,
+		Longitude:   lon.Float64,
+	}, true
 }
 
 // lookupASN mirrors lookupCountry against geoip_asn_ranges.

@@ -11475,6 +11475,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 3320
                 },
+                "city": {
+                    "type": "string",
+                    "example": "Berlin"
+                },
                 "country": {
                     "type": "string",
                     "example": "Germany"
@@ -11490,6 +11494,14 @@ const docTemplate = `{
                 "matched": {
                     "type": "boolean",
                     "example": true
+                },
+                "postal_code": {
+                    "type": "string",
+                    "example": "10115"
+                },
+                "subdivision": {
+                    "type": "string",
+                    "example": "Berlin"
                 }
             }
         },
@@ -11612,9 +11624,9 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 573104
                 },
-                "country_range_count": {
+                "city_range_count": {
                     "type": "integer",
-                    "example": 461293
+                    "example": 1108580
                 },
                 "enabled": {
                     "type": "boolean",

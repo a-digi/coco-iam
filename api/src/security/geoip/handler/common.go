@@ -131,11 +131,11 @@ func resolveStatusResponse(reqCtx request.RequestContext, manager *geoip.Manager
 	cfg := geoip.DefaultConfig().WithSettings(settings)
 
 	resp := StatusResponse{
-		Running:           status.Running,
-		PID:               status.PID,
-		Enabled:           cfg.Enabled,
-		CountryRangeCount: status.CountryRangeCount,
-		ASNRangeCount:     status.ASNRangeCount,
+		Running:        status.Running,
+		PID:            status.PID,
+		Enabled:        cfg.Enabled,
+		CityRangeCount: status.CityRangeCount,
+		ASNRangeCount:  status.ASNRangeCount,
 	}
 	if !status.LastPulledAt.IsZero() {
 		resp.LastPulledAt = status.LastPulledAt.UTC().Format(time.RFC3339)

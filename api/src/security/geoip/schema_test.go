@@ -45,9 +45,31 @@ CREATE TABLE IF NOT EXISTS geoip_meta
 );
 `
 
+// migration002 mirrors
+// api/config/db/geoip_migrations/002_city_enrichment.sql exactly. See
+// plan/geoip-enrichment/plan.md's "Extension: city-level GeoIP"
+// section.
+const migration002 = `
+CREATE TABLE IF NOT EXISTS geoip_city_ranges
+(
+    id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    family       TEXT NOT NULL,
+    start_ip     TEXT NOT NULL,
+    end_ip       TEXT NOT NULL,
+    country_code TEXT,
+    country_name TEXT,
+    subdivision  TEXT,
+    city         TEXT,
+    postal_code  TEXT,
+    latitude     REAL,
+    longitude    REAL
+);
+CREATE INDEX IF NOT EXISTS geoip_city_ranges_lookup_idx ON geoip_city_ranges (family, start_ip DESC);
+`
+
 // newTestManager builds a *dbmanager.DatabaseManager against a fresh
 // on-disk SQLite file in t.TempDir(), migrated via the real
-// SyncMigrations runner against migration001 above.
+// SyncMigrations runner against migration001/migration002 above.
 func newTestManager(t *testing.T) *dbmanager.DatabaseManager {
 	t.Helper()
 	root := t.TempDir()
@@ -58,6 +80,9 @@ func newTestManager(t *testing.T) *dbmanager.DatabaseManager {
 	}
 	if err := os.WriteFile(filepath.Join(migrationsDir, "001_initial.sql"), []byte(migration001), 0644); err != nil {
 		t.Fatalf("write migration 001: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(migrationsDir, "002_city_enrichment.sql"), []byte(migration002), 0644); err != nil {
+		t.Fatalf("write migration 002: %v", err)
 	}
 
 	manager, err := dbmanager.NewDatabaseManager("geoip-test.db", filepath.Join(root, "db"), []string{migrationsDir})
@@ -80,7 +105,7 @@ func newTestManager(t *testing.T) *dbmanager.DatabaseManager {
 func TestGeoIPMigrations_ApplyCleanlyToAFreshDB(t *testing.T) {
 	manager := newTestManager(t)
 
-	for _, table := range []string{"geoip_country_ranges", "geoip_asn_ranges", "geoip_meta"} {
+	for _, table := range []string{"geoip_country_ranges", "geoip_city_ranges", "geoip_asn_ranges", "geoip_meta"} {
 		exists, err := manager.TableExists(table)
 		if err != nil {
 			t.Fatalf("TableExists(%q) error = %v", table, err)
@@ -109,6 +134,24 @@ func TestGeoIPMigrations_ApplyCleanlyToAFreshDB(t *testing.T) {
 	}
 	if countryCode != "DE" || countryName != "Germany" {
 		t.Fatalf("geoip_country_ranges round-trip = (%q, %q), want (DE, Germany)", countryCode, countryName)
+	}
+
+	if _, err := db.Exec(
+		`INSERT INTO geoip_city_ranges (family, start_ip, end_ip, country_code, country_name, subdivision, city, postal_code, latitude, longitude)
+		 VALUES ('v4', '01020300', '010203ff', 'DE', 'Germany', 'Berlin', 'Berlin', '10115', 52.5244, 13.4105)`,
+	); err != nil {
+		t.Fatalf("insert into geoip_city_ranges: %v", err)
+	}
+	var cityCountryCode, city, postalCode string
+	var lat, lon float64
+	if err := db.QueryRow(
+		`SELECT country_code, city, postal_code, latitude, longitude FROM geoip_city_ranges WHERE family = 'v4' AND start_ip <= '01020350' ORDER BY start_ip DESC LIMIT 1`,
+	).Scan(&cityCountryCode, &city, &postalCode, &lat, &lon); err != nil {
+		t.Fatalf("query geoip_city_ranges: %v", err)
+	}
+	if cityCountryCode != "DE" || city != "Berlin" || postalCode != "10115" || lat != 52.5244 || lon != 13.4105 {
+		t.Fatalf("geoip_city_ranges round-trip = (%q, %q, %q, %v, %v), want (DE, Berlin, 10115, 52.5244, 13.4105)",
+			cityCountryCode, city, postalCode, lat, lon)
 	}
 
 	if _, err := db.Exec(

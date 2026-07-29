@@ -7,6 +7,9 @@
 export interface GeoIPInfo {
     country_code?: string;
     country?: string;
+    subdivision?: string;
+    city?: string;
+    postal_code?: string;
     asn?: number;
     as_org?: string;
 }
@@ -25,13 +28,13 @@ export const parseGeoIPInfo = (raw?: string): GeoIPInfo | null => {
     }
 };
 
-// Compact "DE · Deutsche Telekom AG" style summary for table columns —
-// falls back to whatever fields are actually present, and to an
-// em-dash when nothing parses.
+// Compact "Berlin · DE · Deutsche Telekom AG" style summary for table
+// columns — falls back to whatever fields are actually present, and to
+// an em-dash when nothing parses.
 export const formatGeoIPSummary = (raw?: string): string => {
     const info = parseGeoIPInfo(raw);
     if (!info) return '—';
-    const parts = [info.country_code || info.country, info.as_org].filter(Boolean);
+    const parts = [info.city, info.country_code || info.country, info.as_org].filter(Boolean);
     return parts.length ? parts.join(' · ') : '—';
 };
 
@@ -39,6 +42,16 @@ export const formatGeoIPSummary = (raw?: string): string => {
 export const formatGeoIPCountry = (info: GeoIPInfo): string | null => {
     if (info.country && info.country_code) return `${info.country} (${info.country_code})`;
     return info.country || info.country_code || null;
+};
+
+// City + subdivision (state/region) for detail-page Fields — e.g.
+// "Berlin, Berlin" collapses to just "Berlin" when they're the same
+// name (common for city-states/capital regions).
+export const formatGeoIPCity = (info: GeoIPInfo): string | null => {
+    if (info.city && info.subdivision && info.city !== info.subdivision) {
+        return `${info.city}, ${info.subdivision}`;
+    }
+    return info.city || info.subdivision || null;
 };
 
 export const formatGeoIPOrg = (info: GeoIPInfo): string | null => {

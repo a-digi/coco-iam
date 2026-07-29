@@ -12,10 +12,11 @@ import (
 )
 
 // buildGeoIPFile creates a real on-disk SQLite file at path, migrated
-// via the real schema (see migration001 in schema_test.go), with one
-// country range seeded for country. Returns the *sql.DB used to build
-// it — callers must Close it before renaming the file elsewhere
-// (Watcher.tick opens its own connection against the path).
+// via the real schema (see migration001/migration002 in
+// schema_test.go), with one city range seeded for country. Returns
+// the *sql.DB used to build it — callers must Close it before
+// renaming the file elsewhere (Watcher.tick opens its own connection
+// against the path).
 func buildGeoIPFile(t *testing.T, path, country string) {
 	t.Helper()
 	db, err := sql.Open("sqlite3", path)
@@ -25,9 +26,12 @@ func buildGeoIPFile(t *testing.T, path, country string) {
 	if _, err := db.Exec(migration001); err != nil {
 		t.Fatalf("apply schema to %s: %v", path, err)
 	}
+	if _, err := db.Exec(migration002); err != nil {
+		t.Fatalf("apply schema to %s: %v", path, err)
+	}
 	_, startHex, _ := encodeIP("1.2.3.0")
 	_, endHex, _ := encodeIP("1.2.3.255")
-	seedCountryRange(t, db, "v4", startHex, endHex, "XX", country)
+	seedCityRange(t, db, "v4", startHex, endHex, "XX", country)
 	if err := db.Close(); err != nil {
 		t.Fatalf("close %s: %v", path, err)
 	}

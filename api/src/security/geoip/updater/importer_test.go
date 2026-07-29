@@ -28,6 +28,21 @@ CREATE TABLE IF NOT EXISTS geoip_country_ranges
     country_name TEXT
 );
 CREATE INDEX IF NOT EXISTS geoip_country_ranges_lookup_idx ON geoip_country_ranges (family, start_ip DESC);
+CREATE TABLE IF NOT EXISTS geoip_city_ranges
+(
+    id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    family       TEXT NOT NULL,
+    start_ip     TEXT NOT NULL,
+    end_ip       TEXT NOT NULL,
+    country_code TEXT,
+    country_name TEXT,
+    subdivision  TEXT,
+    city         TEXT,
+    postal_code  TEXT,
+    latitude     REAL,
+    longitude    REAL
+);
+CREATE INDEX IF NOT EXISTS geoip_city_ranges_lookup_idx ON geoip_city_ranges (family, start_ip DESC);
 CREATE TABLE IF NOT EXISTS geoip_asn_ranges
 (
     id       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -90,75 +105,80 @@ func TestCidrRange_InvalidReturnsError(t *testing.T) {
 	}
 }
 
-func TestParseCountryLocations_ParsesRows(t *testing.T) {
-	csv := "geoname_id,locale_code,continent_code,continent_name,country_iso_code,country_name,is_in_european_union\n" +
-		"2921044,en,EU,Europe,DE,Germany,1\n" +
-		"6252001,en,NA,North America,US,United States,0\n"
+func TestParseCityLocations_ParsesRows(t *testing.T) {
+	csv := "geoname_id,locale_code,continent_code,continent_name,country_iso_code,country_name,subdivision_1_iso_code,subdivision_1_name,subdivision_2_iso_code,subdivision_2_name,city_name,metro_code,time_zone,is_in_european_union\n" +
+		"2950159,en,EU,Europe,DE,Germany,BE,Berlin,,,Berlin,,Europe/Berlin,1\n" +
+		"6252001,en,NA,North America,US,United States,,,,,,,,0\n"
 
-	locations, err := parseCountryLocations(strings.NewReader(csv))
+	locations, err := parseCityLocations(strings.NewReader(csv))
 	if err != nil {
-		t.Fatalf("parseCountryLocations() error = %v", err)
+		t.Fatalf("parseCityLocations() error = %v", err)
 	}
 	if len(locations) != 2 {
 		t.Fatalf("locations = %+v, want 2 entries", locations)
 	}
-	if got := locations["2921044"]; got.code != "DE" || got.name != "Germany" {
-		t.Errorf("locations[2921044] = %+v, want {DE Germany}", got)
+	if got := locations["2950159"]; got.countryCode != "DE" || got.country != "Germany" || got.subdivision != "Berlin" || got.city != "Berlin" {
+		t.Errorf("locations[2950159] = %+v, want {DE Germany Berlin Berlin}", got)
 	}
-	if got := locations["6252001"]; got.code != "US" || got.name != "United States" {
-		t.Errorf("locations[6252001] = %+v, want {US United States}", got)
+	if got := locations["6252001"]; got.countryCode != "US" || got.country != "United States" || got.city != "" {
+		t.Errorf("locations[6252001] = %+v, want {US United States <no subdivision/city>}", got)
 	}
 }
 
-func TestImportCountryBlocks_JoinsLocationsAndInsertsRows(t *testing.T) {
+func TestImportCityBlocks_JoinsLocationsAndInsertsRows(t *testing.T) {
 	db := newTestDB(t)
-	locations := map[string]countryInfo{
-		"2921044": {code: "DE", name: "Germany"},
+	locations := map[string]cityInfo{
+		"2950159": {countryCode: "DE", country: "Germany", subdivision: "Berlin", city: "Berlin"},
 	}
-	blocksCSV := "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider\n" +
-		"1.2.3.0/24,2921044,2921044,,0,0\n"
+	blocksCSV := "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider,postal_code,latitude,longitude,accuracy_radius\n" +
+		"1.2.3.0/24,2950159,2950159,,0,0,10115,52.5244,13.4105,50\n"
 
-	n, err := importCountryBlocks(db, "v4", locations, strings.NewReader(blocksCSV))
+	n, err := importCityBlocks(db, "v4", locations, strings.NewReader(blocksCSV))
 	if err != nil {
-		t.Fatalf("importCountryBlocks() error = %v", err)
+		t.Fatalf("importCityBlocks() error = %v", err)
 	}
 	if n != 1 {
-		t.Fatalf("importCountryBlocks() returned %d, want 1", n)
+		t.Fatalf("importCityBlocks() returned %d, want 1", n)
 	}
 
-	var family, startIP, endIP, code, name string
-	if err := db.QueryRow(`SELECT family, start_ip, end_ip, country_code, country_name FROM geoip_country_ranges`).
-		Scan(&family, &startIP, &endIP, &code, &name); err != nil {
+	var family, startIP, endIP, code, name, subdivision, city, postal string
+	var lat, lon float64
+	if err := db.QueryRow(`SELECT family, start_ip, end_ip, country_code, country_name, subdivision, city, postal_code, latitude, longitude FROM geoip_city_ranges`).
+		Scan(&family, &startIP, &endIP, &code, &name, &subdivision, &city, &postal, &lat, &lon); err != nil {
 		t.Fatalf("query inserted row: %v", err)
 	}
-	if family != "v4" || code != "DE" || name != "Germany" {
-		t.Errorf("inserted row = (family=%s code=%s name=%s), want (v4 DE Germany)", family, code, name)
+	if family != "v4" || code != "DE" || name != "Germany" || subdivision != "Berlin" || city != "Berlin" {
+		t.Errorf("inserted row = (family=%s code=%s name=%s subdivision=%s city=%s), want (v4 DE Germany Berlin Berlin)",
+			family, code, name, subdivision, city)
+	}
+	if postal != "10115" || lat != 52.5244 || lon != 13.4105 {
+		t.Errorf("inserted row = (postal=%s lat=%v lon=%v), want (10115 52.5244 13.4105)", postal, lat, lon)
 	}
 	if startIP != "01020300" || endIP != "010203ff" {
 		t.Errorf("inserted range = (%s, %s), want (01020300, 010203ff)", startIP, endIP)
 	}
 }
 
-func TestImportCountryBlocks_FallsBackToRegisteredCountryWhenGeonameBlank(t *testing.T) {
+func TestImportCityBlocks_FallsBackToRegisteredCountryWhenGeonameBlank(t *testing.T) {
 	db := newTestDB(t)
-	locations := map[string]countryInfo{
-		"6252001": {code: "US", name: "United States"},
+	locations := map[string]cityInfo{
+		"6252001": {countryCode: "US", country: "United States"},
 	}
 	// geoname_id blank (e.g. an anonymizing-proxy block), but
 	// registered_country_geoname_id still points at a real country.
-	blocksCSV := "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider\n" +
-		"9.9.9.0/24,,6252001,,1,0\n"
+	blocksCSV := "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider,postal_code,latitude,longitude,accuracy_radius\n" +
+		"9.9.9.0/24,,6252001,,1,0,,,,\n"
 
-	n, err := importCountryBlocks(db, "v4", locations, strings.NewReader(blocksCSV))
+	n, err := importCityBlocks(db, "v4", locations, strings.NewReader(blocksCSV))
 	if err != nil {
-		t.Fatalf("importCountryBlocks() error = %v", err)
+		t.Fatalf("importCityBlocks() error = %v", err)
 	}
 	if n != 1 {
-		t.Fatalf("importCountryBlocks() returned %d, want 1", n)
+		t.Fatalf("importCityBlocks() returned %d, want 1", n)
 	}
 
 	var code, name string
-	if err := db.QueryRow(`SELECT country_code, country_name FROM geoip_country_ranges`).Scan(&code, &name); err != nil {
+	if err := db.QueryRow(`SELECT country_code, country_name FROM geoip_city_ranges`).Scan(&code, &name); err != nil {
 		t.Fatalf("query inserted row: %v", err)
 	}
 	if code != "US" || name != "United States" {
@@ -166,19 +186,44 @@ func TestImportCountryBlocks_FallsBackToRegisteredCountryWhenGeonameBlank(t *tes
 	}
 }
 
-func TestImportCountryBlocks_SkipsUnparseableNetworkRatherThanAborting(t *testing.T) {
+func TestImportCityBlocks_SkipsUnparseableNetworkRatherThanAborting(t *testing.T) {
 	db := newTestDB(t)
-	locations := map[string]countryInfo{"1": {code: "DE", name: "Germany"}}
-	blocksCSV := "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider\n" +
-		"not-a-network,1,1,,0,0\n" +
-		"1.2.3.0/24,1,1,,0,0\n"
+	locations := map[string]cityInfo{"1": {countryCode: "DE", country: "Germany"}}
+	blocksCSV := "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider,postal_code,latitude,longitude,accuracy_radius\n" +
+		"not-a-network,1,1,,0,0,,,,\n" +
+		"1.2.3.0/24,1,1,,0,0,,,,\n"
 
-	n, err := importCountryBlocks(db, "v4", locations, strings.NewReader(blocksCSV))
+	n, err := importCityBlocks(db, "v4", locations, strings.NewReader(blocksCSV))
 	if err != nil {
-		t.Fatalf("importCountryBlocks() error = %v", err)
+		t.Fatalf("importCityBlocks() error = %v", err)
 	}
 	if n != 1 {
-		t.Fatalf("importCountryBlocks() returned %d, want 1 (the bad row should be skipped, not fatal)", n)
+		t.Fatalf("importCityBlocks() returned %d, want 1 (the bad row should be skipped, not fatal)", n)
+	}
+}
+
+func TestImportCityBlocks_BlankCoordinatesDoNotSkipTheRow(t *testing.T) {
+	db := newTestDB(t)
+	locations := map[string]cityInfo{
+		"2950159": {countryCode: "DE", country: "Germany", subdivision: "Berlin", city: "Berlin"},
+	}
+	blocksCSV := "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider,postal_code,latitude,longitude,accuracy_radius\n" +
+		"1.2.3.0/24,2950159,2950159,,0,0,,,,\n"
+
+	n, err := importCityBlocks(db, "v4", locations, strings.NewReader(blocksCSV))
+	if err != nil {
+		t.Fatalf("importCityBlocks() error = %v", err)
+	}
+	if n != 1 {
+		t.Fatalf("importCityBlocks() returned %d, want 1 (a blank lat/long must not skip the row)", n)
+	}
+
+	var code, city string
+	if err := db.QueryRow(`SELECT country_code, city FROM geoip_city_ranges`).Scan(&code, &city); err != nil {
+		t.Fatalf("query inserted row: %v", err)
+	}
+	if code != "DE" || city != "Berlin" {
+		t.Errorf("inserted row = (code=%s city=%s), want (DE Berlin) even with blank coordinates", code, city)
 	}
 }
 

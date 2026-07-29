@@ -1033,6 +1033,9 @@ definitions:
       asn:
         example: 3320
         type: integer
+      city:
+        example: Berlin
+        type: string
       country:
         example: Germany
         type: string
@@ -1045,6 +1048,12 @@ definitions:
       matched:
         example: true
         type: boolean
+      postal_code:
+        example: "10115"
+        type: string
+      subdivision:
+        example: Berlin
+        type: string
     type: object
   handler.IPSearchSuccess:
     properties:
@@ -1129,8 +1138,8 @@ definitions:
       asn_range_count:
         example: 573104
         type: integer
-      country_range_count:
-        example: 461293
+      city_range_count:
+        example: 1108580
         type: integer
       enabled:
         example: true

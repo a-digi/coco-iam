@@ -23,9 +23,14 @@ var maxmindDownloadBaseURL = "https://download.maxmind.com/geoip/databases"
 
 // Edition IDs for MaxMind's free-tier CSV-format databases — the
 // account-based free GeoLite2 tier, not the paid GeoIP2 editions.
+// GeoLite2-City-CSV is a strict superset of GeoLite2-Country-CSV
+// (country + city + subdivision + postal code + lat/long, all from
+// one pull), so it's used in place of the Country edition rather than
+// alongside it — see plan/geoip-enrichment/plan.md's "Extension:
+// city-level GeoIP" section.
 const (
-	editionCountryCSV = "GeoLite2-Country-CSV"
-	editionASNCSV     = "GeoLite2-ASN-CSV"
+	editionCityCSV = "GeoLite2-City-CSV"
+	editionASNCSV  = "GeoLite2-ASN-CSV"
 )
 
 // Downloader fetches a MaxMind GeoLite2 CSV-format database edition,
@@ -48,7 +53,7 @@ func NewDownloader(accountID, licenseKey string) *Downloader {
 	}
 }
 
-// Download fetches edition (editionCountryCSV or editionASNCSV) as a
+// Download fetches edition (editionCityCSV or editionASNCSV) as a
 // zip archive and writes it to destPath. Every step here is purely
 // preparatory — nothing about a download failure ever touches the
 // live geoip.db, since destPath is always a temp-directory path the

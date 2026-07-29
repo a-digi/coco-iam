@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { FormInput } from '../../../../../Shared/Components/Form';
 import { useHttpClient } from '../../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../../Shared/Components/SnackBar/SnackBarContext';
-import { formatGeoIPCountry, formatGeoIPOrg } from '../../geoipInfo';
+import { formatGeoIPCountry, formatGeoIPCity, formatGeoIPOrg } from '../../geoipInfo';
 
 interface IPSearchResult {
     ip: string;
     matched: boolean;
     country_code?: string;
     country?: string;
+    subdivision?: string;
+    city?: string;
+    postal_code?: string;
     asn?: number;
     as_org?: string;
 }
@@ -90,7 +93,7 @@ export const IPSearchTab: React.FC = () => {
                             <span className="font-mono text-gray-900 dark:text-gray-100">{r.ip}</span>
                             <span className="text-gray-600 dark:text-gray-400 text-right">
                                 {r.matched
-                                    ? [formatGeoIPCountry(r), formatGeoIPOrg(r)].filter(Boolean).join(' · ')
+                                    ? [formatGeoIPCity(r), formatGeoIPCountry(r), formatGeoIPOrg(r)].filter(Boolean).join(' · ')
                                     : 'No GeoIP data'}
                             </span>
                         </li>

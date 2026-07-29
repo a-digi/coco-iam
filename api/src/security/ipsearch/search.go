@@ -35,6 +35,9 @@ type Result struct {
 	Matched     bool
 	CountryCode string
 	Country     string
+	Subdivision string
+	City        string
+	PostalCode  string
 	ASN         uint
 	ASOrg       string
 }
@@ -98,6 +101,9 @@ func (s *Searcher) lookup(ip string) Result {
 		Matched:     ok,
 		CountryCode: info.CountryCode,
 		Country:     info.Country,
+		Subdivision: info.Subdivision,
+		City:        info.City,
+		PostalCode:  info.PostalCode,
 		ASN:         info.ASN,
 		ASOrg:       info.ASOrg,
 	}

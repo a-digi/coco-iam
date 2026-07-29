@@ -24,12 +24,12 @@ func TestDownloader_Download_WritesBodyToDestPath(t *testing.T) {
 	d.baseURL = srv.URL
 
 	dest := filepath.Join(t.TempDir(), "out.zip")
-	if err := d.Download(context.Background(), editionCountryCSV, dest); err != nil {
+	if err := d.Download(context.Background(), editionCityCSV, dest); err != nil {
 		t.Fatalf("Download() error = %v", err)
 	}
 
-	if gotPath != "/GeoLite2-Country-CSV/download?suffix=zip" {
-		t.Errorf("request path = %q, want /GeoLite2-Country-CSV/download?suffix=zip", gotPath)
+	if gotPath != "/GeoLite2-City-CSV/download?suffix=zip" {
+		t.Errorf("request path = %q, want /GeoLite2-City-CSV/download?suffix=zip", gotPath)
 	}
 	if !gotAuthOK || gotAuthUser != "acct-1" || gotAuthPass != "key-1" {
 		t.Errorf("basic auth = (%q, %q, ok=%v), want (acct-1, key-1, true)", gotAuthUser, gotAuthPass, gotAuthOK)
@@ -72,7 +72,7 @@ func TestDownloader_Download_ContextCancelledIsAnError(t *testing.T) {
 	cancel()
 
 	dest := filepath.Join(t.TempDir(), "out.zip")
-	if err := d.Download(ctx, editionCountryCSV, dest); err == nil {
+	if err := d.Download(ctx, editionCityCSV, dest); err == nil {
 		t.Fatal("Download() error = nil, want an error for an already-cancelled context")
 	}
 }

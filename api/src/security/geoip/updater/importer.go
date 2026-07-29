@@ -16,12 +16,14 @@ import (
 	"github.com/a-digi/coco-iam/src/security/geoip"
 )
 
-// countryInfo is one row of GeoLite2-Country-Locations-en.csv, keyed
-// by geoname_id — joined against each row of the blocks CSVs, which
-// only carry the geoname_id, not the country code/name directly.
-type countryInfo struct {
-	code string
-	name string
+// cityInfo is one row of GeoLite2-City-Locations-en.csv, keyed by
+// geoname_id — joined against each row of the blocks CSVs, which only
+// carry the geoname_id, not the location fields directly.
+type cityInfo struct {
+	countryCode string
+	country     string
+	subdivision string
+	city        string
 }
 
 // columnIndex maps a CSV header row to column position, so the
@@ -52,9 +54,11 @@ func cidrRange(cidr string) (start, end net.IP, err error) {
 	return start, end, nil
 }
 
-// parseCountryLocations reads GeoLite2-Country-Locations-en.csv into
-// a geoname_id -> countryInfo map.
-func parseCountryLocations(r io.Reader) (map[string]countryInfo, error) {
+// parseCityLocations reads GeoLite2-City-Locations-en.csv into a
+// geoname_id -> cityInfo map. subdivision_1_name/city_name are simply
+// absent (empty string) for locations MaxMind only resolves down to
+// country level — a normal, not-fatal case.
+func parseCityLocations(r io.Reader) (map[string]cityInfo, error) {
 	reader := csv.NewReader(r)
 	header, err := reader.Read()
 	if err != nil {
@@ -73,8 +77,10 @@ func parseCountryLocations(r io.Reader) (map[string]countryInfo, error) {
 	if !ok {
 		return nil, fmt.Errorf("missing country_name column")
 	}
+	subdivisionIdx, hasSubdivision := col["subdivision_1_name"]
+	cityIdx, hasCity := col["city_name"]
 
-	locations := make(map[string]countryInfo)
+	locations := make(map[string]cityInfo)
 	for {
 		row, err := reader.Read()
 		if err == io.EOF {
@@ -83,21 +89,33 @@ func parseCountryLocations(r io.Reader) (map[string]countryInfo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("read row: %w", err)
 		}
-		locations[row[geonameIdx]] = countryInfo{code: row[codeIdx], name: row[nameIdx]}
+		loc := cityInfo{countryCode: row[codeIdx], country: row[nameIdx]}
+		if hasSubdivision {
+			loc.subdivision = row[subdivisionIdx]
+		}
+		if hasCity {
+			loc.city = row[cityIdx]
+		}
+		locations[row[geonameIdx]] = loc
 	}
 	return locations, nil
 }
 
-// importCountryBlocks streams one GeoLite2-Country-Blocks-IPv{4,6}.csv,
+// importCityBlocks streams one GeoLite2-City-Blocks-IPv{4,6}.csv,
 // joins each row against locations by geoname_id (falling back to
 // registered_country_geoname_id when geoname_id is blank — MaxMind
 // leaves geoname_id empty for anonymizing-proxy/satellite-provider
 // rows but still carries a registered country), and inserts into
-// geoip_country_ranges within a single transaction. Returns the
-// number of rows inserted. A row with an unparseable network is
-// skipped rather than aborting the whole import — one bad line in a
-// few-hundred-thousand-row file shouldn't sink the entire pull.
-func importCountryBlocks(db *sql.DB, family string, locations map[string]countryInfo, r io.Reader) (int, error) {
+// geoip_city_ranges within a single transaction. Returns the number
+// of rows inserted. A row with an unparseable network is skipped
+// rather than aborting the whole import — one bad line in a
+// few-hundred-thousand-row file shouldn't sink the entire pull. An
+// unparseable/blank postal_code, latitude, or longitude does NOT skip
+// the row (unlike network/ASN) — those are enrichment extras on top
+// of the primary country/city/postal value, not the reason this
+// dataset exists, so a block with everything else valid but no
+// coordinates still gets its country/city recorded.
+func importCityBlocks(db *sql.DB, family string, locations map[string]cityInfo, r io.Reader) (int, error) {
 	reader := csv.NewReader(r)
 	header, err := reader.Read()
 	if err != nil {
@@ -110,12 +128,15 @@ func importCountryBlocks(db *sql.DB, family string, locations map[string]country
 	}
 	geonameIdx, hasGeoname := col["geoname_id"]
 	registeredIdx, hasRegistered := col["registered_country_geoname_id"]
+	postalIdx, hasPostal := col["postal_code"]
+	latIdx, hasLat := col["latitude"]
+	lonIdx, hasLon := col["longitude"]
 
 	tx, err := db.Begin()
 	if err != nil {
 		return 0, fmt.Errorf("begin transaction: %w", err)
 	}
-	stmt, err := tx.Prepare(`INSERT INTO geoip_country_ranges (family, start_ip, end_ip, country_code, country_name) VALUES (?, ?, ?, ?, ?)`)
+	stmt, err := tx.Prepare(`INSERT INTO geoip_city_ranges (family, start_ip, end_ip, country_code, country_name, subdivision, city, postal_code, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		_ = tx.Rollback()
 		return 0, fmt.Errorf("prepare insert: %w", err)
@@ -152,7 +173,19 @@ func importCountryBlocks(db *sql.DB, family string, locations map[string]country
 		}
 		loc := locations[geonameID]
 
-		if _, err := stmt.Exec(family, startHex, endHex, loc.code, loc.name); err != nil {
+		var postalCode string
+		if hasPostal {
+			postalCode = row[postalIdx]
+		}
+		var lat, lon float64
+		if hasLat {
+			lat, _ = strconv.ParseFloat(row[latIdx], 64)
+		}
+		if hasLon {
+			lon, _ = strconv.ParseFloat(row[lonIdx], 64)
+		}
+
+		if _, err := stmt.Exec(family, startHex, endHex, loc.countryCode, loc.country, loc.subdivision, loc.city, postalCode, lat, lon); err != nil {
 			_ = tx.Rollback()
 			return inserted, fmt.Errorf("insert row: %w", err)
 		}
@@ -238,12 +271,12 @@ func importASNBlocks(db *sql.DB, family string, r io.Reader) (int, error) {
 	return inserted, nil
 }
 
-// importCountryCSVDir locates and imports the full country dataset
+// importCityCSVDir locates and imports the full city dataset
 // (locations + both IPv4/IPv6 block files) somewhere under dir —
 // MaxMind's zip may or may not wrap the CSVs in a versioned
 // subdirectory, so this searches rather than assumes a fixed layout.
-func importCountryCSVDir(db *sql.DB, dir string) (int, error) {
-	locationsPath, err := findCSVFile(dir, "GeoLite2-Country-Locations-en.csv")
+func importCityCSVDir(db *sql.DB, dir string) (int, error) {
+	locationsPath, err := findCSVFile(dir, "GeoLite2-City-Locations-en.csv")
 	if err != nil {
 		return 0, err
 	}
@@ -251,7 +284,7 @@ func importCountryCSVDir(db *sql.DB, dir string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("open %s: %w", locationsPath, err)
 	}
-	locations, err := parseCountryLocations(locFile)
+	locations, err := parseCityLocations(locFile)
 	_ = locFile.Close()
 	if err != nil {
 		return 0, fmt.Errorf("parse locations: %w", err)
@@ -259,8 +292,8 @@ func importCountryCSVDir(db *sql.DB, dir string) (int, error) {
 
 	total := 0
 	for _, spec := range []struct{ family, filename string }{
-		{"v4", "GeoLite2-Country-Blocks-IPv4.csv"},
-		{"v6", "GeoLite2-Country-Blocks-IPv6.csv"},
+		{"v4", "GeoLite2-City-Blocks-IPv4.csv"},
+		{"v6", "GeoLite2-City-Blocks-IPv6.csv"},
 	} {
 		blocksPath, err := findCSVFile(dir, spec.filename)
 		if err != nil {
@@ -270,7 +303,7 @@ func importCountryCSVDir(db *sql.DB, dir string) (int, error) {
 		if err != nil {
 			return total, fmt.Errorf("open %s: %w", blocksPath, err)
 		}
-		n, err := importCountryBlocks(db, spec.family, locations, blocksFile)
+		n, err := importCityBlocks(db, spec.family, locations, blocksFile)
 		_ = blocksFile.Close()
 		if err != nil {
 			return total, fmt.Errorf("import %s: %w", spec.filename, err)

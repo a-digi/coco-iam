@@ -6,7 +6,7 @@ import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
 import { useBreadcrumbItems } from '../../../../Layout/Breadcrumb/useBreadcrumb';
 import { formatDate } from '../../../../config/data/date/date';
-import { parseGeoIPInfo, formatGeoIPCountry, formatGeoIPOrg } from '../geoipInfo';
+import { parseGeoIPInfo, formatGeoIPCountry, formatGeoIPCity, formatGeoIPOrg } from '../geoipInfo';
 
 interface ScanDetailResponse {
     id: string;
@@ -59,8 +59,9 @@ export const ScanDetail: React.FC = () => {
 
     const geo = scan ? parseGeoIPInfo(scan.geoip_info) : null;
     const geoCountry = geo ? formatGeoIPCountry(geo) : null;
+    const geoCity = geo ? formatGeoIPCity(geo) : null;
     const geoOrg = geo ? formatGeoIPOrg(geo) : null;
-    const hasGeoData = !!(geoCountry || geoOrg);
+    const hasGeoData = !!(geoCountry || geoCity || geoOrg);
 
     // Collapsed by default when there's data, left open when there's
     // none — see AttackDetail.tsx's identical pattern.
@@ -105,6 +106,7 @@ export const ScanDetail: React.FC = () => {
                         {hasGeoData ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {geoCountry && <Field label="Country" value={geoCountry} />}
+                                {geoCity && <Field label="City" value={geoCity} />}
                                 {geoOrg && <Field label="ISP / ASN" value={geoOrg} />}
                             </div>
                         ) : (

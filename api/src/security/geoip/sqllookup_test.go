@@ -40,16 +40,16 @@ func TestEncodeIP_InvalidReturnsNotOK(t *testing.T) {
 	}
 }
 
-// seedCountryRange and seedASNRange insert one range row via a
-// (start, end) pair already encoded through encodeIP — the same
-// representation the (future) importer will produce.
-func seedCountryRange(t *testing.T, db *sql.DB, family, start, end, code, name string) {
+// seedCityRange and seedASNRange insert one range row via a (start,
+// end) pair already encoded through encodeIP — the same
+// representation the importer produces.
+func seedCityRange(t *testing.T, db *sql.DB, family, start, end, code, name string) {
 	t.Helper()
 	if _, err := db.Exec(
-		`INSERT INTO geoip_country_ranges (family, start_ip, end_ip, country_code, country_name) VALUES (?, ?, ?, ?, ?)`,
+		`INSERT INTO geoip_city_ranges (family, start_ip, end_ip, country_code, country_name) VALUES (?, ?, ?, ?, ?)`,
 		family, start, end, code, name,
 	); err != nil {
-		t.Fatalf("seed country range: %v", err)
+		t.Fatalf("seed city range: %v", err)
 	}
 }
 
@@ -68,7 +68,7 @@ func TestSQLLookup_IPv4Hit(t *testing.T) {
 	_, startHex, _ := encodeIP("1.2.3.0")
 	_, endHex, _ := encodeIP("1.2.3.255")
 
-	seedCountryRange(t, db, "v4", startHex, endHex, "DE", "Germany")
+	seedCityRange(t, db, "v4", startHex, endHex, "DE", "Germany")
 	seedASNRange(t, db, "v4", startHex, endHex, 3320, "Deutsche Telekom AG")
 
 	lookup := NewSQLLookup(db)
@@ -87,7 +87,7 @@ func TestSQLLookup_IPv6Hit(t *testing.T) {
 	_, startHex, _ := encodeIP("2001:db8::")
 	_, endHex, _ := encodeIP("2001:db8::ffff:ffff:ffff:ffff")
 
-	seedCountryRange(t, db, "v6", startHex, endHex, "US", "United States")
+	seedCityRange(t, db, "v6", startHex, endHex, "US", "United States")
 
 	lookup := NewSQLLookup(db)
 	info, ok := lookup.Lookup("2001:db8::1")
@@ -106,7 +106,7 @@ func TestSQLLookup_MissInAllocationGap(t *testing.T) {
 	db := newTestManager(t).Connector.DB
 	_, startHex, _ := encodeIP("1.2.3.0")
 	_, endHex, _ := encodeIP("1.2.3.255")
-	seedCountryRange(t, db, "v4", startHex, endHex, "DE", "Germany")
+	seedCityRange(t, db, "v4", startHex, endHex, "DE", "Germany")
 
 	lookup := NewSQLLookup(db)
 	// 1.2.4.1 sorts after the seeded block's start_ip but falls past
@@ -125,7 +125,7 @@ func TestSQLLookup_MissBelowAnySeededRange(t *testing.T) {
 	db := newTestManager(t).Connector.DB
 	_, startHex, _ := encodeIP("10.0.0.0")
 	_, endHex, _ := encodeIP("10.0.0.255")
-	seedCountryRange(t, db, "v4", startHex, endHex, "DE", "Germany")
+	seedCityRange(t, db, "v4", startHex, endHex, "DE", "Germany")
 
 	lookup := NewSQLLookup(db)
 	// No range starts at or below 1.1.1.1 at all.
@@ -146,7 +146,7 @@ func TestSQLLookup_PartialData_CountryOnlyStillFound(t *testing.T) {
 	db := newTestManager(t).Connector.DB
 	_, startHex, _ := encodeIP("1.2.3.0")
 	_, endHex, _ := encodeIP("1.2.3.255")
-	seedCountryRange(t, db, "v4", startHex, endHex, "DE", "Germany")
+	seedCityRange(t, db, "v4", startHex, endHex, "DE", "Germany")
 	// deliberately no ASN range seeded
 
 	lookup := NewSQLLookup(db)

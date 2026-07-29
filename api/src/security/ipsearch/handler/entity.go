@@ -8,6 +8,9 @@ type IPSearchResult struct {
 	Matched     bool   `json:"matched" example:"true"`
 	CountryCode string `json:"country_code,omitempty" example:"DE"`
 	Country     string `json:"country,omitempty" example:"Germany"`
+	Subdivision string `json:"subdivision,omitempty" example:"Berlin"`
+	City        string `json:"city,omitempty" example:"Berlin"`
+	PostalCode  string `json:"postal_code,omitempty" example:"10115"`
 	ASN         uint   `json:"asn,omitempty" example:"3320"`
 	ASOrg       string `json:"as_org,omitempty" example:"Deutsche Telekom AG"`
 }

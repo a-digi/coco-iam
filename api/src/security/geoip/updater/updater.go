@@ -113,8 +113,8 @@ func (u *Updater) pullAndImport(ctx context.Context) error {
 	}
 	defer func() { _ = os.RemoveAll(tmpDir) }()
 
-	countryZip := filepath.Join(tmpDir, "country.zip")
-	if err := u.downloader.Download(ctx, editionCountryCSV, countryZip); err != nil {
+	cityZip := filepath.Join(tmpDir, "city.zip")
+	if err := u.downloader.Download(ctx, editionCityCSV, cityZip); err != nil {
 		return err
 	}
 	asnZip := filepath.Join(tmpDir, "asn.zip")
@@ -122,9 +122,9 @@ func (u *Updater) pullAndImport(ctx context.Context) error {
 		return err
 	}
 
-	countryDir := filepath.Join(tmpDir, "country")
-	if err := unzip(countryZip, countryDir); err != nil {
-		return fmt.Errorf("geoip-updater: unzip country csv: %w", err)
+	cityDir := filepath.Join(tmpDir, "city")
+	if err := unzip(cityZip, cityDir); err != nil {
+		return fmt.Errorf("geoip-updater: unzip city csv: %w", err)
 	}
 	asnDir := filepath.Join(tmpDir, "asn")
 	if err := unzip(asnZip, asnDir); err != nil {
@@ -146,7 +146,7 @@ func (u *Updater) pullAndImport(ctx context.Context) error {
 	}
 
 	db := manager.Connector.DB
-	countryCount, err := importCountryCSVDir(db, countryDir)
+	cityCount, err := importCityCSVDir(db, cityDir)
 	if err != nil {
 		_ = manager.Connector.Close()
 		return fmt.Errorf("geoip-updater: %w", err)
@@ -157,7 +157,7 @@ func (u *Updater) pullAndImport(ctx context.Context) error {
 		return fmt.Errorf("geoip-updater: %w", err)
 	}
 
-	if err := u.sanityCheck(countryCount, asnCount); err != nil {
+	if err := u.sanityCheck(cityCount, asnCount); err != nil {
 		_ = manager.Connector.Close()
 		return err
 	}
@@ -178,8 +178,8 @@ func (u *Updater) pullAndImport(ctx context.Context) error {
 		return fmt.Errorf("geoip-updater: rename into place: %w", err)
 	}
 
-	u.infof("geoip-updater: pull complete - %d country ranges, %d asn ranges, took %s",
-		countryCount, asnCount, time.Since(start).Round(time.Millisecond))
+	u.infof("geoip-updater: pull complete - %d city ranges, %d asn ranges, took %s",
+		cityCount, asnCount, time.Since(start).Round(time.Millisecond))
 	return nil
 }
 
@@ -188,18 +188,18 @@ func (u *Updater) pullAndImport(ctx context.Context) error {
 // file (below minRowCountRatio of its row count). The ratio check is
 // skipped for a dataset the previous generation had zero rows for —
 // i.e. this is the very first pull ever, nothing to compare against.
-func (u *Updater) sanityCheck(newCountryCount, newASNCount int) error {
-	if newCountryCount == 0 {
-		return fmt.Errorf("geoip-updater: sanity check failed: freshly imported country ranges is empty")
+func (u *Updater) sanityCheck(newCityCount, newASNCount int) error {
+	if newCityCount == 0 {
+		return fmt.Errorf("geoip-updater: sanity check failed: freshly imported city ranges is empty")
 	}
 	if newASNCount == 0 {
 		return fmt.Errorf("geoip-updater: sanity check failed: freshly imported asn ranges is empty")
 	}
 
-	oldCountryCount, oldASNCount := previousRowCounts(u.cfg.DBPath)
-	if oldCountryCount > 0 && float64(newCountryCount) < float64(oldCountryCount)*minRowCountRatio {
-		return fmt.Errorf("geoip-updater: sanity check failed: new country range count %d is below %.0f%% of previous count %d",
-			newCountryCount, minRowCountRatio*100, oldCountryCount)
+	oldCityCount, oldASNCount := previousRowCounts(u.cfg.DBPath)
+	if oldCityCount > 0 && float64(newCityCount) < float64(oldCityCount)*minRowCountRatio {
+		return fmt.Errorf("geoip-updater: sanity check failed: new city range count %d is below %.0f%% of previous count %d",
+			newCityCount, minRowCountRatio*100, oldCityCount)
 	}
 	if oldASNCount > 0 && float64(newASNCount) < float64(oldASNCount)*minRowCountRatio {
 		return fmt.Errorf("geoip-updater: sanity check failed: new asn range count %d is below %.0f%% of previous count %d",
@@ -240,7 +240,7 @@ func readLastPulledAt(dbPath string) time.Time {
 // sanityCheck's comparison — (0, 0) if the file doesn't exist yet or
 // can't be read, which sanityCheck already treats as "nothing to
 // compare against, skip the ratio check."
-func previousRowCounts(dbPath string) (countryCount, asnCount int) {
+func previousRowCounts(dbPath string) (cityCount, asnCount int) {
 	if _, err := os.Stat(dbPath); err != nil {
 		return 0, 0
 	}
@@ -250,9 +250,9 @@ func previousRowCounts(dbPath string) (countryCount, asnCount int) {
 	}
 	defer db.Close()
 
-	_ = db.QueryRow(`SELECT COUNT(*) FROM geoip_country_ranges`).Scan(&countryCount)
+	_ = db.QueryRow(`SELECT COUNT(*) FROM geoip_city_ranges`).Scan(&cityCount)
 	_ = db.QueryRow(`SELECT COUNT(*) FROM geoip_asn_ranges`).Scan(&asnCount)
-	return countryCount, asnCount
+	return cityCount, asnCount
 }
 
 func (u *Updater) warnf(format string, args ...interface{}) {

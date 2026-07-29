@@ -21,11 +21,11 @@ var ErrNotRunning = errors.New("geoip: updater is not running")
 // Status is Manager.Status's result — the admin UI's view of the
 // geoip-updater process.
 type Status struct {
-	Running           bool
-	PID               int
-	LastPulledAt      time.Time // zero if unknown (never pulled, or geoip.db doesn't exist yet)
-	CountryRangeCount int       // row count of geoip_country_ranges in the live geoip.db, 0 if unknown
-	ASNRangeCount     int       // row count of geoip_asn_ranges in the live geoip.db, 0 if unknown
+	Running        bool
+	PID            int
+	LastPulledAt   time.Time // zero if unknown (never pulled, or geoip.db doesn't exist yet)
+	CityRangeCount int       // row count of geoip_city_ranges in the live geoip.db, 0 if unknown
+	ASNRangeCount  int       // row count of geoip_asn_ranges in the live geoip.db, 0 if unknown
 }
 
 // Manager starts, stops, and reports on the geoip-updater process —
@@ -129,13 +129,13 @@ func (m *Manager) Status() (Status, error) {
 	if err != nil {
 		return Status{}, err
 	}
-	lastPulledAt, countryCount, asnCount := m.dbStats()
+	lastPulledAt, cityCount, asnCount := m.dbStats()
 	return Status{
-		Running:           running,
-		PID:               pid,
-		LastPulledAt:      lastPulledAt,
-		CountryRangeCount: countryCount,
-		ASNRangeCount:     asnCount,
+		Running:        running,
+		PID:            pid,
+		LastPulledAt:   lastPulledAt,
+		CityRangeCount: cityCount,
+		ASNRangeCount:  asnCount,
 	}, nil
 }
 
@@ -158,16 +158,16 @@ func (m *Manager) processStatus() (running bool, pid int, err error) {
 }
 
 // dbStats is a best-effort read of geoip_meta.last_pulled_at and the
-// current geoip_country_ranges/geoip_asn_ranges row counts from the
-// live geoip.db — zero values across the board if the file doesn't
-// exist yet, can't be opened, or the tables aren't there. Folded into
-// a single sql.Open rather than three separate helpers: Status() is
+// current geoip_city_ranges/geoip_asn_ranges row counts from the live
+// geoip.db — zero values across the board if the file doesn't exist
+// yet, can't be opened, or the tables aren't there. Folded into a
+// single sql.Open rather than three separate helpers: Status() is
 // polled every 5s by the admin UI, no reason to open geoip.db more
 // than once per call. Duplicates the equivalent last-pulled-at logic
 // in updater.go rather than importing it: this package (geoip) cannot
 // import its own subpackage (geoip/updater), which already imports
 // geoip — that direction would be a cycle.
-func (m *Manager) dbStats() (lastPulledAt time.Time, countryCount, asnCount int) {
+func (m *Manager) dbStats() (lastPulledAt time.Time, cityCount, asnCount int) {
 	if _, err := os.Stat(m.dbPath); err != nil {
 		return time.Time{}, 0, 0
 	}
@@ -183,7 +183,7 @@ func (m *Manager) dbStats() (lastPulledAt time.Time, countryCount, asnCount int)
 			lastPulledAt = t
 		}
 	}
-	_ = db.QueryRow(`SELECT COUNT(*) FROM geoip_country_ranges`).Scan(&countryCount)
+	_ = db.QueryRow(`SELECT COUNT(*) FROM geoip_city_ranges`).Scan(&cityCount)
 	_ = db.QueryRow(`SELECT COUNT(*) FROM geoip_asn_ranges`).Scan(&asnCount)
-	return lastPulledAt, countryCount, asnCount
+	return lastPulledAt, cityCount, asnCount
 }

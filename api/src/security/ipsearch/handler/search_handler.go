@@ -58,6 +58,9 @@ func (h *SearchHandler) ServeHTTP(reqCtx request.RequestContext) {
 			Matched:     res.Matched,
 			CountryCode: res.CountryCode,
 			Country:     res.Country,
+			Subdivision: res.Subdivision,
+			City:        res.City,
+			PostalCode:  res.PostalCode,
 			ASN:         res.ASN,
 			ASOrg:       res.ASOrg,
 		})

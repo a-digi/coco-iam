@@ -30,17 +30,16 @@ func newTestMigrationsDir(t *testing.T) string {
 	return dir
 }
 
-// fixtureServer serves small, hand-built country/ASN CSV zips at the
-// real MaxMind download URL shape, tracking how many requests it
-// received.
-func fixtureServer(t *testing.T, countryZipPath, asnZipPath string) (*httptest.Server, *int32) {
+// fixtureServer serves small, hand-built city/ASN CSV zips at the real
+// MaxMind download URL shape, tracking how many requests it received.
+func fixtureServer(t *testing.T, cityZipPath, asnZipPath string) (*httptest.Server, *int32) {
 	t.Helper()
 	var requestCount int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		atomic.AddInt32(&requestCount, 1)
 		switch {
-		case strings.HasPrefix(r.URL.Path, "/"+editionCountryCSV+"/"):
-			http.ServeFile(w, r, countryZipPath)
+		case strings.HasPrefix(r.URL.Path, "/"+editionCityCSV+"/"):
+			http.ServeFile(w, r, cityZipPath)
 		case strings.HasPrefix(r.URL.Path, "/"+editionASNCSV+"/"):
 			http.ServeFile(w, r, asnZipPath)
 		default:
@@ -50,17 +49,17 @@ func fixtureServer(t *testing.T, countryZipPath, asnZipPath string) (*httptest.S
 	return srv, &requestCount
 }
 
-func buildFixtureZips(t *testing.T) (countryZipPath, asnZipPath string) {
+func buildFixtureZips(t *testing.T) (cityZipPath, asnZipPath string) {
 	t.Helper()
 	dir := t.TempDir()
 
-	countryZipPath = filepath.Join(dir, "country.zip")
-	buildTestZip(t, countryZipPath, "GeoLite2-Country-CSV_20260101", map[string]string{
-		"GeoLite2-Country-Locations-en.csv": "geoname_id,locale_code,continent_code,continent_name,country_iso_code,country_name,is_in_european_union\n" +
-			"2921044,en,EU,Europe,DE,Germany,1\n",
-		"GeoLite2-Country-Blocks-IPv4.csv": "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider\n" +
-			"1.2.3.0/24,2921044,2921044,,0,0\n",
-		"GeoLite2-Country-Blocks-IPv6.csv": "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider\n",
+	cityZipPath = filepath.Join(dir, "city.zip")
+	buildTestZip(t, cityZipPath, "GeoLite2-City-CSV_20260101", map[string]string{
+		"GeoLite2-City-Locations-en.csv": "geoname_id,locale_code,continent_code,continent_name,country_iso_code,country_name,subdivision_1_iso_code,subdivision_1_name,subdivision_2_iso_code,subdivision_2_name,city_name,metro_code,time_zone,is_in_european_union\n" +
+			"2950159,en,EU,Europe,DE,Germany,BE,Berlin,,,Berlin,,Europe/Berlin,1\n",
+		"GeoLite2-City-Blocks-IPv4.csv": "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider,postal_code,latitude,longitude,accuracy_radius\n" +
+			"1.2.3.0/24,2950159,2950159,,0,0,10115,52.5244,13.4105,50\n",
+		"GeoLite2-City-Blocks-IPv6.csv": "network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider,postal_code,latitude,longitude,accuracy_radius\n",
 	})
 
 	asnZipPath = filepath.Join(dir, "asn.zip")
@@ -70,7 +69,7 @@ func buildFixtureZips(t *testing.T) (countryZipPath, asnZipPath string) {
 		"GeoLite2-ASN-Blocks-IPv6.csv": "network,autonomous_system_number,autonomous_system_organization\n",
 	})
 
-	return countryZipPath, asnZipPath
+	return cityZipPath, asnZipPath
 }
 
 func testConfig(dbPath string) geoip.Config {
@@ -85,8 +84,8 @@ func testConfig(dbPath string) geoip.Config {
 }
 
 func TestUpdater_PullAndImport_EndToEnd(t *testing.T) {
-	countryZipPath, asnZipPath := buildFixtureZips(t)
-	srv, _ := fixtureServer(t, countryZipPath, asnZipPath)
+	cityZipPath, asnZipPath := buildFixtureZips(t)
+	srv, _ := fixtureServer(t, cityZipPath, asnZipPath)
 	defer srv.Close()
 
 	dbPath := filepath.Join(t.TempDir(), "geoip.db")
@@ -109,7 +108,11 @@ func TestUpdater_PullAndImport_EndToEnd(t *testing.T) {
 	if !ok {
 		t.Fatal("Lookup() ok = false, want true against the freshly imported db")
 	}
-	want := geoip.Info{CountryCode: "DE", Country: "Germany", ASN: 3320, ASOrg: "Deutsche Telekom AG"}
+	want := geoip.Info{
+		CountryCode: "DE", Country: "Germany", Subdivision: "Berlin", City: "Berlin",
+		PostalCode: "10115", Latitude: 52.5244, Longitude: 13.4105,
+		ASN: 3320, ASOrg: "Deutsche Telekom AG",
+	}
 	if info != want {
 		t.Errorf("Lookup() = %+v, want %+v", info, want)
 	}
@@ -136,8 +139,8 @@ func TestUpdater_PullAndImport_EndToEnd(t *testing.T) {
 }
 
 func TestUpdater_TryPull_SkipsWhenRecentEnough(t *testing.T) {
-	countryZipPath, asnZipPath := buildFixtureZips(t)
-	srv, requestCount := fixtureServer(t, countryZipPath, asnZipPath)
+	cityZipPath, asnZipPath := buildFixtureZips(t)
+	srv, requestCount := fixtureServer(t, cityZipPath, asnZipPath)
 	defer srv.Close()
 
 	dbPath := filepath.Join(t.TempDir(), "geoip.db")
@@ -170,8 +173,8 @@ func TestUpdater_TryPull_SkipsWhenRecentEnough(t *testing.T) {
 }
 
 func TestUpdater_TryPull_PullsWhenNeverPulledBefore(t *testing.T) {
-	countryZipPath, asnZipPath := buildFixtureZips(t)
-	srv, requestCount := fixtureServer(t, countryZipPath, asnZipPath)
+	cityZipPath, asnZipPath := buildFixtureZips(t)
+	srv, requestCount := fixtureServer(t, cityZipPath, asnZipPath)
 	defer srv.Close()
 
 	dbPath := filepath.Join(t.TempDir(), "geoip.db") // never created
@@ -182,17 +185,17 @@ func TestUpdater_TryPull_PullsWhenNeverPulledBefore(t *testing.T) {
 	u.tryPull(context.Background())
 
 	if got := atomic.LoadInt32(requestCount); got != 2 {
-		t.Fatalf("tryPull() made %d HTTP request(s), want 2 (country + asn editions)", got)
+		t.Fatalf("tryPull() made %d HTTP request(s), want 2 (city + asn editions)", got)
 	}
 	if _, err := os.Stat(dbPath); err != nil {
 		t.Fatalf("geoip.db was not created: %v", err)
 	}
 }
 
-func TestUpdater_SanityCheck_RejectsEmptyCountryData(t *testing.T) {
+func TestUpdater_SanityCheck_RejectsEmptyCityData(t *testing.T) {
 	u := &Updater{cfg: testConfig(filepath.Join(t.TempDir(), "geoip.db"))}
 	if err := u.sanityCheck(0, 100); err == nil {
-		t.Fatal("sanityCheck() error = nil, want an error for zero country ranges")
+		t.Fatal("sanityCheck() error = nil, want an error for zero city ranges")
 	}
 }
 
@@ -223,8 +226,8 @@ func seedRangeCounts(t *testing.T, dbPath string, n int) {
 	}
 	for i := 0; i < n; i++ {
 		hex := fmt.Sprintf("%08x", i)
-		if _, err := db.Exec(`INSERT INTO geoip_country_ranges (family, start_ip, end_ip, country_code, country_name) VALUES ('v4', ?, ?, 'US', 'United States')`, hex, hex); err != nil {
-			t.Fatalf("seed country row: %v", err)
+		if _, err := db.Exec(`INSERT INTO geoip_city_ranges (family, start_ip, end_ip, country_code, country_name) VALUES ('v4', ?, ?, 'US', 'United States')`, hex, hex); err != nil {
+			t.Fatalf("seed city row: %v", err)
 		}
 		if _, err := db.Exec(`INSERT INTO geoip_asn_ranges (family, start_ip, end_ip, asn, as_org) VALUES ('v4', ?, ?, 1, 'Org')`, hex, hex); err != nil {
 			t.Fatalf("seed asn row: %v", err)
@@ -232,14 +235,14 @@ func seedRangeCounts(t *testing.T, dbPath string, n int) {
 	}
 }
 
-func TestUpdater_SanityCheck_RejectsSuspiciousDropInCountryData(t *testing.T) {
+func TestUpdater_SanityCheck_RejectsSuspiciousDropInCityData(t *testing.T) {
 	dbPath := filepath.Join(t.TempDir(), "geoip.db")
 	seedRangeCounts(t, dbPath, 100)
 
 	u := &Updater{cfg: testConfig(dbPath)}
 	// 50 is below 80% of the previous 100 — must fail.
 	if err := u.sanityCheck(50, 100); err == nil {
-		t.Fatal("sanityCheck() error = nil, want an error for a suspicious drop in country ranges")
+		t.Fatal("sanityCheck() error = nil, want an error for a suspicious drop in city ranges")
 	}
 }
 
@@ -266,10 +269,10 @@ func TestUpdater_PullAndImport_SanityCheckFailureLeavesLiveFileUntouched(t *test
 		t.Fatalf("read seeded db: %v", err)
 	}
 
-	// The fixture only carries 1 country range and 1 asn range - way
-	// below 80% of the seeded 100.
-	countryZipPath, asnZipPath := buildFixtureZips(t)
-	srv, _ := fixtureServer(t, countryZipPath, asnZipPath)
+	// The fixture only carries 1 city range and 1 asn range - way below
+	// 80% of the seeded 100.
+	cityZipPath, asnZipPath := buildFixtureZips(t)
+	srv, _ := fixtureServer(t, cityZipPath, asnZipPath)
 	defer srv.Close()
 
 	cfg := testConfig(dbPath)
@@ -337,8 +340,8 @@ func TestUpdater_PullAndImport_DownloadFailureLeavesLiveFileUntouched(t *testing
 }
 
 func TestUpdater_Run_StopsOnContextCancel(t *testing.T) {
-	countryZipPath, asnZipPath := buildFixtureZips(t)
-	srv, _ := fixtureServer(t, countryZipPath, asnZipPath)
+	cityZipPath, asnZipPath := buildFixtureZips(t)
+	srv, _ := fixtureServer(t, cityZipPath, asnZipPath)
 	defer srv.Close()
 
 	dbPath := filepath.Join(t.TempDir(), "geoip.db")

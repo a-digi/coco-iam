@@ -8,7 +8,7 @@ interface StatusResponse {
     pid?: number;
     enabled: boolean;
     last_pulled_at?: string;
-    country_range_count: number;
+    city_range_count: number;
     asn_range_count: number;
 }
 
@@ -117,9 +117,9 @@ export const ExecutableTab: React.FC = () => {
                 <div className="text-gray-900 dark:text-gray-100">
                     {status?.last_pulled_at ? formatDate(status.last_pulled_at) : '—'}
                 </div>
-                <div className="text-gray-500 dark:text-gray-400">Country ranges</div>
+                <div className="text-gray-500 dark:text-gray-400">City ranges</div>
                 <div className="text-gray-900 dark:text-gray-100">
-                    {status?.last_pulled_at ? status.country_range_count.toLocaleString() : '—'}
+                    {status?.last_pulled_at ? status.city_range_count.toLocaleString() : '—'}
                 </div>
                 <div className="text-gray-500 dark:text-gray-400">ASN ranges</div>
                 <div className="text-gray-900 dark:text-gray-100">
