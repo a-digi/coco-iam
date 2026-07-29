@@ -81,7 +81,14 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	updater.New(cfg, migrationsPath, log).Run(ctx)
+	// forceCh carries the admin UI's manual "Sync now" trigger —
+	// geoip.Manager.SyncNow() signals this process with SIGUSR1, and
+	// Updater.Run treats a receive here as "pull immediately",
+	// bypassing the normal pull_interval_hours staleness check.
+	forceCh := make(chan os.Signal, 1)
+	signal.Notify(forceCh, syscall.SIGUSR1)
+
+	updater.New(cfg, migrationsPath, log).Run(ctx, forceCh)
 }
 
 // loadSettings reads the admin-editable geoip_settings row from the

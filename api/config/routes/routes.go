@@ -850,6 +850,7 @@ func Init(ctx serverdi.Context) {
 		"GeoIPStatusHandler":      &geoip_handler.StatusHandler{},
 		"GeoIPStartHandler":       &geoip_handler.StartHandler{},
 		"GeoIPStopHandler":        &geoip_handler.StopHandler{},
+		"GeoIPSyncHandler":        &geoip_handler.SyncHandler{},
 		"AdminQueueStatsHandler":               &queue_admin.AdminQueueStatsHandler{},
 		"AdminQueueRetryHandler":               &queue_admin.AdminQueueRetryHandler{},
 		"AdminQueueCreateHandler":              &queue_admin.AdminQueueCreateHandler{},

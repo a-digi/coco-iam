@@ -4480,6 +4480,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/security/geoip/sync": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Signals the running geoip-updater process to pull fresh data\nimmediately, bypassing the normal pull_interval_hours staleness\ncheck. Fails with 409 if the updater isn't currently running —\nnothing to signal. See plan/geoip-enrichment/plan.md's\n\"Extension: database stats + manual sync\" section.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-geoip"
+                ],
+                "summary": "Force an immediate GeoIP data sync",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.StatusSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/ip-allowlist": {
             "get": {
                 "security": [
@@ -11350,6 +11399,14 @@ const docTemplate = `{
         "handler.StatusResponse": {
             "type": "object",
             "properties": {
+                "asn_range_count": {
+                    "type": "integer",
+                    "example": 573104
+                },
+                "country_range_count": {
+                    "type": "integer",
+                    "example": 461293
+                },
                 "enabled": {
                     "type": "boolean",
                     "example": true

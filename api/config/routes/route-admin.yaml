@@ -617,6 +617,13 @@ routes:
             scopes:
               - admin:security:geoip:write
               - super:admin
+          - path: /security/geoip/sync
+            method: POST
+            executor: GeoIPSyncHandler
+            security: authenticated
+            scopes:
+              - admin:security:geoip:write
+              - super:admin
           - path: /queue/queues
             method: GET
             executor: AdminQueueStatsHandler

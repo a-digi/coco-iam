@@ -2,9 +2,7 @@ package handler
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/a-digi/coco-iam/src/security/geoip"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
@@ -83,26 +81,9 @@ func (h *StatusHandler) ServeHTTP(reqCtx request.RequestContext) {
 	if !ok {
 		return
 	}
-	status, err := manager.Status()
-	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	query, ok := resolveSettingsQuery(reqCtx)
+	resp, ok := resolveStatusResponse(reqCtx, manager)
 	if !ok {
 		return
-	}
-	settings, err := query.LoadSettings()
-	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	cfg := geoip.DefaultConfig().WithSettings(settings)
-
-	resp := StatusResponse{Running: status.Running, PID: status.PID, Enabled: cfg.Enabled}
-	if !status.LastPulledAt.IsZero() {
-		resp.LastPulledAt = status.LastPulledAt.UTC().Format(time.RFC3339)
 	}
 	response.SuccessResponse(w, http.StatusOK, resp)
 }

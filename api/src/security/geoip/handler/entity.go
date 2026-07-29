@@ -44,12 +44,15 @@ type SettingsRequest struct {
 // StatusResponse reports the geoip-updater process's current state.
 // PID and LastPulledAt are omitted (zero value) when not applicable —
 // PID when not running, LastPulledAt when geoip.db has never been
-// successfully populated.
+// successfully populated. CountryRangeCount/ASNRangeCount are 0 in
+// that same "never populated yet" case.
 type StatusResponse struct {
-	Running      bool   `json:"running" example:"true"`
-	PID          int    `json:"pid,omitempty" example:"48213"`
-	Enabled      bool   `json:"enabled" example:"true"`
-	LastPulledAt string `json:"last_pulled_at,omitempty" example:"2026-07-29T09:00:00Z"`
+	Running           bool   `json:"running" example:"true"`
+	PID               int    `json:"pid,omitempty" example:"48213"`
+	Enabled           bool   `json:"enabled" example:"true"`
+	LastPulledAt      string `json:"last_pulled_at,omitempty" example:"2026-07-29T09:00:00Z"`
+	CountryRangeCount int    `json:"country_range_count" example:"461293"`
+	ASNRangeCount     int    `json:"asn_range_count" example:"573104"`
 }
 
 // Swag-friendly success envelopes.

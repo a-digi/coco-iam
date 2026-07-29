@@ -1069,6 +1069,12 @@ definitions:
     type: object
   handler.StatusResponse:
     properties:
+      asn_range_count:
+        example: 573104
+        type: integer
+      country_range_count:
+        example: 461293
+        type: integer
       enabled:
         example: true
         type: boolean
@@ -4505,6 +4511,42 @@ paths:
       security:
       - BearerAuth: []
       summary: Stop the geoip-updater process
+      tags:
+      - security-geoip
+  /admin/security/geoip/sync:
+    post:
+      description: |-
+        Signals the running geoip-updater process to pull fresh data
+        immediately, bypassing the normal pull_interval_hours staleness
+        check. Fails with 409 if the updater isn't currently running —
+        nothing to signal. See plan/geoip-enrichment/plan.md's
+        "Extension: database stats + manual sync" section.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.StatusSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Force an immediate GeoIP data sync
       tags:
       - security-geoip
   /admin/security/ip-allowlist:

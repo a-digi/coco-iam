@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import Table from '../../../../Shared/Components/Table/Table';
 import type { TableColumn } from '../../../../Shared/Components/Table/Table';
 import Title from '../../../../Shared/Components/Font/Title';
+import { AccordionItem } from '../../../../Shared/Components/Accordion';
 import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
 import { useBreadcrumbItems } from '../../../../Layout/Breadcrumb/useBreadcrumb';
@@ -124,6 +125,14 @@ export const AttackDetail: React.FC = () => {
     const geo = attack ? parseGeoIPInfo(attack.geoip_info) : null;
     const geoCountry = geo ? formatGeoIPCountry(geo) : null;
     const geoOrg = geo ? formatGeoIPOrg(geo) : null;
+    const hasGeoData = !!(geoCountry || geoOrg);
+
+    // Collapsed by default when there's data (it's supplementary to the
+    // fields above); left open when there's none, so the "no data"
+    // case is visible without an extra click. `geoOpenOverride` only
+    // kicks in once the admin actually toggles it themselves.
+    const [geoOpenOverride, setGeoOpenOverride] = useState<boolean | null>(null);
+    const geoOpen = geoOpenOverride ?? !hasGeoData;
 
     return (
         <div>
@@ -147,8 +156,6 @@ export const AttackDetail: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Field label="IP address" value={<span className="font-mono text-sm">{attack.ip}</span>} />
                         <Field label="Tier" value={attack.tier} />
-                        {geoCountry && <Field label="Country" value={geoCountry} />}
-                        {geoOrg && <Field label="ISP / ASN" value={geoOrg} />}
                         <Field label="Status" value={attack.ended_at ? 'Closed' : 'Active'} />
                         <Field label="Hits" value={attack.hit_count} />
                         <Field label="Ban triggers" value={attack.ban_count} />
@@ -156,6 +163,24 @@ export const AttackDetail: React.FC = () => {
                         <Field label="Last seen" value={formatDate(attack.last_seen_at)} />
                         {attack.ended_at && <Field label="Ended" value={formatDate(attack.ended_at)} />}
                     </div>
+
+                    <AccordionItem
+                        title="GeoIP info"
+                        isOpen={geoOpen}
+                        onToggle={() => setGeoOpenOverride(!geoOpen)}
+                        variant="standalone"
+                    >
+                        {hasGeoData ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {geoCountry && <Field label="Country" value={geoCountry} />}
+                                {geoOrg && <Field label="ISP / ASN" value={geoOrg} />}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                No GeoIP data available for this IP.
+                            </p>
+                        )}
+                    </AccordionItem>
 
                     {attack.origin_hint && (
                         <div>

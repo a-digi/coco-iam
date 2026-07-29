@@ -55,7 +55,15 @@ func New(cfg geoip.Config, migrationsPath string, log logger.Logger) *Updater {
 // cfg.PullInterval(). Ticks once immediately before entering the
 // loop, so a fresh deploy pulls right away instead of waiting up to a
 // full check interval for its first data.
-func (u *Updater) Run(ctx context.Context) {
+//
+// forceSync is the admin UI's manual "Sync now" trigger (geoip.Manager
+// signals this process with SIGUSR1; api/cmd/geoipupdater/main.go
+// turns that into a value on this channel) — receiving on it pulls
+// immediately, deliberately bypassing tryPull's staleness gate, since
+// that's the entire point of a manual sync. A nil channel (e.g. in
+// tests that don't exercise this path) simply never fires, same as
+// any other nil-channel receive in a select.
+func (u *Updater) Run(ctx context.Context, forceSync <-chan os.Signal) {
 	u.tryPull(ctx)
 
 	ticker := time.NewTicker(u.cfg.CheckInterval())
@@ -66,6 +74,10 @@ func (u *Updater) Run(ctx context.Context) {
 			return
 		case <-ticker.C:
 			u.tryPull(ctx)
+		case <-forceSync:
+			if err := u.pullAndImport(ctx); err != nil {
+				u.warnf("geoip-updater: forced sync failed, will retry next check: %v", err)
+			}
 		}
 	}
 }

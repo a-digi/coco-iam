@@ -2,6 +2,7 @@ package geoip
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,12 +13,19 @@ import (
 	"github.com/a-digi/coco-server/server"
 )
 
+// ErrNotRunning is returned by SyncNow when there's no geoip-updater
+// process currently running to signal. Exported so the handler
+// package can distinguish it from other failures and map it to 409.
+var ErrNotRunning = errors.New("geoip: updater is not running")
+
 // Status is Manager.Status's result — the admin UI's view of the
 // geoip-updater process.
 type Status struct {
-	Running      bool
-	PID          int
-	LastPulledAt time.Time // zero if unknown (never pulled, or geoip.db doesn't exist yet)
+	Running           bool
+	PID               int
+	LastPulledAt      time.Time // zero if unknown (never pulled, or geoip.db doesn't exist yet)
+	CountryRangeCount int       // row count of geoip_country_ranges in the live geoip.db, 0 if unknown
+	ASNRangeCount     int       // row count of geoip_asn_ranges in the live geoip.db, 0 if unknown
 }
 
 // Manager starts, stops, and reports on the geoip-updater process —
@@ -91,14 +99,44 @@ func (m *Manager) Stop() error {
 	return nil
 }
 
+// SyncNow signals the running geoip-updater process (via SIGUSR1, the
+// same PID-file-sourced PID Stop() already signals with SIGTERM) to
+// pull fresh data immediately, bypassing the normal
+// pull_interval_hours staleness check — the manual "Sync now" action
+// from the admin UI. Returns ErrNotRunning if nothing is currently
+// running (there's no process to signal); the handler maps that to
+// 409, since a stale UI/race is the only way this gets hit — the
+// button is disabled client-side whenever the updater isn't running.
+func (m *Manager) SyncNow() error {
+	running, pid, err := m.processStatus()
+	if err != nil {
+		return err
+	}
+	if !running {
+		return ErrNotRunning
+	}
+	if err := syscall.Kill(pid, syscall.SIGUSR1); err != nil {
+		return fmt.Errorf("geoip: sync now (pid %d): %w", pid, err)
+	}
+	return nil
+}
+
 // Status reports whether the updater is running, its PID, and (best
-// effort) when it last successfully pulled fresh data.
+// effort) when it last successfully pulled fresh data and how many
+// ranges the live geoip.db currently holds.
 func (m *Manager) Status() (Status, error) {
 	running, pid, err := m.processStatus()
 	if err != nil {
 		return Status{}, err
 	}
-	return Status{Running: running, PID: pid, LastPulledAt: m.lastPulledAt()}, nil
+	lastPulledAt, countryCount, asnCount := m.dbStats()
+	return Status{
+		Running:           running,
+		PID:               pid,
+		LastPulledAt:      lastPulledAt,
+		CountryRangeCount: countryCount,
+		ASNRangeCount:     asnCount,
+	}, nil
 }
 
 // processStatus checks only PID-file liveness — split out from
@@ -119,29 +157,33 @@ func (m *Manager) processStatus() (running bool, pid int, err error) {
 	return true, pid, nil
 }
 
-// lastPulledAt is a best-effort read of geoip_meta.last_pulled_at
-// from the live geoip.db — nil (zero time.Time) if the file doesn't
-// exist yet, can't be opened, or has no such row. Duplicates the
-// equivalent helper in updater.go rather than importing it: this
-// package (geoip) cannot import its own subpackage (geoip/updater),
-// which already imports geoip — that direction would be a cycle.
-func (m *Manager) lastPulledAt() time.Time {
+// dbStats is a best-effort read of geoip_meta.last_pulled_at and the
+// current geoip_country_ranges/geoip_asn_ranges row counts from the
+// live geoip.db — zero values across the board if the file doesn't
+// exist yet, can't be opened, or the tables aren't there. Folded into
+// a single sql.Open rather than three separate helpers: Status() is
+// polled every 5s by the admin UI, no reason to open geoip.db more
+// than once per call. Duplicates the equivalent last-pulled-at logic
+// in updater.go rather than importing it: this package (geoip) cannot
+// import its own subpackage (geoip/updater), which already imports
+// geoip — that direction would be a cycle.
+func (m *Manager) dbStats() (lastPulledAt time.Time, countryCount, asnCount int) {
 	if _, err := os.Stat(m.dbPath); err != nil {
-		return time.Time{}
+		return time.Time{}, 0, 0
 	}
 	db, err := sql.Open("sqlite3", m.dbPath)
 	if err != nil {
-		return time.Time{}
+		return time.Time{}, 0, 0
 	}
 	defer db.Close()
 
 	var raw string
-	if err := db.QueryRow(`SELECT value FROM geoip_meta WHERE key = 'last_pulled_at'`).Scan(&raw); err != nil {
-		return time.Time{}
+	if err := db.QueryRow(`SELECT value FROM geoip_meta WHERE key = 'last_pulled_at'`).Scan(&raw); err == nil {
+		if t, err := time.Parse(time.RFC3339, raw); err == nil {
+			lastPulledAt = t
+		}
 	}
-	t, err := time.Parse(time.RFC3339, raw)
-	if err != nil {
-		return time.Time{}
-	}
-	return t
+	_ = db.QueryRow(`SELECT COUNT(*) FROM geoip_country_ranges`).Scan(&countryCount)
+	_ = db.QueryRow(`SELECT COUNT(*) FROM geoip_asn_ranges`).Scan(&asnCount)
+	return lastPulledAt, countryCount, asnCount
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"database/sql"
 	"net/http"
+	"time"
 
 	"github.com/a-digi/coco-iam/config/di"
 	"github.com/a-digi/coco-iam/src/security/geoip"
@@ -101,4 +102,43 @@ func resolvedSettingsResponse(query *geoip.SettingsQueryRepo) (SettingsResponse,
 		resp.MaxMindLicenseKeyMask = licenseKeyMask
 	}
 	return resp, nil
+}
+
+// resolveStatusResponse assembles the same StatusResponse
+// StatusHandler returns — shared with SyncHandler so a successful
+// sync reflects the current, still-valid counts/last-pulled time
+// (nothing was deleted, a new pull was just requested) rather than
+// blanking them out until the next 5s status poll. Writes an error
+// response and returns ok=false on failure, matching every other
+// resolve* helper's convention.
+func resolveStatusResponse(reqCtx request.RequestContext, manager *geoip.Manager) (StatusResponse, bool) {
+	w := reqCtx.GetWriter()
+	status, err := manager.Status()
+	if err != nil {
+		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return StatusResponse{}, false
+	}
+
+	query, ok := resolveSettingsQuery(reqCtx)
+	if !ok {
+		return StatusResponse{}, false
+	}
+	settings, err := query.LoadSettings()
+	if err != nil {
+		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return StatusResponse{}, false
+	}
+	cfg := geoip.DefaultConfig().WithSettings(settings)
+
+	resp := StatusResponse{
+		Running:           status.Running,
+		PID:               status.PID,
+		Enabled:           cfg.Enabled,
+		CountryRangeCount: status.CountryRangeCount,
+		ASNRangeCount:     status.ASNRangeCount,
+	}
+	if !status.LastPulledAt.IsZero() {
+		resp.LastPulledAt = status.LastPulledAt.UTC().Format(time.RFC3339)
+	}
+	return resp, true
 }
