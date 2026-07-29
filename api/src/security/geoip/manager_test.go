@@ -2,6 +2,7 @@ package geoip
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,6 +21,23 @@ func buildFakeUpdaterScript(t *testing.T, pidFile string) string {
 	t.Helper()
 	scriptPath := filepath.Join(t.TempDir(), "fake-updater.sh")
 	script := fmt.Sprintf("#!/bin/sh\necho $$ > %q\ntrap 'rm -f %q; exit 0' TERM\nwhile true; do sleep 1; done\n", pidFile, pidFile)
+	if err := os.WriteFile(scriptPath, []byte(script), 0755); err != nil {
+		t.Fatalf("write fake updater script: %v", err)
+	}
+	return scriptPath
+}
+
+// buildFakeUpdaterScriptWithSyncMarker is buildFakeUpdaterScript plus a
+// USR1 trap that touches syncMarker — lets a test prove SyncNow()
+// actually delivered a signal the process received, not just that
+// syscall.Kill didn't error.
+func buildFakeUpdaterScriptWithSyncMarker(t *testing.T, pidFile, syncMarker string) string {
+	t.Helper()
+	scriptPath := filepath.Join(t.TempDir(), "fake-updater-sync.sh")
+	script := fmt.Sprintf(
+		"#!/bin/sh\necho $$ > %q\ntrap 'touch %q' USR1\ntrap 'rm -f %q; exit 0' TERM\nwhile true; do sleep 1; done\n",
+		pidFile, syncMarker, pidFile,
+	)
 	if err := os.WriteFile(scriptPath, []byte(script), 0755); err != nil {
 		t.Fatalf("write fake updater script: %v", err)
 	}
@@ -215,4 +233,41 @@ func TestManager_Status_ReadsLastPulledAtFromGeoIPDB(t *testing.T) {
 	if !status.LastPulledAt.Equal(want) {
 		t.Fatalf("Status().LastPulledAt = %v, want %v", status.LastPulledAt, want)
 	}
+}
+
+func TestManager_SyncNow_ReturnsErrNotRunningWhenStopped(t *testing.T) {
+	dir := t.TempDir()
+	pidFile := filepath.Join(dir, "updater.pid") // never created
+	m := NewManager("/bin/true", pidFile, filepath.Join(dir, "geoip.db"), nil)
+
+	err := m.SyncNow()
+	if !errors.Is(err, ErrNotRunning) {
+		t.Fatalf("SyncNow() error = %v, want ErrNotRunning", err)
+	}
+}
+
+func TestManager_SyncNow_SignalsTheRunningProcess(t *testing.T) {
+	dir := t.TempDir()
+	pidFile := filepath.Join(dir, "updater.pid")
+	syncMarker := filepath.Join(dir, "synced")
+
+	script := buildFakeUpdaterScriptWithSyncMarker(t, pidFile, syncMarker)
+	m := NewManager(script, pidFile, filepath.Join(dir, "geoip.db"), nil)
+
+	if _, err := m.Start(); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	waitForCondition(t, 2*time.Second, func() bool {
+		_, err := os.Stat(pidFile)
+		return err == nil
+	})
+	defer func() { _ = m.Stop() }()
+
+	if err := m.SyncNow(); err != nil {
+		t.Fatalf("SyncNow() error = %v, want nil", err)
+	}
+	waitForCondition(t, 2*time.Second, func() bool {
+		_, err := os.Stat(syncMarker)
+		return err == nil
+	})
 }

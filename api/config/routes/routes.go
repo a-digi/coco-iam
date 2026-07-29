@@ -70,6 +70,7 @@ import (
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/security/geoip"
 	geoip_handler "github.com/a-digi/coco-iam/src/security/geoip/handler"
+	ipsearch_handler "github.com/a-digi/coco-iam/src/security/ipsearch/handler"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
 	swagger_handler "github.com/a-digi/coco-iam/src/swagger"
 	userrules_handler "github.com/a-digi/coco-iam/src/userrules/handler"
@@ -851,6 +852,7 @@ func Init(ctx serverdi.Context) {
 		"GeoIPStartHandler":       &geoip_handler.StartHandler{},
 		"GeoIPStopHandler":        &geoip_handler.StopHandler{},
 		"GeoIPSyncHandler":        &geoip_handler.SyncHandler{},
+		"IPSearchHandler":         &ipsearch_handler.SearchHandler{},
 		"AdminQueueStatsHandler":               &queue_admin.AdminQueueStatsHandler{},
 		"AdminQueueRetryHandler":               &queue_admin.AdminQueueRetryHandler{},
 		"AdminQueueCreateHandler":              &queue_admin.AdminQueueCreateHandler{},

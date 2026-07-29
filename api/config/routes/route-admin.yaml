@@ -624,6 +624,13 @@ routes:
             scopes:
               - admin:security:geoip:write
               - super:admin
+          - path: /security/geoip/search
+            method: GET
+            executor: IPSearchHandler
+            security: authenticated
+            scopes:
+              - admin:security:geoip:read
+              - super:admin
           - path: /queue/queues
             method: GET
             executor: AdminQueueStatsHandler

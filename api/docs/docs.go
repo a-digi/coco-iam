@@ -4241,6 +4241,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/security/geoip/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Given a complete IP, returns a live GeoIP lookup for it. Given a\npartial/incomplete input, returns up to ` + "`" + `limit` + "`" + ` known IPs (from\nrecorded attack/scan history) starting with that prefix, each with\nits own live GeoIP lookup. See plan/geoip-enrichment/plan.md's\n\"Extension: IP search\" section.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-geoip"
+                ],
+                "summary": "Search for an IP, full or partial",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Full or partial IP address",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max autocomplete suggestions (default 10, max 25)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.IPSearchSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/geoip/settings": {
             "get": {
                 "security": [
@@ -11293,6 +11357,62 @@ const docTemplate = `{
                     "description": "ScopeID must match acl.ScopeIDFormat: letters/underscores per\nsegment, separated by colons. Immutable once created.",
                     "type": "string",
                     "example": "docs:read"
+                }
+            }
+        },
+        "handler.IPSearchResponse": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "example": "94.154.43."
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.IPSearchResult"
+                    }
+                }
+            }
+        },
+        "handler.IPSearchResult": {
+            "type": "object",
+            "properties": {
+                "as_org": {
+                    "type": "string",
+                    "example": "Deutsche Telekom AG"
+                },
+                "asn": {
+                    "type": "integer",
+                    "example": 3320
+                },
+                "country": {
+                    "type": "string",
+                    "example": "Germany"
+                },
+                "country_code": {
+                    "type": "string",
+                    "example": "DE"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "94.154.43.188"
+                },
+                "matched": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handler.IPSearchSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/handler.IPSearchResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

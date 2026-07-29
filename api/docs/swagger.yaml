@@ -997,6 +997,45 @@ definitions:
         example: docs:read
         type: string
     type: object
+  handler.IPSearchResponse:
+    properties:
+      query:
+        example: 94.154.43.
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/handler.IPSearchResult'
+        type: array
+    type: object
+  handler.IPSearchResult:
+    properties:
+      as_org:
+        example: Deutsche Telekom AG
+        type: string
+      asn:
+        example: 3320
+        type: integer
+      country:
+        example: Germany
+        type: string
+      country_code:
+        example: DE
+        type: string
+      ip:
+        example: 94.154.43.188
+        type: string
+      matched:
+        example: true
+        type: boolean
+    type: object
+  handler.IPSearchSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/handler.IPSearchResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   handler.PatchScopeBody:
     properties:
       description:
@@ -4342,6 +4381,52 @@ paths:
       summary: Get one attack episode
       tags:
       - security
+  /admin/security/geoip/search:
+    get:
+      description: |-
+        Given a complete IP, returns a live GeoIP lookup for it. Given a
+        partial/incomplete input, returns up to `limit` known IPs (from
+        recorded attack/scan history) starting with that prefix, each with
+        its own live GeoIP lookup. See plan/geoip-enrichment/plan.md's
+        "Extension: IP search" section.
+      parameters:
+      - description: Full or partial IP address
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: Max autocomplete suggestions (default 10, max 25)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.IPSearchSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Search for an IP, full or partial
+      tags:
+      - security-geoip
   /admin/security/geoip/settings:
     get:
       description: |-
