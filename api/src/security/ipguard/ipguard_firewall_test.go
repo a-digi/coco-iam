@@ -182,3 +182,60 @@ func TestFirewallStatus_NilFirewallReportsUnavailable(t *testing.T) {
 		t.Fatalf("FirewallStatus() = (%q, %v, %q), want (none, false, non-empty)", name, available, detail)
 	}
 }
+
+// TestHydrate_ResyncsActiveBansIntoFreshFirewall reproduces a redeploy:
+// the DB survives (bans stay active), but the OS firewall doesn't — a
+// fresh process starts with no rules of its own. hydrate() must
+// re-apply every still-active ban into whatever firewall backend the
+// new process has, without needing anyone to click "Resync now".
+func TestHydrate_ResyncsActiveBansIntoFreshFirewall(t *testing.T) {
+	db := freshDB(t) // shared across both "processes" below, like a real DB file surviving a restart
+
+	fw1 := newFakeFirewall()
+	g1, err := NewWithDB(testConfig(), &spyInner{}, db, nil, freshAttacksHandle(t), nil, fw1, nil)
+	if err != nil {
+		t.Fatalf("NewWithDB() (process 1) error = %v", err)
+	}
+	if err := g1.Ban("198.51.100.9", "manual", "test", time.Hour, nil); err != nil {
+		t.Fatalf("Ban() error = %v", err)
+	}
+	waitFor(t, func() bool { return fw1.isBanned("198.51.100.9") })
+
+	// Simulate a restart: same DB, brand-new IPGuardSecurityLayer, and a
+	// brand-new firewall backend that has never heard of this IP.
+	fw2 := newFakeFirewall()
+	g2, err := NewWithDB(testConfig(), &spyInner{}, db, nil, freshAttacksHandle(t), nil, fw2, nil)
+	if err != nil {
+		t.Fatalf("NewWithDB() (process 2) error = %v", err)
+	}
+	_ = g2
+
+	waitFor(t, func() bool { return fw2.isBanned("198.51.100.9") })
+}
+
+// TestHydrate_DoesNotResyncExpiredBans ensures the startup resync
+// respects expiry — an already-expired row (which the sweeper hasn't
+// pruned yet) must not be re-applied to a fresh firewall backend.
+func TestHydrate_DoesNotResyncExpiredBans(t *testing.T) {
+	db := freshDB(t)
+
+	fw1 := newFakeFirewall()
+	g1, err := NewWithDB(testConfig(), &spyInner{}, db, nil, freshAttacksHandle(t), nil, fw1, nil)
+	if err != nil {
+		t.Fatalf("NewWithDB() (process 1) error = %v", err)
+	}
+	if err := g1.Ban("198.51.100.9", "global", "test", -time.Minute, nil); err != nil { // already expired
+		t.Fatalf("Ban() error = %v", err)
+	}
+	waitFor(t, func() bool { return fw1.isBanned("198.51.100.9") })
+
+	fw2 := newFakeFirewall()
+	if _, err := NewWithDB(testConfig(), &spyInner{}, db, nil, freshAttacksHandle(t), nil, fw2, nil); err != nil {
+		t.Fatalf("NewWithDB() (process 2) error = %v", err)
+	}
+
+	time.Sleep(50 * time.Millisecond) // let any (wrongly-fired) goroutine settle
+	if fw2.isBanned("198.51.100.9") {
+		t.Fatal("expired ban must not be resynced into a fresh firewall backend")
+	}
+}

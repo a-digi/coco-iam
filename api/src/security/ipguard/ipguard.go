@@ -165,6 +165,8 @@ func (g *IPGuardSecurityLayer) hydrate() error {
 	}
 	g.bansMu.Unlock()
 
+	g.resyncFirewall(active)
+
 	entries, err := g.allowQuery.ListAllowlist()
 	if err != nil {
 		return fmt.Errorf("ipguard: hydrate allowlist: %w", err)
@@ -330,6 +332,28 @@ func (g *IPGuardSecurityLayer) unbanFirewall(ip string) {
 			g.errorf("ipguard: firewall unban failed for %s (%s): %v", ip, g.firewall.Name(), err)
 		}
 	}()
+}
+
+// resyncFirewall re-applies every non-expired ban to the OS firewall at
+// startup. A fresh process (redeploy, crash restart, host reboot) has no
+// OS-level firewall rules of its own even though the DB/in-memory ban
+// state survives hydrate() — without this, a ban keeps working at the
+// application layer and keeps showing in the admin UI, but silently
+// stops being enforced at the network level until an admin notices and
+// clicks "Resync now" (see FirewallResyncHandler, which this mirrors).
+// See plan/firewall-startup-resync/plan.md.
+func (g *IPGuardSecurityLayer) resyncFirewall(active []security_entity.IPBan) {
+	if g.firewall == nil || !g.firewall.Available() {
+		return
+	}
+	now := time.Now()
+	for _, b := range active {
+		expiresAt, ok := parseTime(b.ExpiresAt)
+		if !ok || expiresAt.Before(now) {
+			continue
+		}
+		g.banFirewall(b.IP, expiresAt.Sub(now))
+	}
 }
 
 // ListBans returns every ban row, including already-expired ones the
