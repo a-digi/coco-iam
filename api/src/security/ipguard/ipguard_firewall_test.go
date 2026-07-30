@@ -68,6 +68,11 @@ func (f *fakeFirewall) RemoveAllRules(ip string) (int, error) {
 	delete(f.banned, ip)
 	return 1, nil
 }
+func (f *fakeFirewall) banCallCount() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.banCalls
+}
 func (f *fakeFirewall) isBanned(ip string) bool {
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -121,6 +126,34 @@ func TestManualBan_AlsoTriggersFirewallBan(t *testing.T) {
 	}
 
 	waitFor(t, func() bool { return fw.isBanned("198.51.100.5") })
+}
+
+// TestBanFirewall_SkipsWhenAlreadyBannedAtOSLevel is the actual fix
+// for the reported duplicate-rules symptom: re-banning an IP that
+// already has an OS-level rule (a repeated attack retrigger, clicking
+// "Resync now" more than once, or the automatic startup resync running
+// on every restart) must not insert a second rule.
+func TestBanFirewall_SkipsWhenAlreadyBannedAtOSLevel(t *testing.T) {
+	fw := newFakeFirewall()
+	g := newTestGuardWithFirewall(t, testConfig(), fw)
+
+	if err := g.Ban("198.51.100.5", "manual", "test", time.Hour, nil); err != nil {
+		t.Fatalf("first Ban() error = %v", err)
+	}
+	waitFor(t, func() bool { return fw.isBanned("198.51.100.5") })
+	callsAfterFirst := fw.banCallCount()
+
+	if err := g.Ban("198.51.100.5", "manual", "test", time.Hour, nil); err != nil {
+		t.Fatalf("second Ban() error = %v", err)
+	}
+	// banFirewall's check-then-ban runs in a goroutine — give it a
+	// moment, then assert no further call happened (can't waitFor a
+	// negative, so a short fixed sleep is the pragmatic choice here).
+	time.Sleep(50 * time.Millisecond)
+
+	if got := fw.banCallCount(); got != callsAfterFirst {
+		t.Fatalf("expected no additional firewall.Ban() call for an already-banned IP, calls went from %d to %d", callsAfterFirst, got)
+	}
 }
 
 func TestUnban_LiftsFirewallBan(t *testing.T) {

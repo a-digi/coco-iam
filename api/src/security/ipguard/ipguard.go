@@ -312,15 +312,48 @@ func (g *IPGuardSecurityLayer) Unban(ip string) error {
 // never wait on a subprocess. firewall_linux.go's own 2s timeout
 // bounds how long that goroutine can run; a nil g.firewall (no
 // backend configured, e.g. in tests) is a silent no-op.
+// banFirewall is the single choke point every ban path funnels
+// through — fresh manual/auto bans (via Ban()), the "Resync now"
+// handler (which calls Ban() per active row), and the automatic
+// startup resync (resyncFirewall, called from hydrate()). Checking for
+// an existing rule here, once, closes the duplicate-rule problem for
+// all of them at once instead of requiring each caller to remember to
+// check. See plan/firewall-live-rules/plan.md's duplicate-rules
+// follow-up.
 func (g *IPGuardSecurityLayer) banFirewall(ip string, duration time.Duration) {
 	if g.firewall == nil {
 		return
 	}
 	go func() {
+		already, err := g.firewallAlreadyHasRule(ip)
+		if err != nil {
+			// The check itself failed (e.g. a transient `iptables -L`
+			// error) — fail open toward enforcement rather than
+			// silently skipping a ban because a read-only list command
+			// hiccuped.
+			g.errorf("ipguard: failed to check existing firewall rule for %s (%s): %v — attempting ban anyway", ip, g.firewall.Name(), err)
+		} else if already {
+			return
+		}
 		if err := g.firewall.Ban(ip, duration); err != nil {
 			g.errorf("ipguard: firewall ban failed for %s (%s): %v", ip, g.firewall.Name(), err)
 		}
 	}()
+}
+
+// firewallAlreadyHasRule reports whether ip already has an OS-level
+// rule — g.firewall is assumed non-nil (callers already checked).
+func (g *IPGuardSecurityLayer) firewallAlreadyHasRule(ip string) (bool, error) {
+	existing, err := g.firewall.ListBannedIPs()
+	if err != nil {
+		return false, err
+	}
+	for _, e := range existing {
+		if e == ip {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (g *IPGuardSecurityLayer) unbanFirewall(ip string) {
