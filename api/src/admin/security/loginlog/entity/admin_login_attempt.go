@@ -21,6 +21,12 @@ type AdminLoginAttempt struct {
 	IP            string `json:"ip" example:"203.0.113.7"`
 	UserAgent     string `json:"user_agent,omitempty" example:"Mozilla/5.0 ..."`
 	CreatedAt     string `json:"created_at" example:"2026-07-29T20:41:00Z"`
+	// GeoIPInfo is a JSON snapshot of the country/city/ISP resolved
+	// for ip at record time — empty when the IP was loopback/private,
+	// GeoIP had no coverage, GeoIP is disabled, or the row predates
+	// this field. Never re-derived later. See
+	// plan/login-log-geoip/plan.md.
+	GeoIPInfo string `json:"geoip_info,omitempty" example:"{\"country_code\":\"DE\",\"country\":\"Germany\",\"city\":\"Berlin\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"`
 }
 
 // AdminLoginAttemptListResponse is the list endpoint's payload — Total

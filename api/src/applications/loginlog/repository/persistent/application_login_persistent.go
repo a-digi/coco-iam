@@ -34,19 +34,24 @@ func NewApplicationLoginPersistentRepo(handle *dbhandle.Handle) *ApplicationLogi
 // RecordAttempt inserts one row. applicationUserID and failureReason
 // are nullable — applicationUserID is empty when the typed username
 // never resolved to a real end-user account; failureReason is empty
-// on success. Best-effort by design: a login-log write must never
-// block or fail the actual login it's recording, so every call site
-// treats this method's error as log-and-continue, not a request
-// failure.
-func (r *ApplicationLoginPersistentRepo) RecordAttempt(applicationUserID, username string, success bool, failureReason, ip, userAgent string) error {
+// on success. geoIPInfo is a JSON-marshaled geoip.Info snapshot, empty
+// when the IP was loopback/private, GeoIP had no coverage, or GeoIP
+// is disabled — see plan/login-log-geoip/plan.md. Best-effort by
+// design: a login-log write must never block or fail the actual
+// login it's recording, so every call site treats this method's
+// error as log-and-continue, not a request failure.
+func (r *ApplicationLoginPersistentRepo) RecordAttempt(applicationUserID, username string, success bool, failureReason, ip, userAgent, geoIPInfo string) error {
 	db := r.handle.DB()
 
-	var userIDArg, failureReasonArg interface{}
+	var userIDArg, failureReasonArg, geoIPInfoArg interface{}
 	if applicationUserID != "" {
 		userIDArg = applicationUserID
 	}
 	if failureReason != "" {
 		failureReasonArg = failureReason
+	}
+	if geoIPInfo != "" {
+		geoIPInfoArg = geoIPInfo
 	}
 
 	successInt := 0
@@ -55,10 +60,10 @@ func (r *ApplicationLoginPersistentRepo) RecordAttempt(applicationUserID, userna
 	}
 
 	_, err := db.Exec(
-		`INSERT INTO application_login_attempts (id, application_user_id, username, success, failure_reason, ip, user_agent, created_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO application_login_attempts (id, application_user_id, username, success, failure_reason, ip, user_agent, created_at, geoip_info)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		uuid.New().String(), userIDArg, username, successInt, failureReasonArg, ip, userAgent,
-		time.Now().UTC().Format(attemptTimeLayout),
+		time.Now().UTC().Format(attemptTimeLayout), geoIPInfoArg,
 	)
 	if err != nil {
 		return fmt.Errorf("application-login-attempt: record: %w", err)

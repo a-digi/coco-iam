@@ -35,6 +35,7 @@ import (
 	orgpwexpiry "github.com/a-digi/coco-iam/src/organizations/users/passwordexpiry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
+	"github.com/a-digi/coco-iam/src/security/geoip"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
 	"github.com/a-digi/coco-iam/src/security/loginbans"
 	oauth_lib "github.com/a-digi/coco-oauth/oauth"
@@ -507,6 +508,44 @@ func resolveIPGuard(ctx interface{}) *ipguard.IPGuardSecurityLayer {
 	return bag.GetIPGuard()
 }
 
+// resolveGeoIP duck-types against the shared geoip.Lookup accessor,
+// same reasoning as resolveIPGuard above — avoids importing
+// config/di directly.
+func resolveGeoIP(ctx interface{}) geoip.Lookup {
+	bag, ok := ctx.(interface {
+		GetGeoIP() geoip.Lookup
+	})
+	if !ok {
+		return nil
+	}
+	return bag.GetGeoIP()
+}
+
+// lookupGeoIPInfo resolves ip's country/city/ISP via the shared
+// geoip.Lookup already wired at boot, and marshals it into the JSON
+// snapshot this login attempt stores. Returns "" if ip is
+// loopback/private, has no GeoLite2 coverage, GeoIP is disabled, or
+// the lookup fails — never surfaced as a login recording failure.
+// See plan/login-log-geoip/plan.md.
+func lookupGeoIPInfo(ctx interface{}, ip string) string {
+	if ip == "" || geoip.IsLoopbackOrPrivate(ip) {
+		return ""
+	}
+	geo := resolveGeoIP(ctx)
+	if geo == nil {
+		return ""
+	}
+	info, ok := geo.Lookup(ip)
+	if !ok {
+		return ""
+	}
+	raw, err := json.Marshal(info)
+	if err != nil {
+		return ""
+	}
+	return string(raw)
+}
+
 // recordLoginAttempt persists one application end-user login attempt
 // into applicationID's own <slug>_login.db, best-effort — a write
 // failure is logged and swallowed, never surfacing as a failure of
@@ -534,8 +573,10 @@ func recordLoginAttempt(reqCtx request.RequestContext, applicationID, applicatio
 		ip = guard.ClientIP(r)
 	}
 
+	geoIPInfo := lookupGeoIPInfo(ctx, ip)
+
 	repo := loginlog_persistent.NewApplicationLoginPersistentRepo(handle)
-	if err := repo.RecordAttempt(applicationUserID, username, success, failureReason, ip, r.UserAgent()); err != nil {
+	if err := repo.RecordAttempt(applicationUserID, username, success, failureReason, ip, r.UserAgent(), geoIPInfo); err != nil {
 		if log := reqCtx.GetDI().GetLogger(); log != nil {
 			log.Warning("application login-log: failed to record attempt for %s: %v", applicationID, err)
 		}

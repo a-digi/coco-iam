@@ -10763,6 +10763,11 @@
                     "type": "string",
                     "example": "invalid_credentials"
                 },
+                "geoip_info": {
+                    "description": "GeoIPInfo is a JSON snapshot of the country/city/ISP resolved\nfor ip at record time — empty when the IP was loopback/private,\nGeoIP had no coverage, GeoIP is disabled, or the row predates\nthis field. Never re-derived later. See\nplan/login-log-geoip/plan.md.",
+                    "type": "string",
+                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"city\":\"Berlin\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
+                },
                 "id": {
                     "type": "string",
                     "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
@@ -10881,6 +10886,11 @@
                     "description": "FailureReason is one of invalid_credentials, inactive_user, or\nempty on success. inactive_user covers the application-level\npassword-login-disabled rejection, not just an inactive user\naccount.",
                     "type": "string",
                     "example": "invalid_credentials"
+                },
+                "geoip_info": {
+                    "description": "GeoIPInfo is a JSON snapshot of the country/city/ISP resolved\nfor ip at record time — empty when the IP was loopback/private,\nGeoIP had no coverage, GeoIP is disabled, or the row predates\nthis field. Never re-derived later. See\nplan/login-log-geoip/plan.md.",
+                    "type": "string",
+                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"city\":\"Berlin\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
                 },
                 "id": {
                     "type": "string",

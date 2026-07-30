@@ -7,6 +7,8 @@ import { FormInput } from '../../../../../Shared/Components/Form';
 import { useHttpClient } from '../../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../../Shared/Components/SnackBar/SnackBarContext';
 import { formatDate } from '../../../../../config/data/date/date';
+import { formatGeoIPSummary } from '../../../../Admin/Security/geoipInfo';
+import { LoginAttemptDetailModal } from '../../../../../Shared/Components/Modal/LoginAttemptDetailModal';
 import { ApplicationResource } from '../../../model/application';
 import type { ApplicationLoginAttempt, ApplicationLoginAttemptListResponse } from './types';
 
@@ -47,6 +49,7 @@ export const AttemptsList: React.FC<AttemptsListProps> = ({ applicationId, archi
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [detailAttempt, setDetailAttempt] = useState<ApplicationLoginAttempt | null>(null);
 
     const [usernameFilter, setUsernameFilter] = useState('');
     const [userIdFilter, setUserIdFilter] = useState('');
@@ -120,14 +123,27 @@ export const AttemptsList: React.FC<AttemptsListProps> = ({ applicationId, archi
         },
         { key: 'ip', label: 'IP address' },
         {
-            key: 'user_agent',
-            label: 'User agent',
-            render: (_value, row) => <span className="text-xs">{row.user_agent || '—'}</span>,
+            key: 'location',
+            label: 'Location',
+            render: (_value, row) => <span className="text-xs">{formatGeoIPSummary(row.geoip_info)}</span>,
         },
         {
             key: 'created_at',
             label: 'When',
             render: value => formatDate(String(value)),
+        },
+        {
+            key: 'actions',
+            label: '',
+            render: (_value, row) => (
+                <button
+                    type="button"
+                    onClick={() => setDetailAttempt(row)}
+                    className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                >
+                    Details
+                </button>
+            ),
         },
     ];
 
@@ -204,6 +220,8 @@ export const AttemptsList: React.FC<AttemptsListProps> = ({ applicationId, archi
                     />
                 </>
             )}
+
+            <LoginAttemptDetailModal attempt={detailAttempt} onClose={() => setDetailAttempt(null)} />
         </div>
     );
 };

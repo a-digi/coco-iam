@@ -97,6 +97,16 @@ definitions:
           MFA verification still pending), not a hard failure.
         example: invalid_credentials
         type: string
+      geoip_info:
+        description: |-
+          GeoIPInfo is a JSON snapshot of the country/city/ISP resolved
+          for ip at record time — empty when the IP was loopback/private,
+          GeoIP had no coverage, GeoIP is disabled, or the row predates
+          this field. Never re-derived later. See
+          plan/login-log-geoip/plan.md.
+        example: '{"country_code":"DE","country":"Germany","city":"Berlin","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
+        type: string
       id:
         example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
         type: string
@@ -198,6 +208,16 @@ definitions:
           password-login-disabled rejection, not just an inactive user
           account.
         example: invalid_credentials
+        type: string
+      geoip_info:
+        description: |-
+          GeoIPInfo is a JSON snapshot of the country/city/ISP resolved
+          for ip at record time — empty when the IP was loopback/private,
+          GeoIP had no coverage, GeoIP is disabled, or the row predates
+          this field. Never re-derived later. See
+          plan/login-log-geoip/plan.md.
+        example: '{"country_code":"DE","country":"Germany","city":"Berlin","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
         type: string
       id:
         example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345

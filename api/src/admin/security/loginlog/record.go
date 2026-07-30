@@ -7,6 +7,7 @@
 package loginlog
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	loginlog_persistent "github.com/a-digi/coco-iam/src/admin/security/loginlog/repository/persistent"
 	loginlog_query "github.com/a-digi/coco-iam/src/admin/security/loginlog/repository/query"
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
+	"github.com/a-digi/coco-iam/src/security/geoip"
 	"github.com/a-digi/coco-iam/src/security/loginbans"
 	"github.com/a-digi/coco-server/server/request"
 )
@@ -42,8 +44,10 @@ func Record(reqCtx request.RequestContext, adminUserID, username string, success
 		ip = guard.ClientIP(r)
 	}
 
+	geoIPInfo := lookupGeoIPInfo(bag, ip)
+
 	repo := loginlog_persistent.NewAdminLoginPersistentRepo(handle)
-	if err := repo.RecordAttempt(adminUserID, username, success, failureReason, ip, r.UserAgent()); err != nil {
+	if err := repo.RecordAttempt(adminUserID, username, success, failureReason, ip, r.UserAgent(), geoIPInfo); err != nil {
 		if log := bag.GetLogger(); log != nil {
 			log.Warning("loginlog: failed to record admin login attempt: %v", err)
 		}
@@ -88,4 +92,30 @@ func checkAdminFailureBan(bag *di.ContextBag, handle *dbhandle.Handle, ip string
 			log.Warning("loginlog: failed to ban %s after %d failed admin logins: %v", ip, count, err)
 		}
 	}
+}
+
+// lookupGeoIPInfo resolves ip's country/city/ISP via the shared
+// geoip.Lookup already wired at boot (same instance the attack-episode
+// recording path and the "Fetch GeoIP data" backfill button use), and
+// marshals it into the JSON snapshot this login attempt stores.
+// Returns "" if ip is loopback/private, has no GeoLite2 coverage,
+// GeoIP is disabled, or the lookup fails — never surfaced as a login
+// recording failure. See plan/login-log-geoip/plan.md.
+func lookupGeoIPInfo(bag *di.ContextBag, ip string) string {
+	if ip == "" || geoip.IsLoopbackOrPrivate(ip) {
+		return ""
+	}
+	geo := bag.GetGeoIP()
+	if geo == nil {
+		return ""
+	}
+	info, ok := geo.Lookup(ip)
+	if !ok {
+		return ""
+	}
+	raw, err := json.Marshal(info)
+	if err != nil {
+		return ""
+	}
+	return string(raw)
 }

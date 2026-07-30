@@ -8,6 +8,8 @@ import { FormInput } from '../../../../Shared/Components/Form';
 import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
 import { formatDate } from '../../../../config/data/date/date';
+import { formatGeoIPSummary } from '../geoipInfo';
+import { LoginAttemptDetailModal } from '../../../../Shared/Components/Modal/LoginAttemptDetailModal';
 
 interface AdminLoginAttempt {
     id: string;
@@ -18,6 +20,7 @@ interface AdminLoginAttempt {
     ip: string;
     user_agent?: string;
     created_at: string;
+    geoip_info?: string;
 }
 
 interface AdminLoginAttemptListResponse {
@@ -59,6 +62,7 @@ export const AdminLoginLogDashboard: React.FC = () => {
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [detailAttempt, setDetailAttempt] = useState<AdminLoginAttempt | null>(null);
 
     const [usernameFilter, setUsernameFilter] = useState('');
     const [adminUserIdFilter, setAdminUserIdFilter] = useState('');
@@ -140,14 +144,27 @@ export const AdminLoginLogDashboard: React.FC = () => {
         },
         { key: 'ip', label: 'IP address' },
         {
-            key: 'user_agent',
-            label: 'User agent',
-            render: (_value, row) => <span className="text-xs">{row.user_agent || '—'}</span>,
+            key: 'location',
+            label: 'Location',
+            render: (_value, row) => <span className="text-xs">{formatGeoIPSummary(row.geoip_info)}</span>,
         },
         {
             key: 'created_at',
             label: 'When',
             render: value => formatDate(String(value)),
+        },
+        {
+            key: 'actions',
+            label: '',
+            render: (_value, row) => (
+                <button
+                    type="button"
+                    onClick={() => setDetailAttempt(row)}
+                    className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                >
+                    Details
+                </button>
+            ),
         },
     ];
 
@@ -249,6 +266,8 @@ export const AdminLoginLogDashboard: React.FC = () => {
                     />
                 </>
             )}
+
+            <LoginAttemptDetailModal attempt={detailAttempt} onClose={() => setDetailAttempt(null)} />
         </div>
     );
 };

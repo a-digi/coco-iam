@@ -7,6 +7,7 @@ export interface ApplicationLoginAttempt {
     ip: string;
     user_agent?: string;
     created_at: string;
+    geoip_info?: string;
 }
 
 export interface ApplicationLoginAttemptListResponse {

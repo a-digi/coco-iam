@@ -78,7 +78,7 @@ func (f ListFilter) whereClause() (string, []interface{}) {
 // paginated per filter.
 func (r *AdminLoginQueryRepo) ListAttempts(filter ListFilter) ([]loginlog_entity.AdminLoginAttempt, error) {
 	where, args := filter.whereClause()
-	q := `SELECT id, COALESCE(admin_user_id, ''), username, success, COALESCE(failure_reason, ''), ip, COALESCE(user_agent, ''), created_at
+	q := `SELECT id, COALESCE(admin_user_id, ''), username, success, COALESCE(failure_reason, ''), ip, COALESCE(user_agent, ''), created_at, COALESCE(geoip_info, '')
 	      FROM admin_login_attempts` + where + ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
 	args = append(args, filter.Limit, filter.Offset)
 
@@ -92,7 +92,7 @@ func (r *AdminLoginQueryRepo) ListAttempts(filter ListFilter) ([]loginlog_entity
 	for rows.Next() {
 		var a loginlog_entity.AdminLoginAttempt
 		var successInt int
-		if err := rows.Scan(&a.ID, &a.AdminUserID, &a.Username, &successInt, &a.FailureReason, &a.IP, &a.UserAgent, &a.CreatedAt); err != nil {
+		if err := rows.Scan(&a.ID, &a.AdminUserID, &a.Username, &successInt, &a.FailureReason, &a.IP, &a.UserAgent, &a.CreatedAt, &a.GeoIPInfo); err != nil {
 			return nil, fmt.Errorf("admin-login-attempt: scan: %w", err)
 		}
 		a.Success = successInt == 1
