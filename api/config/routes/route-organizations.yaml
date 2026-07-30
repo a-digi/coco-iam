@@ -121,6 +121,121 @@ routes:
               - organizations:write
               - organizations
               - super:admin
+          # Org-scoped mail settings/accounts/templates — see
+          # plan/org-app-email-settings/plan.md step 1. Falls back to
+          # the global mail engine when unset; no new scopes needed.
+          - path: /{res:organizations}/{id}/mail/settings
+            method: GET
+            executor: OrgMailSettingsGetHandler
+            security: authenticated
+            scopes:
+              - organizations:read
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/settings
+            method: PATCH
+            executor: OrgMailSettingsUpdateHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/accounts
+            method: GET
+            executor: OrgMailAccountsListHandler
+            security: authenticated
+            scopes:
+              - organizations:read
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/accounts
+            method: POST
+            executor: OrgMailAccountsCreateHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/accounts/{accountId}
+            method: GET
+            executor: OrgMailAccountsGetHandler
+            security: authenticated
+            scopes:
+              - organizations:read
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/accounts/{accountId}
+            method: PATCH
+            executor: OrgMailAccountsUpdateHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/accounts/{accountId}
+            method: DELETE
+            executor: OrgMailAccountsDeleteHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/accounts/{accountId}/activate
+            method: POST
+            executor: OrgMailAccountsActivateHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/accounts/{accountId}/test
+            method: POST
+            executor: OrgMailAccountsTestHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/templates
+            method: GET
+            executor: OrgMailTemplatesListHandler
+            security: authenticated
+            scopes:
+              - organizations:read
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/templates
+            method: POST
+            executor: OrgMailTemplatesCreateHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/templates/{templateId}
+            method: GET
+            executor: OrgMailTemplatesGetHandler
+            security: authenticated
+            scopes:
+              - organizations:read
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/templates/{templateId}
+            method: PATCH
+            executor: OrgMailTemplatesUpdateHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
+          - path: /{res:organizations}/{id}/mail/templates/{templateId}
+            method: DELETE
+            executor: OrgMailTemplatesDeleteHandler
+            security: authenticated
+            scopes:
+              - organizations:write
+              - organizations
+              - super:admin
           - path: /{res:organization_users}
             method: GET
             executor: ApiResourceHandler

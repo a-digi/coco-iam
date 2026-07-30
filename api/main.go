@@ -31,6 +31,7 @@ import (
 	iam_mail "github.com/a-digi/coco-iam/src/mail"
 	mailaccounts "github.com/a-digi/coco-iam/src/mail/accounts"
 	mailconsumer "github.com/a-digi/coco-iam/src/mail/consumer"
+	mailscopedsettings "github.com/a-digi/coco-iam/src/mail/scopedsettings"
 	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
 	mailsmtp "github.com/a-digi/coco-iam/src/mail/smtp"
 	mailstore "github.com/a-digi/coco-iam/src/mail/store"
@@ -471,6 +472,14 @@ func main() {
 		mailSettingsResolver := mailsettings.NewResolver(mailSettingsStore, mailAccountsStore, mailCfg, log)
 		mailer.SetConfigProvider(func() mailsmtp.Config { return mailSettingsResolver.Config() })
 
+		// Org-scoped mail resolution — wraps the resolver above with an
+		// organization tier (app tier lands in a later step). Global
+		// behavior is unchanged for every existing call site until it's
+		// explicitly upgraded to pass an org id. See
+		// plan/org-app-email-settings/plan.md step 1.
+		mailScopedResolver := mailscopedsettings.NewScopedResolver(mailSettingsResolver, orgUserDBRegistry, log)
+		ctx.Set(mailscopedsettings.ContextBagKey, mailScopedResolver)
+
 		mailService := iam_mail.NewMailService(queueMgr, mailStoreInstance, mailRenderer, mailCfg.From)
 
 		orchestratorCfg := mailconsumer.OrchestratorConfigFromEnv()
@@ -509,7 +518,7 @@ func main() {
 			adminActivationStore,
 			orgActivationStore,
 			mailService,
-			mailSettingsResolver,
+			mailScopedResolver,
 			activationSettings,
 			userRulesStore,
 			log,
@@ -520,7 +529,7 @@ func main() {
 		orgUserNotifyService := org_user_notify.NewService(
 			manager.Connector.DB,
 			orgUserDBRegistry,
-			mailSettingsResolver,
+			mailScopedResolver,
 			mailService,
 			log,
 		)
@@ -544,7 +553,7 @@ func main() {
 			adminRecoveryStore,
 			orgRecoveryStore,
 			mailService,
-			mailSettingsResolver,
+			mailScopedResolver,
 			recoverySettings,
 			userRulesStore,
 			log,
@@ -644,7 +653,7 @@ func main() {
 		ctx.Set(mailconsumer.ContextBagKeyOrchestrator, orchestrator)
 
 		if err := mailconsumer.Register(
-			queueMgr, mailStoreInstance, mailer, mailAccountsStore,
+			queueMgr, mailStoreInstance, mailer, mailAccountsStore, orgUserDBRegistry,
 			mailconsumer.Config{
 				MaxAttempts:    5,
 				InitialWorkers: orchestratorCfg.Min,

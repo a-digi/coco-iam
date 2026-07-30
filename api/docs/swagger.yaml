@@ -977,6 +977,240 @@ definitions:
         example: "2025-01-01T00:00:00Z"
         type: string
     type: object
+  entity.OrgActivationSettings:
+    properties:
+      resend_cooldown_seconds:
+        example: 300
+        type: integer
+      ttl_hours:
+        example: 24
+        type: integer
+    type: object
+  entity.OrgEventBinding:
+    properties:
+      account:
+        example: ""
+        type: string
+      event:
+        example: user_invite
+        type: string
+      template:
+        example: ""
+        type: string
+    type: object
+  entity.OrgMailAccountCreateRequest:
+    properties:
+      from_email:
+        example: support@acme.example
+        type: string
+      from_name:
+        example: Acme Support
+        type: string
+      host:
+        example: smtp.example.com
+        type: string
+      is_active:
+        example: false
+        type: boolean
+      name:
+        example: org-transactional
+        type: string
+      password:
+        example: hunter2
+        type: string
+      port:
+        example: 587
+        type: integer
+      use_tls:
+        example: true
+        type: boolean
+      username:
+        example: smtp-user
+        type: string
+    type: object
+  entity.OrgMailAccountListSuccess:
+    properties:
+      message:
+        items:
+          $ref: '#/definitions/entity.OrgMailAccountResponse'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.OrgMailAccountResponse:
+    properties:
+      created_at:
+        example: "2026-07-30T10:00:00Z"
+        type: string
+      from_email:
+        example: support@acme.example
+        type: string
+      from_name:
+        example: Acme Support
+        type: string
+      host:
+        example: smtp.example.com
+        type: string
+      id:
+        example: b3202323-6270-448c-8001-6b803aca8053
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      name:
+        example: org-transactional
+        type: string
+      port:
+        example: 587
+        type: integer
+      updated_at:
+        example: "2026-07-30T10:00:00Z"
+        type: string
+      use_tls:
+        example: true
+        type: boolean
+      username:
+        example: smtp-user
+        type: string
+    type: object
+  entity.OrgMailAccountSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.OrgMailAccountResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.OrgMailAccountUpdateRequest:
+    properties:
+      from_email:
+        type: string
+      from_name:
+        type: string
+      host:
+        type: string
+      password:
+        type: string
+      port:
+        type: integer
+      use_tls:
+        type: boolean
+      username:
+        type: string
+    type: object
+  entity.OrgMailSettingsResponse:
+    properties:
+      activation:
+        $ref: '#/definitions/entity.OrgActivationSettings'
+      active_account:
+        $ref: '#/definitions/entity.OrgMailAccountResponse'
+      events:
+        items:
+          $ref: '#/definitions/entity.OrgEventBinding'
+        type: array
+    type: object
+  entity.OrgMailSettingsSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.OrgMailSettingsResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.OrgMailSettingsUpdateRequest:
+    properties:
+      activation:
+        $ref: '#/definitions/entity.OrgActivationSettings'
+      events:
+        items:
+          $ref: '#/definitions/entity.OrgEventBinding'
+        type: array
+    type: object
+  entity.OrgMailTemplateCreateRequest:
+    properties:
+      description:
+        type: string
+      html_body:
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      name:
+        example: user_invite
+        type: string
+      subject:
+        type: string
+      text_body:
+        type: string
+    type: object
+  entity.OrgMailTemplateListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/entity.OrgMailTemplateResponse'
+        type: array
+      total:
+        example: 3
+        type: integer
+    type: object
+  entity.OrgMailTemplateListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.OrgMailTemplateListResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.OrgMailTemplateResponse:
+    properties:
+      created_at:
+        example: "2026-07-30T10:00:00Z"
+        type: string
+      description:
+        example: Sent when a new org user is invited.
+        type: string
+      html_body:
+        type: string
+      id:
+        example: b3202323-6270-448c-8001-6b803aca8053
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      name:
+        example: user_invite
+        type: string
+      subject:
+        example: Welcome to {{.OrgName}}
+        type: string
+      text_body:
+        type: string
+      updated_at:
+        example: "2026-07-30T10:00:00Z"
+        type: string
+    type: object
+  entity.OrgMailTemplateSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.OrgMailTemplateResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.OrgMailTemplateUpdateRequest:
+    properties:
+      description:
+        type: string
+      html_body:
+        type: string
+      is_active:
+        type: boolean
+      subject:
+        type: string
+      text_body:
+        type: string
+    type: object
   entity.OrgUserListSuccess:
     properties:
       message:
@@ -7522,6 +7756,691 @@ paths:
       summary: Force password change
       tags:
       - activation
+  /organizations/{id}/mail/accounts:
+    get:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgMailAccountListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List an organization's SMTP accounts
+      tags:
+      - org-mail
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.OrgMailAccountCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.OrgMailAccountSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Create an organization SMTP account
+      tags:
+      - org-mail
+  /organizations/{id}/mail/accounts/{accountId}:
+    delete:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Delete an organization SMTP account
+      tags:
+      - org-mail
+    get:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgMailAccountSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get an organization SMTP account
+      tags:
+      - org-mail
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      - description: Patch
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.OrgMailAccountUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgMailAccountSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update an organization SMTP account
+      tags:
+      - org-mail
+  /organizations/{id}/mail/accounts/{accountId}/activate:
+    post:
+      description: |-
+        Makes this the org's active account; every other org account is demoted. An org
+        with no active account falls back to the global active account at send time.
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgMailAccountSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Activate an organization SMTP account
+      tags:
+      - org-mail
+  /organizations/{id}/mail/accounts/{accountId}/test:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Send a test email using an organization SMTP account
+      tags:
+      - org-mail
+  /organizations/{id}/mail/settings:
+    get:
+      description: |-
+        Returns exactly what this org has customized — active account, event
+        bindings, and activation overrides. Empty/nil fields fall back to the
+        global mail engine settings at send time.
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgMailSettingsSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get an organization's mail settings
+      tags:
+      - org-mail
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Event bindings require template + account as a pair — both set (bound to
+        this org's own account/template) or both empty (clears the org override,
+        falls back to the global binding). A bound account must exist among this
+        org's own accounts.
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Patch
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.OrgMailSettingsUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgMailSettingsSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update an organization's mail settings
+      tags:
+      - org-mail
+  /organizations/{id}/mail/templates:
+    get:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Filter by name substring
+        in: query
+        name: name
+        type: string
+      - description: Page size (default 50, max 500)
+        in: query
+        name: limit
+        type: integer
+      - description: Page offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgMailTemplateListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List an organization's email templates
+      tags:
+      - org-mail
+    post:
+      consumes:
+      - application/json
+      description: |-
+        The name should match one of the system event keys (see the global
+        /admin/mail/settings/events catalog) for it to be bindable to an event
+        via PATCH /organizations/{id}/mail/settings.
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Template
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.OrgMailTemplateCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.OrgMailTemplateSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Create an organization email template
+      tags:
+      - org-mail
+  /organizations/{id}/mail/templates/{templateId}:
+    delete:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Template ID
+        in: path
+        name: templateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Delete an organization email template
+      tags:
+      - org-mail
+    get:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Template ID
+        in: path
+        name: templateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgMailTemplateSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get an organization email template
+      tags:
+      - org-mail
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Template ID
+        in: path
+        name: templateId
+        required: true
+        type: string
+      - description: Patch
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.OrgMailTemplateUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrgMailTemplateSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update an organization email template
+      tags:
+      - org-mail
   /organizations/organization_users/{id}/resend-activation:
     post:
       parameters:
