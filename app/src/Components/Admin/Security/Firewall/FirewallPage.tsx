@@ -36,7 +36,7 @@ interface FirewallRulesResponse {
 
 interface FirewallRuleRemoveResponse {
     removed: number;
-    resynced: boolean;
+    also_unbanned: boolean;
 }
 
 const WRITE_SCOPES = [AppScopes.AdminSecurityFirewallWrite, AppScopes.SuperAdmin];
@@ -110,8 +110,8 @@ export const FirewallPage: React.FC = () => {
             );
             const r = resp.message;
             successMessage(
-                r.resynced
-                    ? `Removed ${r.removed} rule(s) for ${removeTarget} — re-applied 1 clean rule since it's still actively banned.`
+                r.also_unbanned
+                    ? `Removed ${r.removed} rule(s) for ${removeTarget} and unbanned it — it was still on the Bans list.`
                     : `Removed ${r.removed} rule(s) for ${removeTarget}.`
             );
             setRemoveTarget(null);
@@ -255,7 +255,7 @@ block drop from <coco_iam_banned> to any`}
             {removeTarget && (
                 <ConfirmModal
                     title="Remove firewall rule"
-                    message={`Remove every OS-level rule for ${removeTarget}? If it's still actively banned, a clean rule is re-applied immediately afterward — otherwise it's fully unblocked at the OS level.`}
+                    message={`Remove every OS-level rule for ${removeTarget}? If it's still on the Bans list, it will be unbanned there too — this fully unblocks the IP, not just at the OS level.`}
                     confirmLabel="Remove"
                     variant="danger"
                     isLoading={removing}

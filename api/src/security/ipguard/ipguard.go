@@ -484,15 +484,16 @@ func (g *IPGuardSecurityLayer) ListFirewallRules() ([]string, error) {
 // RemoveAllFirewallRules removes every OS-level rule for ip (there may
 // be duplicates — see firewall.Banner.RemoveAllRules' doc comment),
 // then checks ip_bans directly: if ip is still actively (non-expired)
-// banned there, it re-applies exactly one clean rule immediately
-// afterward. Without this check, an admin cleaning up a duplicated
-// rule for an IP the DB still considers banned would silently leave it
-// completely unenforced at the OS level until the next reboot or a
-// manual "Resync now" — the exact stale-data gap this method closes.
-// Runs the re-apply synchronously (not via the fire-and-forget
-// banFirewall helper) since this is an explicit, foreground admin
-// action that should report a real, immediate outcome.
-func (g *IPGuardSecurityLayer) RemoveAllFirewallRules(ip string) (removed int, resynced bool, err error) {
+// banned there, that ban row is deleted too (the same DB+in-memory
+// cleanup Unban() does, minus its own OS-level call — the OS side is
+// already handled above). Removing an OS-level rule for an IP the Bans
+// page still lists as banned would otherwise be pointless: the very
+// next boot's startup resync, or any repeat of whatever re-triggers a
+// ban for this IP, would just reinstate the rule — so "remove from the
+// Firewall page" now means "fully unban," matching what an admin
+// clicking Remove actually wants. See
+// plan/firewall-live-rules/plan.md's cascade-unban follow-up.
+func (g *IPGuardSecurityLayer) RemoveAllFirewallRules(ip string) (removed int, alsoUnbanned bool, err error) {
 	if g.firewall == nil {
 		return 0, false, nil
 	}
@@ -514,9 +515,12 @@ func (g *IPGuardSecurityLayer) RemoveAllFirewallRules(ip string) (removed int, r
 		if !ok || expiresAt.Before(now) {
 			continue
 		}
-		if err := g.firewall.Ban(ip, expiresAt.Sub(now)); err != nil {
-			return removed, false, fmt.Errorf("ipguard: resync %s after removal: %w", ip, err)
+		if err := g.banPersist.DeleteBan(ip); err != nil {
+			return removed, false, fmt.Errorf("ipguard: unban %s after firewall removal: %w", ip, err)
 		}
+		g.bansMu.Lock()
+		delete(g.bans, ip)
+		g.bansMu.Unlock()
 		return removed, true, nil
 	}
 	return removed, false, nil

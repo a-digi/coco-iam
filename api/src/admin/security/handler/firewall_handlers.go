@@ -6,6 +6,7 @@ import (
 	"time"
 
 	security_entity "github.com/a-digi/coco-iam/src/admin/security/entity"
+	"github.com/a-digi/coco-iam/src/auth/scopecheck"
 	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
@@ -124,10 +125,14 @@ func countFirewallRules(raw []string) []security_entity.FirewallRuleEntry {
 type FirewallRuleRemoveHandler struct{}
 
 // @Summary     Remove OS-level firewall rules for one IP
-// @Description Removes every OS-level rule for ip — there may be more than one if Ban() was
-// @Description called repeatedly for an already-banned IP. If ip is still actively banned in
-// @Description /admin/security/ip-bans, a single clean rule is immediately re-applied afterward, so
-// @Description this never silently leaves an actively-banned IP unenforced at the OS level.
+// @Description Removes every OS-level rule for ip — there may be more than one if Ban() was called
+// @Description repeatedly for an already-banned IP. If ip is still actively banned in
+// @Description /admin/security/ip-bans, that ban row is deleted too: removing an IP from this page
+// @Description means fully unbanning it, not leaving a rule that would just reappear on the next
+// @Description resync. Requires both admin:security:firewall:write (route-level) and
+// @Description admin:security:ipbans:write (checked here), since this can delete an ip_bans row —
+// @Description mirrors IPBanAccountsHandler's pattern of an additional in-handler scope check beyond
+// @Description the route's own gate.
 // @Tags        security
 // @Produce     json
 // @Security    BearerAuth
@@ -145,19 +150,32 @@ func (h *FirewallRuleRemoveHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 
+	// This action can cascade-delete an ip_bans row, so it requires
+	// admin:security:ipbans:write too — not just this route's own
+	// admin:security:firewall:write gate. The route-config's scopes
+	// list is OR-only (any one scope satisfies it), so an AND
+	// requirement has to be enforced explicitly here.
+	checker := scopecheck.NewChecker()
+	hasIPBansWrite, _ := checker.HasScope(r.Header, "admin:security:ipbans:write")
+	hasSuperAdmin, _ := checker.HasScope(r.Header, "super:admin")
+	if !hasIPBansWrite && !hasSuperAdmin {
+		response.ErrorResponse(w, http.StatusForbidden, "requires admin:security:ipbans:write")
+		return
+	}
+
 	guard, ok := resolveIPGuard(reqCtx)
 	if !ok {
 		return
 	}
 
-	removed, resynced, err := guard.RemoveAllFirewallRules(ip)
+	removed, alsoUnbanned, err := guard.RemoveAllFirewallRules(ip)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	response.SuccessResponse(w, http.StatusOK, security_entity.FirewallRuleRemoveResponse{
-		Removed:  removed,
-		Resynced: resynced,
+		Removed:      removed,
+		AlsoUnbanned: alsoUnbanned,
 	})
 }

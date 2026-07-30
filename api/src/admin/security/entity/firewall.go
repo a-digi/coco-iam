@@ -45,13 +45,13 @@ type FirewallRulesSuccess struct {
 }
 
 // FirewallRuleRemoveResponse reports the outcome of manually removing
-// every OS-level rule for one IP. Resynced is true when the IP was
-// still actively banned in ip_bans, in which case exactly one clean
-// rule was immediately re-applied — see
+// every OS-level rule for one IP. AlsoUnbanned is true when the IP was
+// still actively banned in ip_bans, in which case that ban row was
+// deleted too — "remove from the Firewall page" means fully unban, see
 // IPGuardSecurityLayer.RemoveAllFirewallRules' doc comment for why.
 type FirewallRuleRemoveResponse struct {
-	Removed  int  `json:"removed" example:"3"`
-	Resynced bool `json:"resynced" example:"false"`
+	Removed      int  `json:"removed" example:"3"`
+	AlsoUnbanned bool `json:"also_unbanned" example:"true"`
 }
 
 // Swag-friendly success envelope.

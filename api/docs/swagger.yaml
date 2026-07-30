@@ -657,12 +657,12 @@ definitions:
     type: object
   entity.FirewallRuleRemoveResponse:
     properties:
+      also_unbanned:
+        example: true
+        type: boolean
       removed:
         example: 3
         type: integer
-      resynced:
-        example: false
-        type: boolean
     type: object
   entity.FirewallRuleRemoveSuccess:
     properties:
@@ -5019,10 +5019,14 @@ paths:
   /admin/security/firewall/rules/{ip}:
     delete:
       description: |-
-        Removes every OS-level rule for ip — there may be more than one if Ban() was
-        called repeatedly for an already-banned IP. If ip is still actively banned in
-        /admin/security/ip-bans, a single clean rule is immediately re-applied afterward, so
-        this never silently leaves an actively-banned IP unenforced at the OS level.
+        Removes every OS-level rule for ip — there may be more than one if Ban() was called
+        repeatedly for an already-banned IP. If ip is still actively banned in
+        /admin/security/ip-bans, that ban row is deleted too: removing an IP from this page
+        means fully unbanning it, not leaving a rule that would just reappear on the next
+        resync. Requires both admin:security:firewall:write (route-level) and
+        admin:security:ipbans:write (checked here), since this can delete an ip_bans row —
+        mirrors IPBanAccountsHandler's pattern of an additional in-handler scope check beyond
+        the route's own gate.
       parameters:
       - description: IP address, as {ip:<value>}
         in: path

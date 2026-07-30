@@ -4560,7 +4560,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Removes every OS-level rule for ip — there may be more than one if Ban() was\ncalled repeatedly for an already-banned IP. If ip is still actively banned in\n/admin/security/ip-bans, a single clean rule is immediately re-applied afterward, so\nthis never silently leaves an actively-banned IP unenforced at the OS level.",
+                "description": "Removes every OS-level rule for ip — there may be more than one if Ban() was called\nrepeatedly for an already-banned IP. If ip is still actively banned in\n/admin/security/ip-bans, that ban row is deleted too: removing an IP from this page\nmeans fully unbanning it, not leaving a rule that would just reappear on the next\nresync. Requires both admin:security:firewall:write (route-level) and\nadmin:security:ipbans:write (checked here), since this can delete an ip_bans row —\nmirrors IPBanAccountsHandler's pattern of an additional in-handler scope check beyond\nthe route's own gate.",
                 "produces": [
                     "application/json"
                 ],
@@ -11799,13 +11799,13 @@ const docTemplate = `{
         "entity.FirewallRuleRemoveResponse": {
             "type": "object",
             "properties": {
+                "also_unbanned": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "removed": {
                     "type": "integer",
                     "example": 3
-                },
-                "resynced": {
-                    "type": "boolean",
-                    "example": false
                 }
             }
         },
