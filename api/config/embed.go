@@ -107,10 +107,10 @@ var ConfigFS = lazyConfigFS{}
 // use. Acts indistinguishably from configDir for callers.
 type lazyConfigFS struct{}
 
-func (lazyConfigFS) Open(name string) (fs.File, error)        { return resolved().Open(name) }
-func (lazyConfigFS) ReadFile(name string) ([]byte, error)     { return resolved().ReadFile(name) }
+func (lazyConfigFS) Open(name string) (fs.File, error)          { return resolved().Open(name) }
+func (lazyConfigFS) ReadFile(name string) ([]byte, error)       { return resolved().ReadFile(name) }
 func (lazyConfigFS) ReadDir(name string) ([]fs.DirEntry, error) { return resolved().ReadDir(name) }
-func (lazyConfigFS) Root() string                              { return resolved().Root() }
+func (lazyConfigFS) Root() string                               { return resolved().Root() }
 
 func resolved() configDir {
 	configFSOnce.Do(func() { configFSVal = initConfigDir() })
@@ -213,6 +213,24 @@ func ExtractIPAttacksMigrationsToTemp() (string, error) {
 // plan/geoip-enrichment/plan.md.
 func ExtractGeoIPMigrationsToTemp() (string, error) {
 	return migrationsPath("db/geoip_migrations")
+}
+
+// ExtractAdminLoginMigrationsToTemp returns the on-disk path to the
+// admin_login.db migrations folder — a self-contained DB, own
+// migration sequence (001_initial.sql, not the DD_MM_YYYY convention
+// used by db/migrations), rotated by dbarchive the same way
+// ip-attacks.db is. See plan/login-audit-log/plan.md Step 2.
+func ExtractAdminLoginMigrationsToTemp() (string, error) {
+	return migrationsPath("db/admin_login_migrations")
+}
+
+// ExtractApplicationLoginMigrationsToTemp returns the on-disk path to
+// the per-application <slug>_login.db migrations folder — a
+// self-contained schema (001_initial.sql), applied once per
+// application by applications/loginlog/dbregistry, not once globally.
+// See plan/login-audit-log/plan.md Step 6.
+func ExtractApplicationLoginMigrationsToTemp() (string, error) {
+	return migrationsPath("db/application_login_migrations")
 }
 
 func migrationsPath(rel string) (string, error) {

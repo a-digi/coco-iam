@@ -102,6 +102,10 @@ export const AppScopes = {
     ApplicationsApiCredentials: 'applications:api_credentials',
     ApplicationsApiCredentialsRead: 'applications:api_credentials:read',
 
+    // Application end-user login-attempt audit log — see
+    // plan/login-audit-log/plan.md.
+    ApplicationsLoginLogRead: 'applications:login_log:read',
+
     // Application external-IdP OAuth providers — admin config for
     // Google / GitHub / Microsoft "Continue with …" buttons.
     ApplicationsOauth: 'applications:oauth',
@@ -112,12 +116,15 @@ export const AppScopes = {
     ApplicationsRegistrationFields: 'applications:registration_fields',
     ApplicationsRegistrationFieldsRead: 'applications:registration_fields:read',
 
-    // Application login templates (layout + branding only; the
-    // allow_recovery / allow_registration feature flags live on the
-    // Application entity itself, edited via applications:write).
+    // Application login templates (layout + branding). The allow_recovery /
+    // allow_registration feature flags live on the Application entity itself
+    // but can also be granted independently of applications:write via the
+    // two toggle scopes below.
     ApplicationsLoginTemplates: 'applications:login_templates',
     ApplicationsLoginTemplatesRead: 'applications:login_templates:read',
     ApplicationsLoginTemplatesWrite: 'applications:login_templates:write',
+    ApplicationsLoginTemplatesRecoveryToggle: 'applications:login_templates:recovery_toggle',
+    ApplicationsLoginTemplatesRegistrationToggle: 'applications:login_templates:registration_toggle',
 
     // Application analytics (Detail panel widgets)
     ApplicationsAnalytics: 'applications:analytics',
@@ -201,6 +208,13 @@ export const AppScopes = {
     // plan/geoip-enrichment/plan.md.
     AdminSecurityGeoipRead: 'admin:security:geoip:read',
     AdminSecurityGeoipWrite: 'admin:security:geoip:write',
+
+    // Admin-console login attempt audit log — see plan/login-audit-log/plan.md.
+    AdminSecurityLoginLogRead: 'admin:security:login-log:read',
+
+    // Automatic IP-ban rules for repeated failed logins — see plan/login-ban-rules/plan.md.
+    AdminSecurityLoginBansRead: 'admin:security:login-bans:read',
+    AdminSecurityLoginBansWrite: 'admin:security:login-bans:write',
 } as const;
 
 export type AppScope = typeof AppScopes[keyof typeof AppScopes];

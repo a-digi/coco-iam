@@ -113,7 +113,15 @@
                     },
                     {
                         "id": "applications:login_templates:write",
-                        "description": "Allows changing the layout, background, logo, titles, and text block. The allow_recovery and allow_registration flags live on the application entity itself and are managed via applications:write."
+                        "description": "Allows changing the layout, background, logo, titles, and text block. Does not by itself grant changing allow_recovery or allow_registration — see the dedicated recovery_toggle/registration_toggle scopes."
+                    },
+                    {
+                        "id": "applications:login_templates:recovery_toggle",
+                        "description": "Allows enabling or disabling password recovery for this application, without granting broader applications:write access (renaming, deactivating, reassigning the app)."
+                    },
+                    {
+                        "id": "applications:login_templates:registration_toggle",
+                        "description": "Allows enabling or disabling self-registration (and its type) for this application, without granting broader applications:write access."
                     }
                 ]
             },
@@ -154,6 +162,16 @@
                     {
                         "id": "applications:oauth:read",
                         "description": "Allows reading an application's configured OAuth providers."
+                    }
+                ]
+            },
+            {
+                "id": "applications:login_log",
+                "description": "Allows viewing an application's end-user login attempt history and its rotated-out archives.",
+                "scopes": [
+                    {
+                        "id": "applications:login_log:read",
+                        "description": "Allows viewing application end-user login attempts (success and failure) and their archives."
                     }
                 ]
             }

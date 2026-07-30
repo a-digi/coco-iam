@@ -316,6 +316,20 @@ func fetchAdminEmail(db *sql.DB, adminUserID string) (string, error) {
 	return email, nil
 }
 
+// fetchAdminUsername resolves a username for the login log — verify-
+// mfa only ever has adminUserID (from the bearer token subject), not
+// the username the admin actually typed. Returns "" on any failure
+// (e.g. a disable-in-another-tab race) rather than erroring, since a
+// missing username here must never block the actual login/log
+// attempt. See plan/login-audit-log/plan.md Step 3.
+func fetchAdminUsername(db *sql.DB, adminUserID string) string {
+	var username string
+	if err := db.QueryRow(`SELECT username FROM admin_users WHERE id = ? LIMIT 1`, adminUserID).Scan(&username); err != nil {
+		return ""
+	}
+	return username
+}
+
 // verifyCurrentPassword re-checks the caller's current password
 // against admin_auth_password, writing the appropriate error
 // response and returning false on any failure — a hijacked session

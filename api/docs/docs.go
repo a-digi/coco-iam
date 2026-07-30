@@ -471,6 +471,64 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/login-log": {
+            "get": {
+                "description": "Lists the calling end-user's own login attempts (success and failure), newest\nfirst. Identity comes from the caller's own bearer token — there is no way to\nquery another user's history through this endpoint.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "app-profile-me"
+                ],
+                "summary": "Get my own login history",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Filter by outcome",
+                        "name": "success",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "created_at \u003e= from, RFC3339",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "created_at \u003c= to, RFC3339",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max 500, default 50",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Default 0",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.MyLoginAttemptListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/a/{orgSlug}/{wsSlug}/{appSlug}/register": {
             "post": {
                 "consumes": [
@@ -4388,7 +4446,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.SettingsSuccess"
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsSuccess"
                         }
                     },
                     "401": {
@@ -4435,7 +4493,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.SettingsRequest"
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsRequest"
                         }
                     }
                 ],
@@ -4443,7 +4501,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.SettingsSuccess"
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsSuccess"
                         }
                     },
                     "400": {
@@ -4953,6 +5011,259 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_a-digi_coco-iam_src_admin_security_entity.StatusSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/login-bans/settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the current admin-console and application-login failed-login ban-rule settings. Both default to disabled until explicitly turned on.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-login-bans"
+                ],
+                "summary": "Get failed-login ban-rule settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates the admin-console and application-login failed-login ban-rule settings. A domain with enabled=false stores its numbers as submitted but skips validation on them, since no live rule depends on them yet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-login-bans"
+                ],
+                "summary": "Update failed-login ban-rule settings",
+                "parameters": [
+                    {
+                        "description": "Ban-rule settings",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/login-log/admin": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists admin login attempts (success and failure), newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List admin-console login attempts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.AdminLoginAttemptListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/login-log/admin/archives": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists rotated-out admin_login.db generations, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List admin_login.db archives",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ArchiveListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/security/login-log/admin/archives/{id}/attempts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List admin login attempts within one archive",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Archive id, as {id:\u003cvalue\u003e}",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.AdminLoginAttemptListSuccess"
                         }
                     },
                     "400": {
@@ -5991,6 +6302,82 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users/{id}/reset-password": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sets a new password for the target user without requiring their current\none — an explicitly privileged admin action, distinct from the self-service\naccount/password/change flow.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin-users"
+                ],
+                "summary": "Reset another user's password (admin-privileged)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New password",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ResetPasswordSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorBody"
                         }
@@ -7448,6 +7835,204 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        },
+        "/applications/{id}/login-log": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists login attempts (success and failure) for one application's own end-users, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "List application end-user login attempts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ApplicationLoginAttemptListSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/applications/{id}/login-log/archives": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists rotated-out \u003cslug\u003e_login.db generations for one application, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "List an application's login-log archives",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ArchiveListSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/applications/{id}/login-log/archives/{archiveId}/attempts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "applications"
+                ],
+                "summary": "List login attempts within one application login-log archive",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Archive ID, as {archiveId:\u003cvalue\u003e}",
+                        "name": "archiveId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ApplicationLoginAttemptListSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
             }
         },
         "/auth/change-password": {
@@ -10167,6 +10752,85 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.AdminLoginAttempt": {
+            "type": "object",
+            "properties": {
+                "admin_user_id": {
+                    "description": "AdminUserID is empty when the typed username never resolved to a\nreal admin account.",
+                    "type": "string",
+                    "example": "793424dd-7913-4190-be88-b928559ab4ef"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-29T20:41:00Z"
+                },
+                "failure_reason": {
+                    "description": "FailureReason is one of invalid_credentials, inactive_user,\nno_scopes, mfa_required, mfa_failed — empty on success.\nmfa_required is a provisional outcome (password was correct,\nMFA verification still pending), not a hard failure.",
+                    "type": "string",
+                    "example": "invalid_credentials"
+                },
+                "geoip_info": {
+                    "description": "GeoIPInfo is a JSON snapshot of the country/city/ISP resolved\nfor ip at record time — empty when the IP was loopback/private,\nGeoIP had no coverage, GeoIP is disabled, or the row predates\nthis field. Never re-derived later. See\nplan/login-log-geoip/plan.md.",
+                    "type": "string",
+                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"city\":\"Berlin\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0 ..."
+                },
+                "username": {
+                    "type": "string",
+                    "example": "jdoe"
+                }
+            }
+        },
+        "entity.AdminLoginAttemptListResponse": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.AdminLoginAttempt"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 128
+                }
+            }
+        },
+        "entity.AdminLoginAttemptListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.AdminLoginAttemptListResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "entity.Application": {
             "type": "object",
             "properties": {
@@ -10209,6 +10873,85 @@ const docTemplate = `{
                 },
                 "workspace_id": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.ApplicationLoginAttempt": {
+            "type": "object",
+            "properties": {
+                "application_user_id": {
+                    "description": "ApplicationUserID is empty when the typed username never\nresolved to a real end-user account.",
+                    "type": "string",
+                    "example": "a3bead61-9f22-ff1f-8315-117b1ce373d0"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-29T20:41:00Z"
+                },
+                "failure_reason": {
+                    "description": "FailureReason is one of invalid_credentials, inactive_user, or\nempty on success. inactive_user covers the application-level\npassword-login-disabled rejection, not just an inactive user\naccount.",
+                    "type": "string",
+                    "example": "invalid_credentials"
+                },
+                "geoip_info": {
+                    "description": "GeoIPInfo is a JSON snapshot of the country/city/ISP resolved\nfor ip at record time — empty when the IP was loopback/private,\nGeoIP had no coverage, GeoIP is disabled, or the row predates\nthis field. Never re-derived later. See\nplan/login-log-geoip/plan.md.",
+                    "type": "string",
+                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"city\":\"Berlin\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0 ..."
+                },
+                "username": {
+                    "type": "string",
+                    "example": "jdoe"
+                }
+            }
+        },
+        "entity.ApplicationLoginAttemptListResponse": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.ApplicationLoginAttempt"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 128
+                }
+            }
+        },
+        "entity.ApplicationLoginAttemptListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.ApplicationLoginAttemptListResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -10960,6 +11703,70 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.MyLoginAttempt": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-29T20:41:00Z"
+                },
+                "failure_reason": {
+                    "type": "string",
+                    "example": "invalid_credentials"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0 ..."
+                }
+            }
+        },
+        "entity.MyLoginAttemptListResponse": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.MyLoginAttempt"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 12
+                }
+            }
+        },
+        "entity.MyLoginAttemptListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.MyLoginAttemptListResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "entity.OAuthErrorResponse": {
             "type": "object",
             "properties": {
@@ -11084,6 +11891,36 @@ const docTemplate = `{
                 "steps": {
                     "type": "array",
                     "items": {}
+                }
+            }
+        },
+        "entity.ResetPasswordRequest": {
+            "type": "object",
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "example": "a-new-strong-password"
+                }
+            }
+        },
+        "entity.ResetPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.ResetPasswordSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.ResetPasswordResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -11248,14 +12085,6 @@ const docTemplate = `{
                 "is_super_admin": {
                     "type": "boolean",
                     "example": false
-                },
-                "old_password": {
-                    "type": "string",
-                    "example": "OldPass1!"
-                },
-                "password": {
-                    "type": "string",
-                    "example": "NewPass1!"
                 }
             }
         },
@@ -11362,6 +12191,102 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsRequest": {
+            "type": "object",
+            "properties": {
+                "check_interval_seconds": {
+                    "type": "integer",
+                    "example": 600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "maxmind_account_id": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "maxmind_license_key": {
+                    "type": "string",
+                    "example": "a1b2c3d4e5f6"
+                },
+                "pull_interval_hours": {
+                    "type": "integer",
+                    "example": 24
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "check_interval_seconds": {
+                    "type": "integer",
+                    "example": 600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "maxmind_account_id": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "maxmind_license_key_mask": {
+                    "type": "string",
+                    "example": "••••••••"
+                },
+                "pull_interval_hours": {
+                    "type": "integer",
+                    "example": 24
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsRequest": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "$ref": "#/definitions/handler.DomainRuleResponse"
+                },
+                "application": {
+                    "$ref": "#/definitions/handler.DomainRuleResponse"
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "$ref": "#/definitions/handler.DomainRuleResponse"
+                },
+                "application": {
+                    "$ref": "#/definitions/handler.DomainRuleResponse"
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "handler.ApplicationScopeListPayload": {
             "type": "object",
             "properties": {
@@ -11446,6 +12371,27 @@ const docTemplate = `{
                     "description": "ScopeID must match acl.ScopeIDFormat: letters/underscores per\nsegment, separated by colons. Immutable once created.",
                     "type": "string",
                     "example": "docs:read"
+                }
+            }
+        },
+        "handler.DomainRuleResponse": {
+            "type": "object",
+            "properties": {
+                "ban_seconds": {
+                    "type": "integer",
+                    "example": 3600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "threshold": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "window_seconds": {
+                    "type": "integer",
+                    "example": 600
                 }
             }
         },
@@ -11548,68 +12494,6 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "$ref": "#/definitions/handler.ScopeDeleteStatus"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "handler.SettingsRequest": {
-            "type": "object",
-            "properties": {
-                "check_interval_seconds": {
-                    "type": "integer",
-                    "example": 600
-                },
-                "enabled": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "maxmind_account_id": {
-                    "type": "string",
-                    "example": "123456"
-                },
-                "maxmind_license_key": {
-                    "type": "string",
-                    "example": "a1b2c3d4e5f6"
-                },
-                "pull_interval_hours": {
-                    "type": "integer",
-                    "example": 24
-                }
-            }
-        },
-        "handler.SettingsResponse": {
-            "type": "object",
-            "properties": {
-                "check_interval_seconds": {
-                    "type": "integer",
-                    "example": 600
-                },
-                "enabled": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "maxmind_account_id": {
-                    "type": "string",
-                    "example": "123456"
-                },
-                "maxmind_license_key_mask": {
-                    "type": "string",
-                    "example": "••••••••"
-                },
-                "pull_interval_hours": {
-                    "type": "integer",
-                    "example": 24
-                }
-            }
-        },
-        "handler.SettingsSuccess": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "$ref": "#/definitions/handler.SettingsResponse"
                 },
                 "success": {
                     "type": "boolean",

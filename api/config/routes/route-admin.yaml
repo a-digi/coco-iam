@@ -582,6 +582,41 @@ routes:
             scopes:
               - admin:security:scans:read
               - super:admin
+          - path: /security/login-log/admin
+            method: GET
+            executor: AdminLoginListHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-log:read
+              - super:admin
+          - path: /security/login-log/admin/archives
+            method: GET
+            executor: AdminLoginArchiveListHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-log:read
+              - super:admin
+          - path: /security/login-log/admin/archives/{id}/attempts
+            method: GET
+            executor: AdminLoginArchiveAttemptsHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-log:read
+              - super:admin
+          - path: /security/login-bans/settings
+            method: GET
+            executor: LoginBansGetSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-bans:read
+              - super:admin
+          - path: /security/login-bans/settings
+            method: PUT
+            executor: LoginBansPutSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:login-bans:write
+              - super:admin
           - path: /security/status
             method: GET
             executor: SecurityStatusHandler
@@ -855,6 +890,13 @@ routes:
           - path: /users/{id}/send-activation
             method: POST
             executor: AdminUserSendActivationHandler
+            security: authenticated
+            scopes:
+              - admin:users:write
+              - super:admin
+          - path: /users/{id}/reset-password
+            method: POST
+            executor: AdminUserResetPasswordHandler
             security: authenticated
             scopes:
               - admin:users:write

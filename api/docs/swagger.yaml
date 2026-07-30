@@ -78,6 +78,75 @@ definitions:
         example: "2025-01-01T00:00:00Z"
         type: string
     type: object
+  entity.AdminLoginAttempt:
+    properties:
+      admin_user_id:
+        description: |-
+          AdminUserID is empty when the typed username never resolved to a
+          real admin account.
+        example: 793424dd-7913-4190-be88-b928559ab4ef
+        type: string
+      created_at:
+        example: "2026-07-29T20:41:00Z"
+        type: string
+      failure_reason:
+        description: |-
+          FailureReason is one of invalid_credentials, inactive_user,
+          no_scopes, mfa_required, mfa_failed — empty on success.
+          mfa_required is a provisional outcome (password was correct,
+          MFA verification still pending), not a hard failure.
+        example: invalid_credentials
+        type: string
+      geoip_info:
+        description: |-
+          GeoIPInfo is a JSON snapshot of the country/city/ISP resolved
+          for ip at record time — empty when the IP was loopback/private,
+          GeoIP had no coverage, GeoIP is disabled, or the row predates
+          this field. Never re-derived later. See
+          plan/login-log-geoip/plan.md.
+        example: '{"country_code":"DE","country":"Germany","city":"Berlin","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
+        type: string
+      id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      success:
+        example: false
+        type: boolean
+      user_agent:
+        example: Mozilla/5.0 ...
+        type: string
+      username:
+        example: jdoe
+        type: string
+    type: object
+  entity.AdminLoginAttemptListResponse:
+    properties:
+      attempts:
+        items:
+          $ref: '#/definitions/entity.AdminLoginAttempt'
+        type: array
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      total:
+        example: 128
+        type: integer
+    type: object
+  entity.AdminLoginAttemptListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.AdminLoginAttemptListResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.Application:
     properties:
       allow_password_login:
@@ -120,6 +189,75 @@ definitions:
         type: string
       workspace_id:
         type: string
+    type: object
+  entity.ApplicationLoginAttempt:
+    properties:
+      application_user_id:
+        description: |-
+          ApplicationUserID is empty when the typed username never
+          resolved to a real end-user account.
+        example: a3bead61-9f22-ff1f-8315-117b1ce373d0
+        type: string
+      created_at:
+        example: "2026-07-29T20:41:00Z"
+        type: string
+      failure_reason:
+        description: |-
+          FailureReason is one of invalid_credentials, inactive_user, or
+          empty on success. inactive_user covers the application-level
+          password-login-disabled rejection, not just an inactive user
+          account.
+        example: invalid_credentials
+        type: string
+      geoip_info:
+        description: |-
+          GeoIPInfo is a JSON snapshot of the country/city/ISP resolved
+          for ip at record time — empty when the IP was loopback/private,
+          GeoIP had no coverage, GeoIP is disabled, or the row predates
+          this field. Never re-derived later. See
+          plan/login-log-geoip/plan.md.
+        example: '{"country_code":"DE","country":"Germany","city":"Berlin","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
+        type: string
+      id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      success:
+        example: false
+        type: boolean
+      user_agent:
+        example: Mozilla/5.0 ...
+        type: string
+      username:
+        example: jdoe
+        type: string
+    type: object
+  entity.ApplicationLoginAttemptListResponse:
+    properties:
+      attempts:
+        items:
+          $ref: '#/definitions/entity.ApplicationLoginAttempt'
+        type: array
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      total:
+        example: 128
+        type: integer
+    type: object
+  entity.ApplicationLoginAttemptListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.ApplicationLoginAttemptListResponse'
+      success:
+        example: true
+        type: boolean
     type: object
   entity.ApplicationRequest:
     properties:
@@ -660,6 +798,51 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.MyLoginAttempt:
+    properties:
+      created_at:
+        example: "2026-07-29T20:41:00Z"
+        type: string
+      failure_reason:
+        example: invalid_credentials
+        type: string
+      id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      success:
+        example: false
+        type: boolean
+      user_agent:
+        example: Mozilla/5.0 ...
+        type: string
+    type: object
+  entity.MyLoginAttemptListResponse:
+    properties:
+      attempts:
+        items:
+          $ref: '#/definitions/entity.MyLoginAttempt'
+        type: array
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      total:
+        example: 12
+        type: integer
+    type: object
+  entity.MyLoginAttemptListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.MyLoginAttemptListResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.OAuthErrorResponse:
     properties:
       error:
@@ -744,6 +927,26 @@ definitions:
       steps:
         items: {}
         type: array
+    type: object
+  entity.ResetPasswordRequest:
+    properties:
+      new_password:
+        example: a-new-strong-password
+        type: string
+    type: object
+  entity.ResetPasswordResponse:
+    properties:
+      ok:
+        example: true
+        type: boolean
+    type: object
+  entity.ResetPasswordSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.ResetPasswordResponse'
+      success:
+        example: true
+        type: boolean
     type: object
   entity.Scan:
     properties:
@@ -874,12 +1077,6 @@ definitions:
       is_super_admin:
         example: false
         type: boolean
-      old_password:
-        example: OldPass1!
-        type: string
-      password:
-        example: NewPass1!
-        type: string
     type: object
   entity.UserSuccess:
     properties:
@@ -950,6 +1147,72 @@ definitions:
       username:
         type: string
     type: object
+  github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsRequest:
+    properties:
+      check_interval_seconds:
+        example: 600
+        type: integer
+      enabled:
+        example: true
+        type: boolean
+      maxmind_account_id:
+        example: "123456"
+        type: string
+      maxmind_license_key:
+        example: a1b2c3d4e5f6
+        type: string
+      pull_interval_hours:
+        example: 24
+        type: integer
+    type: object
+  github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsResponse:
+    properties:
+      check_interval_seconds:
+        example: 600
+        type: integer
+      enabled:
+        example: true
+        type: boolean
+      maxmind_account_id:
+        example: "123456"
+        type: string
+      maxmind_license_key_mask:
+        example: ••••••••
+        type: string
+      pull_interval_hours:
+        example: 24
+        type: integer
+    type: object
+  github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsRequest:
+    properties:
+      admin:
+        $ref: '#/definitions/handler.DomainRuleResponse'
+      application:
+        $ref: '#/definitions/handler.DomainRuleResponse'
+    type: object
+  github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsResponse:
+    properties:
+      admin:
+        $ref: '#/definitions/handler.DomainRuleResponse'
+      application:
+        $ref: '#/definitions/handler.DomainRuleResponse'
+    type: object
+  github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   handler.ApplicationScopeListPayload:
     properties:
       limit:
@@ -1014,6 +1277,21 @@ definitions:
           segment, separated by colons. Immutable once created.
         example: docs:read
         type: string
+    type: object
+  handler.DomainRuleResponse:
+    properties:
+      ban_seconds:
+        example: 3600
+        type: integer
+      enabled:
+        example: true
+        type: boolean
+      threshold:
+        example: 5
+        type: integer
+      window_seconds:
+        example: 600
+        type: integer
     type: object
   handler.IPSearchResponse:
     properties:
@@ -1085,50 +1363,6 @@ definitions:
     properties:
       message:
         $ref: '#/definitions/handler.ScopeDeleteStatus'
-      success:
-        example: true
-        type: boolean
-    type: object
-  handler.SettingsRequest:
-    properties:
-      check_interval_seconds:
-        example: 600
-        type: integer
-      enabled:
-        example: true
-        type: boolean
-      maxmind_account_id:
-        example: "123456"
-        type: string
-      maxmind_license_key:
-        example: a1b2c3d4e5f6
-        type: string
-      pull_interval_hours:
-        example: 24
-        type: integer
-    type: object
-  handler.SettingsResponse:
-    properties:
-      check_interval_seconds:
-        example: 600
-        type: integer
-      enabled:
-        example: true
-        type: boolean
-      maxmind_account_id:
-        example: "123456"
-        type: string
-      maxmind_license_key_mask:
-        example: ••••••••
-        type: string
-      pull_interval_hours:
-        example: 24
-        type: integer
-    type: object
-  handler.SettingsSuccess:
-    properties:
-      message:
-        $ref: '#/definitions/handler.SettingsResponse'
       success:
         example: true
         type: boolean
@@ -1910,6 +2144,47 @@ paths:
       - application/json
       responses: {}
       summary: Upload profile file
+      tags:
+      - app-profile-me
+  /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/login-log:
+    get:
+      description: |-
+        Lists the calling end-user's own login attempts (success and failure), newest
+        first. Identity comes from the caller's own bearer token — there is no way to
+        query another user's history through this endpoint.
+      parameters:
+      - description: Filter by outcome
+        in: query
+        name: success
+        type: boolean
+      - description: created_at >= from, RFC3339
+        in: query
+        name: from
+        type: string
+      - description: created_at <= to, RFC3339
+        in: query
+        name: to
+        type: string
+      - description: Max 500, default 50
+        in: query
+        name: limit
+        type: integer
+      - description: Default 0
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.MyLoginAttemptListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      summary: Get my own login history
       tags:
       - app-profile-me
   /a/{orgSlug}/{wsSlug}/{appSlug}/register:
@@ -4513,7 +4788,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handler.SettingsSuccess'
+            $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsSuccess'
         "401":
           description: Unauthorized
           schema:
@@ -4547,14 +4822,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handler.SettingsRequest'
+          $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handler.SettingsSuccess'
+            $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsSuccess'
         "400":
           description: Bad Request
           schema:
@@ -4919,6 +5194,169 @@ paths:
       summary: Unban an IP
       tags:
       - security
+  /admin/security/login-bans/settings:
+    get:
+      description: Returns the current admin-console and application-login failed-login
+        ban-rule settings. Both default to disabled until explicitly turned on.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get failed-login ban-rule settings
+      tags:
+      - security-login-bans
+    put:
+      consumes:
+      - application/json
+      description: Updates the admin-console and application-login failed-login ban-rule
+        settings. A domain with enabled=false stores its numbers as submitted but
+        skips validation on them, since no live rule depends on them yet.
+      parameters:
+      - description: Ban-rule settings
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_loginbans_handler.SettingsSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update failed-login ban-rule settings
+      tags:
+      - security-login-bans
+  /admin/security/login-log/admin:
+    get:
+      description: Lists admin login attempts (success and failure), newest first.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AdminLoginAttemptListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List admin-console login attempts
+      tags:
+      - security
+  /admin/security/login-log/admin/archives:
+    get:
+      description: Lists rotated-out admin_login.db generations, newest first.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ArchiveListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List admin_login.db archives
+      tags:
+      - security
+  /admin/security/login-log/admin/archives/{id}/attempts:
+    get:
+      parameters:
+      - description: Archive id, as {id:<value>}
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AdminLoginAttemptListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List admin login attempts within one archive
+      tags:
+      - security
   /admin/security/scans:
     get:
       description: Lists historical (and currently ongoing) port-scan episodes, newest
@@ -5236,6 +5674,58 @@ paths:
       security:
       - BearerAuth: []
       summary: Update admin user
+      tags:
+      - admin-users
+  /admin/users/{id}/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Sets a new password for the target user without requiring their current
+        one — an explicitly privileged admin action, distinct from the self-service
+        account/password/change flow.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ResetPasswordSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Reset another user's password (admin-privileged)
       tags:
       - admin-users
   /admin/users/me:
@@ -5597,6 +6087,135 @@ paths:
       summary: Get public JWKS for an application
       tags:
       - app-keys
+  /applications/{id}/login-log:
+    get:
+      description: Lists login attempts (success and failure) for one application's
+        own end-users, newest first.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ApplicationLoginAttemptListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List application end-user login attempts
+      tags:
+      - applications
+  /applications/{id}/login-log/archives:
+    get:
+      description: Lists rotated-out <slug>_login.db generations for one application,
+        newest first.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ArchiveListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List an application's login-log archives
+      tags:
+      - applications
+  /applications/{id}/login-log/archives/{archiveId}/attempts:
+    get:
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Archive ID, as {archiveId:<value>}
+        in: path
+        name: archiveId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ApplicationLoginAttemptListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List login attempts within one application login-log archive
+      tags:
+      - applications
   /applications/applications:
     get:
       consumes:

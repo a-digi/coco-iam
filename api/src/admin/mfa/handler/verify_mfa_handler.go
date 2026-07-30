@@ -9,6 +9,7 @@ import (
 	mfa_entity "github.com/a-digi/coco-iam/src/admin/mfa/entity"
 	mfa_persistent "github.com/a-digi/coco-iam/src/admin/mfa/repository/persistent"
 	mfa_query "github.com/a-digi/coco-iam/src/admin/mfa/repository/query"
+	"github.com/a-digi/coco-iam/src/admin/security/loginlog"
 	"github.com/a-digi/coco-iam/src/auth/crypto/bcrypt"
 	"github.com/a-digi/coco-iam/src/auth/crypto/secretbox"
 	"github.com/a-digi/coco-iam/src/auth/mfa/totp"
@@ -80,6 +81,7 @@ func (h *VerifyMfaHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 	if !verifyCode(q, p, adminUserID, row.SecretEnc, body.Code) {
 		recordFailureAndMaybeLock(p, adminUserID, row.FailedAttempts)
+		loginlog.Record(reqCtx, adminUserID, fetchAdminUsername(db, adminUserID), false, "mfa_failed")
 		response.ErrorResponse(w, http.StatusBadRequest, "invalid code")
 		return
 	}
@@ -117,6 +119,7 @@ func (h *VerifyMfaHandler) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(w, http.StatusInternalServerError, "token signing failed")
 		return
 	}
+	loginlog.Record(reqCtx, adminUserID, fetchAdminUsername(db, adminUserID), true, "")
 	response.SuccessResponse(w, http.StatusOK, tokenResp)
 }
 

@@ -11,25 +11,22 @@ import (
 	"github.com/a-digi/coco-iam/config"
 	"github.com/a-digi/coco-iam/config/di"
 	"github.com/a-digi/coco-iam/config/routes"
-	"github.com/a-digi/coco-iam/src/applications/cleanup"
-	"github.com/a-digi/coco-iam/src/datamigration"
-	oauth_archiver "github.com/a-digi/coco-iam/src/oauthserver/archiver"
-	organization_deleted "github.com/a-digi/coco-iam/src/organizations/deleted"
-	scans_persistent "github.com/a-digi/coco-iam/src/admin/security/scans/repository/persistent"
-	"github.com/a-digi/coco-iam/src/security/dbarchive"
-	"github.com/a-digi/coco-iam/src/security/dbhandle"
-	"github.com/a-digi/coco-iam/src/security/ipguard"
-	"github.com/a-digi/coco-iam/src/security/scanwatch"
 	"github.com/a-digi/coco-iam/src/activation"
-	"github.com/a-digi/coco-iam/src/general"
+	archives_persistent "github.com/a-digi/coco-iam/src/admin/security/archives/repository/persistent"
+	loginlog_persistent "github.com/a-digi/coco-iam/src/admin/security/loginlog/repository/persistent"
+	scans_persistent "github.com/a-digi/coco-iam/src/admin/security/scans/repository/persistent"
+	adminpwnotify "github.com/a-digi/coco-iam/src/admin/users/passwordnotify"
+	admin_avatar "github.com/a-digi/coco-iam/src/admin/users/profile/avatar"
+	apicred_dbregistry "github.com/a-digi/coco-iam/src/applications/apicredentials/dbregistry"
+	"github.com/a-digi/coco-iam/src/applications/cleanup"
 	app_keys "github.com/a-digi/coco-iam/src/applications/keys"
-	"github.com/a-digi/coco-iam/src/orgrouter"
+	loginlog_dbregistry "github.com/a-digi/coco-iam/src/applications/loginlog/dbregistry"
 	app_loginpage "github.com/a-digi/coco-iam/src/applications/loginpage"
 	app_recoverypage "github.com/a-digi/coco-iam/src/applications/recoverypage"
-	app_media "github.com/a-digi/coco-server/server/media"
 	password_svc "github.com/a-digi/coco-iam/src/auth/password"
 	"github.com/a-digi/coco-iam/src/auth/recovery"
-	"github.com/a-digi/coco-iam/src/userrules"
+	"github.com/a-digi/coco-iam/src/datamigration"
+	"github.com/a-digi/coco-iam/src/general"
 	iam_mail "github.com/a-digi/coco-iam/src/mail"
 	mailaccounts "github.com/a-digi/coco-iam/src/mail/accounts"
 	mailconsumer "github.com/a-digi/coco-iam/src/mail/consumer"
@@ -37,18 +34,24 @@ import (
 	mailsmtp "github.com/a-digi/coco-iam/src/mail/smtp"
 	mailstore "github.com/a-digi/coco-iam/src/mail/store"
 	mailtemplate "github.com/a-digi/coco-iam/src/mail/template"
-	"github.com/a-digi/coco-queue"
-	queue_dbregistry "github.com/a-digi/coco-queue/dbregistry"
+	oauth_archiver "github.com/a-digi/coco-iam/src/oauthserver/archiver"
+	oauth_dbregistry "github.com/a-digi/coco-iam/src/oauthserver/dbregistry"
+	organization_deleted "github.com/a-digi/coco-iam/src/organizations/deleted"
 	profile_dbregistry "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
 	org_user_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
-	apicred_dbregistry "github.com/a-digi/coco-iam/src/applications/apicredentials/dbregistry"
-	oauth_dbregistry "github.com/a-digi/coco-iam/src/oauthserver/dbregistry"
-	admin_avatar "github.com/a-digi/coco-iam/src/admin/users/profile/avatar"
-	adminpwnotify "github.com/a-digi/coco-iam/src/admin/users/passwordnotify"
-	orgpwnotify "github.com/a-digi/coco-iam/src/organizations/users/passwordnotify"
 	org_user_notify "github.com/a-digi/coco-iam/src/organizations/users/notify"
+	orgpwnotify "github.com/a-digi/coco-iam/src/organizations/users/passwordnotify"
+	"github.com/a-digi/coco-iam/src/orgrouter"
+	"github.com/a-digi/coco-iam/src/security/dbarchive"
+	"github.com/a-digi/coco-iam/src/security/dbhandle"
+	"github.com/a-digi/coco-iam/src/security/ipguard"
+	"github.com/a-digi/coco-iam/src/security/scanwatch"
+	"github.com/a-digi/coco-iam/src/userrules"
 	"github.com/a-digi/coco-logger/logger"
+	"github.com/a-digi/coco-queue"
+	queue_dbregistry "github.com/a-digi/coco-queue/dbregistry"
 	"github.com/a-digi/coco-server/server"
+	app_media "github.com/a-digi/coco-server/server/media"
 
 	dbInstall "github.com/a-digi/coco-iam/config/db"
 	dbmanager "github.com/a-digi/coco-orm/orm"
@@ -140,9 +143,41 @@ func main() {
 		// file in the main DB so it stays queryable later. Started below
 		// alongside the other sweepers, once queueCtx exists. See
 		// plan/ip-attacks-db-archiving/plan.md.
+		ipAttacksArchiveRecorder := archives_persistent.NewArchiveRecorder(manager.Connector.DB)
 		dbArchiver := dbarchive.New(
-			ipAttacksHandle, ipAttacksDBManager, manager.Connector.DB,
+			ipAttacksHandle, ipAttacksDBManager, ipAttacksArchiveRecorder,
 			"ip-attacks.db", "./data/db/security", ipAttacksMigrationsPath,
+			"./data/db/security/archives", dbarchive.DefaultThreshold, log,
+		)
+
+		// admin_login.db — a separate, self-contained database holding
+		// the admin-console login attempt history (success/failure,
+		// who, when, from where), kept out of the main users.db for the
+		// same reason ip-attacks.db is. Rotated by the same generalized
+		// dbarchive.Archiver. See plan/login-audit-log/plan.md Step 2.
+		adminLoginMigrationsPath, err := config.ExtractAdminLoginMigrationsToTemp()
+		if err != nil {
+			log.Error("failed to extract admin-login migrations: %v", err)
+			os.Exit(1)
+		}
+		adminLoginDBManager, err := dbmanager.NewDatabaseManager("admin_login.db", "./data/db/security", []string{adminLoginMigrationsPath})
+		if err != nil {
+			log.Error("admin-login DatabaseManager creation failed: %v", err)
+			os.Exit(1)
+		}
+		if err := adminLoginDBManager.SyncMigrations(); err != nil {
+			log.Error("admin-login migrations failed: %v", err)
+			os.Exit(1)
+		}
+		adminLoginHandle, err := dbhandle.New(adminLoginDBManager.Connector.DB)
+		if err != nil {
+			log.Error("admin-login handle creation failed: %v", err)
+			os.Exit(1)
+		}
+		adminLoginArchiveRecorder := loginlog_persistent.NewArchiveRecorder(manager.Connector.DB)
+		adminLoginArchiver := dbarchive.New(
+			adminLoginHandle, adminLoginDBManager, adminLoginArchiveRecorder,
+			"admin_login.db", "./data/db/security", adminLoginMigrationsPath,
 			"./data/db/security/archives", dbarchive.DefaultThreshold, log,
 		)
 
@@ -181,6 +216,8 @@ func main() {
 		ctx.DBArchiver = dbArchiver
 		ctx.IPAttacksLog = ipAttacksLog
 		ctx.ScanSource = scanSource
+		ctx.AdminLoginHandle = adminLoginHandle
+		ctx.AdminLoginArchiver = adminLoginArchiver
 
 		// Per-organization profile databases. Each org has its own SQLite
 		// file that holds the profile-field schema and the user profile
@@ -214,6 +251,23 @@ func main() {
 			log.Warning("org user db sweep: %v", err)
 		}
 		ctx.Set(org_user_dbregistry.ContextBagKey, orgUserDBRegistry)
+
+		// Per-application login-log databases — one SQLite file per
+		// application, nested under its owning org, rotated by the
+		// same generalized dbarchive.Archiver ip-attacks.db/
+		// admin_login.db use. See plan/login-audit-log/plan.md Step 6.
+		appLoginMigrationsPath, err := config.ExtractApplicationLoginMigrationsToTemp()
+		if err != nil {
+			log.Error("failed to extract application login migrations: %v", err)
+			os.Exit(1)
+		}
+		appLoginLogRegistry := loginlog_dbregistry.New(
+			"./data/db", appLoginMigrationsPath, dbarchive.DefaultThreshold, orgUserDBRegistry, log,
+		)
+		if err := appLoginLogRegistry.SweepExisting(); err != nil {
+			log.Warning("application login-log db sweep: %v", err)
+		}
+		ctx.Set(loginlog_dbregistry.ContextBagKey, appLoginLogRegistry)
 
 		if err := datamigration.MigrateWorkspaceAndAppsToOrgDBs(
 			manager.Connector.DB, orgUserDBRegistry, log,
@@ -639,6 +693,11 @@ func main() {
 		// from the sweeper above since rotation is a much rarer, distinct
 		// concern. See plan/ip-attacks-db-archiving/plan.md.
 		go dbArchiver.Run(queueCtx)
+
+		// admin_login.db archiver — same rotation mechanism as
+		// dbArchiver above, applied to the admin login log instead of
+		// ip-attacks.db. See plan/login-audit-log/plan.md Step 2.
+		go adminLoginArchiver.Run(queueCtx)
 
 		// geoip.db hot-reload watcher — notices when the separate
 		// geoip-updater process (started/stopped via the admin UI, see

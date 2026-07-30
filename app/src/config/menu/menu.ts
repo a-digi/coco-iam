@@ -10,7 +10,7 @@ export const defaultMenuItems: MenuItem[] = [
       { name: 'Groups', href: '/admin/groups', icon: 'groups', accessScopes: [AppScopes.SuperAdmin] },
       { name: 'Queue', href: '/admin/queue', icon: 'queue', accessScopes: [AppScopes.SuperAdmin, AppScopes.AdminQueue, AppScopes.AdminQueueRead] },
       { name: 'Observe', href: '/admin/observe', icon: 'observe', accessScopes: [AppScopes.SuperAdmin, AppScopes.ObserveView, AppScopes.ObserveManage] },
-      { name: 'Security', href: '/admin/security', icon: 'security', accessScopes: [AppScopes.SuperAdmin, AppScopes.AdminSecurityIpBansRead, AppScopes.AdminSecurityIpAllowlistRead, AppScopes.AdminSecurityAttacksRead] },
+      { name: 'Security', href: '/admin/security', icon: 'security', accessScopes: [AppScopes.SuperAdmin, AppScopes.AdminSecurityIpBansRead, AppScopes.AdminSecurityIpAllowlistRead, AppScopes.AdminSecurityAttacksRead, AppScopes.AdminSecurityLoginLogRead] },
       { name: 'Settings', href: '/admin/settings', icon: 'settings', accessScopes: [AppScopes.SuperAdmin, AppScopes.AdminSettingsGeneral, AppScopes.AdminSettingsGeneralRead, AppScopes.AdminMailTemplates, AppScopes.AdminMailTemplatesRead, AppScopes.AdminMailSettings, AppScopes.AdminMailSettingsRead] }
     ]
   }

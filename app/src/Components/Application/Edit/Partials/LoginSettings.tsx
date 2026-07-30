@@ -13,7 +13,9 @@ import type { LoginTextPreset } from './LoginTextPresets';
 import { ApplicationResource } from '../../model/application';
 
 type TemplateKind = 'centered_1col' | 'split_login_left' | 'split_login_right';
-type AssetKind = 'background' | 'logo' | 'other';
+// Logos are uploaded via ApplicationLogo.tsx (media_files), not through
+// this asset-upload path.
+type AssetKind = 'background' | 'other';
 
 interface Settings {
   application_id: string;

@@ -22,10 +22,11 @@ import (
 	mail_settings_admin "github.com/a-digi/coco-iam/src/admin/mail/settings"
 	mail_templates_admin "github.com/a-digi/coco-iam/src/admin/mail/templates"
 	admin_mfa "github.com/a-digi/coco-iam/src/admin/mfa/handler"
-	admin_security "github.com/a-digi/coco-iam/src/admin/security/handler"
 	admin_security_archives "github.com/a-digi/coco-iam/src/admin/security/archives/handler"
-	admin_security_scans "github.com/a-digi/coco-iam/src/admin/security/scans/handler"
 	admin_security_attacks "github.com/a-digi/coco-iam/src/admin/security/attacks/handler"
+	admin_security "github.com/a-digi/coco-iam/src/admin/security/handler"
+	admin_security_loginlog "github.com/a-digi/coco-iam/src/admin/security/loginlog/handler"
+	admin_security_scans "github.com/a-digi/coco-iam/src/admin/security/scans/handler"
 	admin_users "github.com/a-digi/coco-iam/src/admin/users"
 	admin_login "github.com/a-digi/coco-iam/src/admin/users/authentication"
 	"github.com/a-digi/coco-iam/src/admin/users/me"
@@ -38,6 +39,7 @@ import (
 	app_authn "github.com/a-digi/coco-iam/src/applications/authentication"
 	app_keys "github.com/a-digi/coco-iam/src/applications/keys"
 	app_keys_handler "github.com/a-digi/coco-iam/src/applications/keys/handler"
+	app_loginlog "github.com/a-digi/coco-iam/src/applications/loginlog/handler"
 	app_loginpage "github.com/a-digi/coco-iam/src/applications/loginpage"
 	app_loginpage_handler "github.com/a-digi/coco-iam/src/applications/loginpage/handler"
 	app_media_handler "github.com/a-digi/coco-iam/src/applications/media/handler"
@@ -70,8 +72,9 @@ import (
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/security/geoip"
 	geoip_handler "github.com/a-digi/coco-iam/src/security/geoip/handler"
-	ipsearch_handler "github.com/a-digi/coco-iam/src/security/ipsearch/handler"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
+	ipsearch_handler "github.com/a-digi/coco-iam/src/security/ipsearch/handler"
+	loginbans_handler "github.com/a-digi/coco-iam/src/security/loginbans/handler"
 	swagger_handler "github.com/a-digi/coco-iam/src/swagger"
 	userrules_handler "github.com/a-digi/coco-iam/src/userrules/handler"
 	lift_routes "github.com/a-digi/coco-lift/routes"
@@ -243,11 +246,12 @@ func buildOAuthLoginHandlers(ctx serverdi.Context) (routing.HandlerInterface, ro
 	}
 
 	authorize := &oauth_login.AuthorizeHandler{
-		Slugs:       slugs,
-		Providers:   providers,
-		State:       state,
-		Resolvers:   oauth_login.ResolverFactoryDefault,
-		RedirectURI: publicBase,
+		Slugs:         slugs,
+		Providers:     providers,
+		State:         state,
+		Resolvers:     oauth_login.ResolverFactoryDefault,
+		LoginSettings: loginSvc,
+		RedirectURI:   publicBase,
 	}
 	callback := &oauth_login.CallbackHandler{
 		Slugs:       slugs,
@@ -643,6 +647,18 @@ func buildProfileMeHandler(deps profileMeDeps) routing.HandlerInterface {
 	}
 }
 
+// buildMyLoginLogHandler wires GET /profile/me/login-log — reuses
+// the exact same slugs/keys/users collaborators /profile/me itself
+// resolves, since both are the same self-service RS256-bearer auth
+// flow. See plan/self-service-login-log/plan.md.
+func buildMyLoginLogHandler(deps profileMeDeps) routing.HandlerInterface {
+	return &app_loginlog.MyLoginLogHandler{
+		Slugs: deps.slugs,
+		Keys:  deps.keys,
+		Users: deps.users,
+	}
+}
+
 // buildProfileMePatchHandler wires the PATCH /profile/me handler.
 // Shares slug resolver + auth + profile reader with the GET variant;
 // adds the ProfileWriter for the merge-result apply step.
@@ -822,38 +838,44 @@ func Init(ctx serverdi.Context) {
 		"AdminAvatarDeleteHandler":         &admin_avatar.DeleteHandler{},
 		"AdminAvatarServeHandler":          &admin_avatar.PublicServeHandler{},
 		// Admin self-service TOTP MFA — see plan/admin-mfa-totp/plan.md.
-		"MfaStatusHandler":                     &admin_mfa.MfaStatusHandler{},
-		"MfaEnrollHandler":                     &admin_mfa.MfaEnrollHandler{},
-		"MfaConfirmHandler":                    &admin_mfa.MfaConfirmHandler{},
-		"MfaDisableHandler":                    &admin_mfa.MfaDisableHandler{},
-		"MfaRecoveryCodesRegenerateHandler":    &admin_mfa.MfaRecoveryCodesRegenerateHandler{},
-		"VerifyMfaHandler":                     &admin_mfa.VerifyMfaHandler{},
+		"MfaStatusHandler":                  &admin_mfa.MfaStatusHandler{},
+		"MfaEnrollHandler":                  &admin_mfa.MfaEnrollHandler{},
+		"MfaConfirmHandler":                 &admin_mfa.MfaConfirmHandler{},
+		"MfaDisableHandler":                 &admin_mfa.MfaDisableHandler{},
+		"MfaRecoveryCodesRegenerateHandler": &admin_mfa.MfaRecoveryCodesRegenerateHandler{},
+		"VerifyMfaHandler":                  &admin_mfa.VerifyMfaHandler{},
 		// Admin IP ban/allowlist management — see plan/ip-abuse-protection/plan.md.
-		"IPBanListHandler":                     &admin_security.IPBanListHandler{},
-		"IPBanCreateHandler":                   &admin_security.IPBanCreateHandler{},
-		"IPBanDeleteHandler":                   &admin_security.IPBanDeleteHandler{},
-		"IPAllowlistListHandler":               &admin_security.IPAllowlistListHandler{},
-		"IPAllowlistCreateHandler":             &admin_security.IPAllowlistCreateHandler{},
-		"IPAllowlistDeleteHandler":             &admin_security.IPAllowlistDeleteHandler{},
-		"SecurityStatusHandler":                &admin_security.SecurityStatusHandler{},
-		"AttackListHandler":                    &admin_security_attacks.AttackListHandler{},
-		"AttackDetailHandler":                  &admin_security_attacks.AttackDetailHandler{},
-		"AttackFetchGeoIPHandler":              &admin_security_attacks.FetchGeoIPHandler{},
-		"ArchiveListHandler":                   &admin_security_archives.ArchiveListHandler{},
-		"ArchiveDetailHandler":                 &admin_security_archives.ArchiveDetailHandler{},
-		"ArchiveAttacksListHandler":            &admin_security_archives.ArchiveAttacksListHandler{},
-		"ArchiveAttackDetailHandler":           &admin_security_archives.ArchiveAttackDetailHandler{},
-		"ScanListHandler":                      &admin_security_scans.ScanListHandler{},
-		"ScanDetailHandler":                    &admin_security_scans.ScanDetailHandler{},
+		"IPBanListHandler":                 &admin_security.IPBanListHandler{},
+		"IPBanCreateHandler":               &admin_security.IPBanCreateHandler{},
+		"IPBanDeleteHandler":               &admin_security.IPBanDeleteHandler{},
+		"IPAllowlistListHandler":           &admin_security.IPAllowlistListHandler{},
+		"IPAllowlistCreateHandler":         &admin_security.IPAllowlistCreateHandler{},
+		"IPAllowlistDeleteHandler":         &admin_security.IPAllowlistDeleteHandler{},
+		"SecurityStatusHandler":            &admin_security.SecurityStatusHandler{},
+		"AttackListHandler":                &admin_security_attacks.AttackListHandler{},
+		"AttackDetailHandler":              &admin_security_attacks.AttackDetailHandler{},
+		"AttackFetchGeoIPHandler":          &admin_security_attacks.FetchGeoIPHandler{},
+		"ArchiveListHandler":               &admin_security_archives.ArchiveListHandler{},
+		"ArchiveDetailHandler":             &admin_security_archives.ArchiveDetailHandler{},
+		"ArchiveAttacksListHandler":        &admin_security_archives.ArchiveAttacksListHandler{},
+		"ArchiveAttackDetailHandler":       &admin_security_archives.ArchiveAttackDetailHandler{},
+		"ScanListHandler":                  &admin_security_scans.ScanListHandler{},
+		"ScanDetailHandler":                &admin_security_scans.ScanDetailHandler{},
+		"AdminLoginListHandler":            &admin_security_loginlog.AdminLoginListHandler{},
+		"AdminLoginArchiveListHandler":     &admin_security_loginlog.AdminLoginArchiveListHandler{},
+		"AdminLoginArchiveAttemptsHandler": &admin_security_loginlog.AdminLoginArchiveAttemptsHandler{},
+		// Failed-login ban-rule settings — see plan/login-ban-rules/plan.md.
+		"LoginBansGetSettingsHandler": &loginbans_handler.GetSettingsHandler{},
+		"LoginBansPutSettingsHandler": &loginbans_handler.PutSettingsHandler{},
 		// Admin GeoIP settings + process control — see
 		// plan/geoip-enrichment/plan.md.
-		"GeoIPGetSettingsHandler": &geoip_handler.GetSettingsHandler{},
-		"GeoIPPutSettingsHandler": &geoip_handler.PutSettingsHandler{},
-		"GeoIPStatusHandler":      &geoip_handler.StatusHandler{},
-		"GeoIPStartHandler":       &geoip_handler.StartHandler{},
-		"GeoIPStopHandler":        &geoip_handler.StopHandler{},
-		"GeoIPSyncHandler":        &geoip_handler.SyncHandler{},
-		"IPSearchHandler":         &ipsearch_handler.SearchHandler{},
+		"GeoIPGetSettingsHandler":              &geoip_handler.GetSettingsHandler{},
+		"GeoIPPutSettingsHandler":              &geoip_handler.PutSettingsHandler{},
+		"GeoIPStatusHandler":                   &geoip_handler.StatusHandler{},
+		"GeoIPStartHandler":                    &geoip_handler.StartHandler{},
+		"GeoIPStopHandler":                     &geoip_handler.StopHandler{},
+		"GeoIPSyncHandler":                     &geoip_handler.SyncHandler{},
+		"IPSearchHandler":                      &ipsearch_handler.SearchHandler{},
 		"AdminQueueStatsHandler":               &queue_admin.AdminQueueStatsHandler{},
 		"AdminQueueRetryHandler":               &queue_admin.AdminQueueRetryHandler{},
 		"AdminQueueCreateHandler":              &queue_admin.AdminQueueCreateHandler{},
@@ -952,6 +974,11 @@ func Init(ctx serverdi.Context) {
 		"AppApiCredentialsListHandler":   &apicred_admin.ListHandler{},
 		"AppApiCredentialsCreateHandler": &apicred_admin.CreateHandler{},
 		"AppApiCredentialsRevokeHandler": &apicred_admin.RevokeHandler{},
+		// Per-application end-user login-attempt audit log. See
+		// plan/login-audit-log/plan.md Step 8.
+		"AppLoginLogListHandler":            &app_loginlog.AppLoginLogListHandler{},
+		"AppLoginLogArchiveListHandler":     &app_loginlog.AppLoginLogArchiveListHandler{},
+		"AppLoginLogArchiveAttemptsHandler": &app_loginlog.AppLoginLogArchiveAttemptsHandler{},
 		// Workspace-application OAuth providers — admin CRUD.
 		// See plan/workspace-app-oauth/plan.md.
 		"AppOAuthProvidersListHandler":   &oauthproviders_admin.ListHandler{},
@@ -996,6 +1023,7 @@ func Init(ctx serverdi.Context) {
 		// through interface fields instead of resolving them
 		// per-request from the DI bag.
 		"AppApiProfileMeHandler":              buildProfileMeHandler(profileMe),
+		"AppMyLoginLogHandler":                buildMyLoginLogHandler(profileMe),
 		"AppApiProfileMePatchHandler":         buildProfileMePatchHandler(profileMe),
 		"AppApiProfileMeFileUploadHandler":    buildProfileMeFileUploadHandler(profileMe),
 		"AppApiProfileMeFileDeleteHandler":    buildProfileMeFileDeleteHandler(profileMe),
@@ -1042,6 +1070,7 @@ func Init(ctx serverdi.Context) {
 		"MediaDeleteFileHandler":            &app_media_handler.DeleteFileHandler{},
 		"MediaFileServer":                   mediaFileServer(ctx),
 		"AdminUserSendActivationHandler":    &admin_users.AdminUserSendActivationHandler{},
+		"AdminUserResetPasswordHandler":     &admin_users.AdminUserResetPasswordHandler{},
 		"ActivationResendAdminHandler":      &activation_admin.ResendAdminHandler{},
 		"ActivationResendUserHandler":       &activation_admin.ResendUserHandler{},
 		"AdminGeneralSettingsGetHandler":    &general_admin.AdminGeneralSettingsGetHandler{},

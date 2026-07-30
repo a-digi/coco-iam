@@ -6,11 +6,16 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
+	"time"
 
-	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-iam/src/applications/keys"
+	loginlog_dbregistry "github.com/a-digi/coco-iam/src/applications/loginlog/dbregistry"
+	"github.com/a-digi/coco-iam/src/auth/scopecheck"
+	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 	"github.com/google/uuid"
@@ -111,7 +116,7 @@ func applicationCreate(reqCtx request.RequestContext) {
 	}
 
 	// Resolve org by scanning per-org DBs for the workspace.
-	orgDB, _, err := wsOrgDB(reg, body.WorkspaceID)
+	orgDB, orgID, err := wsOrgDB(reg, body.WorkspaceID)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, "workspace not found: "+err.Error())
 		return
@@ -139,13 +144,22 @@ func applicationCreate(reqCtx request.RequestContext) {
 		regType = body.RegistrationType
 	}
 
+	// Best-effort, like ensureKeypair below - a reservation failure
+	// must never block application creation itself. See
+	// reserveApplicationSlug's own doc comment.
+	slug := reserveApplicationSlug(reqCtx, id, orgID, body.Title)
+	var slugArg interface{}
+	if slug != "" {
+		slugArg = slug
+	}
+
 	if _, err := orgDB.Exec(
 		`INSERT INTO applications
 		   (id, workspace_id, client_id, title, description, is_active,
-		    allow_recovery, allow_registration, allow_password_login, registration_type)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		    allow_recovery, allow_registration, allow_password_login, registration_type, slug)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, body.WorkspaceID, body.ClientID, body.Title, body.Description, isActive,
-		allowRecovery, allowReg, allowPwdLogin, regType,
+		allowRecovery, allowReg, allowPwdLogin, regType, slugArg,
 	); err != nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, "failed to create application: "+err.Error())
 		return
@@ -153,6 +167,14 @@ func applicationCreate(reqCtx request.RequestContext) {
 
 	// Ensure keypair (best-effort).
 	ensureKeypair(reqCtx, id)
+
+	// Provision the per-application login-log database (best-effort,
+	// same convention) — only possible if a slug was actually
+	// reserved above, since the file is named after it. See
+	// plan/login-audit-log/plan.md Step 7.
+	if slug != "" {
+		provisionLoginLog(reqCtx, id, orgID, slug)
+	}
 
 	row, err := fetchApplicationRow(orgDB, id)
 	if err != nil {
@@ -280,6 +302,10 @@ func applicationUpdate(reqCtx request.RequestContext) {
 		return
 	}
 
+	if !authorizeApplicationUpdate(reqCtx, body, existing, w) {
+		return
+	}
+
 	newTitle := existing.Title
 	newDesc := existing.Description
 	newIsActive := existing.IsActive
@@ -327,6 +353,56 @@ func applicationUpdate(reqCtx request.RequestContext) {
 		return
 	}
 	response.SuccessResponse(w, http.StatusOK, row)
+}
+
+// authorizeApplicationUpdate lets a caller without applications:write still
+// reach this endpoint if they hold applications:login_templates:recovery_toggle
+// or :registration_toggle — but only to actually change the one flag their
+// scope covers. Every other field must be resubmitted unchanged (comparing
+// against existing, not just "field present in body", so normal form
+// resubmission of the current value isn't rejected). See
+// plan/todo.md and the login-templates scope catalog entry for the intent:
+// grant "can toggle recovery/registration" without full app-management power.
+func authorizeApplicationUpdate(reqCtx request.RequestContext, body applicationBody, existing applicationRow, w http.ResponseWriter) bool {
+	checker := scopecheck.NewChecker()
+	headers := reqCtx.GetRequest().Header
+
+	hasFullWrite, _ := checker.HasAnyScope(headers, "applications:write", "applications", scopecheck.SuperAdminScope)
+	if hasFullWrite {
+		return true
+	}
+
+	hasRecoveryToggle, _ := checker.HasScope(headers, "applications:login_templates:recovery_toggle")
+	hasRegToggle, _ := checker.HasScope(headers, "applications:login_templates:registration_toggle")
+
+	if body.Title != "" && body.Title != existing.Title {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:write is required to change title")
+		return false
+	}
+	if body.Description != "" && body.Description != existing.Description {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:write is required to change description")
+		return false
+	}
+	if body.IsActive != nil && *body.IsActive != existing.IsActive {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:write is required to change is_active")
+		return false
+	}
+	if body.AllowPasswordLogin != nil && *body.AllowPasswordLogin != existing.AllowPasswordLogin {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:write is required to change allow_password_login")
+		return false
+	}
+	if body.AllowRecovery != nil && *body.AllowRecovery != existing.AllowRecovery && !hasRecoveryToggle {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:login_templates:recovery_toggle or applications:write is required to change allow_recovery")
+		return false
+	}
+	registrationChanged := body.AllowRegistration != nil && *body.AllowRegistration != existing.AllowRegistration ||
+		body.RegistrationType != "" && body.RegistrationType != existing.RegistrationType
+	if registrationChanged && !hasRegToggle {
+		response.ErrorResponse(w, http.StatusForbidden, "applications:login_templates:registration_toggle or applications:write is required to change allow_registration/registration_type")
+		return false
+	}
+
+	return true
 }
 
 // --- DELETE -------------------------------------------------------------
@@ -423,10 +499,122 @@ func scanApplicationRow(rows *sql.Rows) (applicationRow, error) {
 	return out, nil
 }
 
+// slugPattern matches runs of characters not allowed in a generated
+// slug - kept deliberately narrow (lowercase alphanumerics only)
+// since a slug becomes a filesystem path component for a
+// per-application login-log database file
+// (organization/<orgID>/applications/<appID>/<slug>_login.db). See
+// plan/login-audit-log/plan.md Step 5.
+var slugPattern = regexp.MustCompile(`[^a-z0-9]+`)
+
+// maxSlugCollisionAttempts bounds the "-2", "-3", ... retry loop in
+// reserveApplicationSlug - a real title producing this many exact
+// collisions is implausible; bailing out with a logged warning beats
+// looping forever.
+const maxSlugCollisionAttempts = 50
+
+// deriveSlug lowercases title, collapses every run of non-alphanumeric
+// characters into a single hyphen, and trims leading/trailing
+// hyphens - the same kebab-case convention used for URL slugs
+// elsewhere. Falls back to "app" if title has no alphanumeric
+// characters at all, so a candidate is never empty.
+func deriveSlug(title string) string {
+	s := slugPattern.ReplaceAllString(strings.ToLower(title), "-")
+	s = strings.Trim(s, "-")
+	if s == "" {
+		return "app"
+	}
+	return s
+}
+
+// reserveApplicationSlug reserves a globally-unique, immutable slug
+// for a new application in the main DB's application_slugs table -
+// the only place cross-org uniqueness can actually be enforced, since
+// applications themselves live in each organization's own users.db.
+// Starts from deriveSlug(title) and appends "-2", "-3", ... on a
+// collision. Best-effort, like ensureKeypair below: a reservation
+// failure (e.g. the main DB briefly unavailable) must never block
+// application creation itself, since the slug only matters for a
+// downstream, non-essential feature (per-application login logging).
+// Returns "" on any failure, after logging a warning - the
+// application simply won't get login-log provisioning until an
+// operator investigates. See plan/login-audit-log/plan.md Step 5.
+func reserveApplicationSlug(reqCtx request.RequestContext, applicationID, organizationID, title string) string {
+	log := reqCtx.GetDI().GetLogger()
+	manager := reqCtx.GetDI().GetDatabaseManager()
+	if manager == nil || manager.Connector == nil || manager.Connector.DB == nil {
+		if log != nil {
+			log.Warning("application slug: main database not available for %s", applicationID)
+		}
+		return ""
+	}
+
+	base := deriveSlug(title)
+	candidate := base
+	for attempt := 1; attempt <= maxSlugCollisionAttempts; attempt++ {
+		if attempt > 1 {
+			candidate = fmt.Sprintf("%s-%d", base, attempt)
+		}
+		_, err := manager.Connector.DB.Exec(
+			`INSERT INTO application_slugs (slug, application_id, organization_id, created_at) VALUES (?, ?, ?, ?)`,
+			candidate, applicationID, organizationID, time.Now().UTC().Format("2006-01-02 15:04:05"),
+		)
+		if err == nil {
+			return candidate
+		}
+		if !strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			if log != nil {
+				log.Warning("application slug: reserve for %s: %v", applicationID, err)
+			}
+			return ""
+		}
+	}
+	if log != nil {
+		log.Warning("application slug: could not reserve a unique slug for %s after %d attempts", applicationID, maxSlugCollisionAttempts)
+	}
+	return ""
+}
+
+// provisionLoginLog creates and migrates applicationID's per-application
+// login-log database and starts its archiver, best-effort — like
+// ensureKeypair, a provisioning failure here must never block
+// application creation itself. Resolves the registry via the same
+// Get(string) (interface{}, bool) duck-typed lookup ensureKeypair
+// uses below, rather than importing config/di directly — this
+// package is itself imported by config/resource (for
+// CustomApplicationsHandler's registration), which config/di in turn
+// imports, so importing config/di back here would be a cycle. See
+// plan/login-audit-log/plan.md Step 7.
+func provisionLoginLog(reqCtx request.RequestContext, applicationID, organizationID, slug string) {
+	log := reqCtx.GetDI().GetLogger()
+	ctx := reqCtx.GetDI()
+	bag, ok := ctx.(interface {
+		Get(string) (interface{}, bool)
+	})
+	if !ok {
+		return
+	}
+	raw, ok := bag.Get(loginlog_dbregistry.ContextBagKey)
+	if !ok {
+		return
+	}
+	registry, ok := raw.(*loginlog_dbregistry.Registry)
+	if !ok || registry == nil {
+		return
+	}
+	if err := registry.Provision(applicationID, organizationID, slug); err != nil {
+		if log != nil {
+			log.Warning("application login-log: provision for %s: %v", applicationID, err)
+		}
+	}
+}
+
 func ensureKeypair(reqCtx request.RequestContext, appID string) {
 	log := reqCtx.GetDI().GetLogger()
 	ctx := reqCtx.GetDI()
-	bag, ok := ctx.(interface{ Get(string) (interface{}, bool) })
+	bag, ok := ctx.(interface {
+		Get(string) (interface{}, bool)
+	})
 	if !ok {
 		return
 	}

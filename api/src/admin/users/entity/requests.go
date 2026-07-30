@@ -12,9 +12,9 @@ type CreateUserRequest struct {
 
 // CreateUserResponse is the response payload for POST /admin/{res:users}.
 type CreateUserResponse struct {
-	User            *User            `json:"user"`
-	Activation      *ActivationEcho  `json:"activation,omitempty"`
-	ActivationError string           `json:"activation_error,omitempty"`
+	User            *User           `json:"user"`
+	Activation      *ActivationEcho `json:"activation,omitempty"`
+	ActivationError string          `json:"activation_error,omitempty"`
 }
 
 // ActivationEcho confirms that an activation email was enqueued.
@@ -23,13 +23,25 @@ type ActivationEcho struct {
 }
 
 // UpdateUserRequest is the partial-update body for PATCH /admin/{res:users}/{id}.
-// All fields are optional — only provided fields are applied.
+// All fields are optional — only provided fields are applied. Password changes
+// are handled separately — see ResetPasswordRequest (admin-privileged reset)
+// and the self-service account/password/change flow.
 type UpdateUserRequest struct {
 	Email        *string `json:"email,omitempty"         example:"new@example.com"`
 	IsActive     *bool   `json:"is_active,omitempty"     example:"true"`
 	IsSuperAdmin *bool   `json:"is_super_admin,omitempty" example:"false"`
-	Password     *string `json:"password,omitempty"      example:"NewPass1!"`
-	OldPassword  *string `json:"old_password,omitempty"  example:"OldPass1!"`
+}
+
+// ResetPasswordRequest is the body for POST /admin/users/{id}/reset-password —
+// an admin-privileged reset that does not require the target user's current
+// password (the privilege boundary is the route's own scope check).
+type ResetPasswordRequest struct {
+	NewPassword string `json:"new_password" example:"a-new-strong-password"`
+}
+
+// ResetPasswordResponse confirms the reset succeeded.
+type ResetPasswordResponse struct {
+	Ok bool `json:"ok" example:"true"`
 }
 
 // SendActivationRequest has no body — activation is triggered by the path param alone.
@@ -42,8 +54,8 @@ type SendActivationResult struct {
 
 // LoginSuccess is the swag-friendly success envelope for the admin login endpoint.
 type LoginSuccess struct {
-	Success bool                       `json:"success" example:"true"`
-	Message oauth_model.TokenResponse  `json:"message"`
+	Success bool                      `json:"success" example:"true"`
+	Message oauth_model.TokenResponse `json:"message"`
 }
 
 type UserSuccess struct {
@@ -57,6 +69,11 @@ type CreateUserSuccess struct {
 }
 
 type SendActivationSuccess struct {
-	Success bool               `json:"success" example:"true"`
+	Success bool                 `json:"success" example:"true"`
 	Message SendActivationResult `json:"message"`
+}
+
+type ResetPasswordSuccess struct {
+	Success bool                  `json:"success" example:"true"`
+	Message ResetPasswordResponse `json:"message"`
 }

@@ -61,6 +61,9 @@ import ArchiveDetail from '../../Components/Admin/Security/Archives/ArchiveDetai
 import ScansDashboard from '../../Components/Admin/Security/Scans/ScansDashboard';
 import ScanDetail from '../../Components/Admin/Security/Scans/ScanDetail';
 import GeoIPSettings from '../../Components/Admin/Security/GeoIP/GeoIPSettings';
+import AdminLoginLogDashboard from '../../Components/Admin/Security/LoginLog/AdminLoginLogDashboard';
+import AdminLoginLogArchivesDashboard from '../../Components/Admin/Security/LoginLog/AdminLoginLogArchivesDashboard';
+import LoginBanRulesSettings from '../../Components/Admin/Security/LoginBans/LoginBanRulesSettings';
 
 export const routes: RouteConfig[] = [
   {
@@ -323,7 +326,7 @@ export const routes: RouteConfig[] = [
   {
     path: '/admin/security',
     element: (
-      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityIpBansRead, AppScopes.AdminSecurityIpAllowlistRead, AppScopes.AdminSecurityAttacksRead, AppScopes.AdminSecurityArchivesRead, AppScopes.AdminSecurityScansRead]}>
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityIpBansRead, AppScopes.AdminSecurityIpAllowlistRead, AppScopes.AdminSecurityAttacksRead, AppScopes.AdminSecurityArchivesRead, AppScopes.AdminSecurityScansRead, AppScopes.AdminSecurityLoginLogRead]}>
         <Navigate to="/admin/security/bans" replace />
       </AuthGuard>
     ),
@@ -423,11 +426,53 @@ export const routes: RouteConfig[] = [
     ),
   },
   {
+    path: '/admin/security/login-log',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityLoginLogRead]}>
+        <SecurityPage>
+          <AdminLoginLogDashboard />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/login-log/archives',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityLoginLogRead]}>
+        <SecurityPage>
+          <AdminLoginLogArchivesDashboard />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    // Reuses AdminLoginLogDashboard — see that component's own doc
+    // comment for how the archiveId route param changes its behavior.
+    path: '/admin/security/login-log/archives/:archiveId/attempts',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityLoginLogRead]}>
+        <SecurityPage>
+          <AdminLoginLogDashboard />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
     path: '/admin/security/geoip',
     element: (
       <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityGeoipRead]}>
         <SecurityPage>
           <GeoIPSettings />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/login-bans',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityLoginBansRead]}>
+        <SecurityPage>
+          <LoginBanRulesSettings />
         </SecurityPage>
       </AuthGuard>
     ),

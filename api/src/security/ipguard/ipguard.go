@@ -181,6 +181,15 @@ func (g *IPGuardSecurityLayer) hydrate() error {
 	return nil
 }
 
+// ClientIP resolves r's caller through this layer's configured
+// proxy-header fallback chain — the same resolution Authorize/
+// RecordRecon use internally, exposed so other handlers (e.g. the
+// admin login-log recorder) don't need their own copy of the
+// trust-header config. See plan/login-audit-log/plan.md Step 3.
+func (g *IPGuardSecurityLayer) ClientIP(r *http.Request) string {
+	return ClientIP(r, g.cfg.TrustProxyIPHeaders)
+}
+
 // Authorize is the enforcement path — see plan section 1's flow
 // diagram: allowlist bypass, then ban check, then global tier, then
 // (on a sensitive path) the sensitive tier, then delegate to inner.

@@ -14,12 +14,17 @@ package authentication
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/a-digi/coco-iam/config"
 	"github.com/a-digi/coco-iam/src/applications/keys"
+	loginlog_dbregistry "github.com/a-digi/coco-iam/src/applications/loginlog/dbregistry"
+	loginlog_persistent "github.com/a-digi/coco-iam/src/applications/loginlog/repository/persistent"
+	loginlog_query "github.com/a-digi/coco-iam/src/applications/loginlog/repository/query"
 	"github.com/a-digi/coco-iam/src/applications/loginpage"
 	oauthsession "github.com/a-digi/coco-iam/src/applications/oauthserverwiring"
 	auth_db "github.com/a-digi/coco-iam/src/auth/database"
@@ -29,6 +34,10 @@ import (
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	orgpwexpiry "github.com/a-digi/coco-iam/src/organizations/users/passwordexpiry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
+	"github.com/a-digi/coco-iam/src/security/dbhandle"
+	"github.com/a-digi/coco-iam/src/security/geoip"
+	"github.com/a-digi/coco-iam/src/security/ipguard"
+	"github.com/a-digi/coco-iam/src/security/loginbans"
 	oauth_lib "github.com/a-digi/coco-oauth/oauth"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
@@ -211,12 +220,14 @@ func (h *AppLoginHandler) ServeHTTP(reqCtx request.RequestContext) {
 	// bad password, preventing enumeration of which apps allow
 	// password login via timing. Applications now live in per-org DB.
 	if !passwordLoginAllowed(orgDB, info.ID) {
+		recordLoginAttempt(reqCtx, info.ID, "", creds.Username, false, "inactive_user")
 		response.ErrorResponse(w, http.StatusUnauthorized, "invalid credentials")
 		return
 	}
 
 	userID, err := svc.Store.FindUserForLogin(orgDB, info.ID, creds.Username)
 	if err != nil {
+		recordLoginAttempt(reqCtx, info.ID, "", creds.Username, false, "invalid_credentials")
 		response.ErrorResponse(w, http.StatusUnauthorized, "invalid credentials")
 		return
 	}
@@ -229,6 +240,7 @@ func (h *AppLoginHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 	if !ok {
+		recordLoginAttempt(reqCtx, info.ID, userID, creds.Username, false, "invalid_credentials")
 		response.ErrorResponse(w, http.StatusUnauthorized, "invalid credentials")
 		return
 	}
@@ -282,6 +294,7 @@ func (h *AppLoginHandler) ServeHTTP(reqCtx request.RequestContext) {
 	returnTo := strings.TrimSpace(r.URL.Query().Get("return_to"))
 	if returnTo != "" && !mustChange && h.Codes != nil && h.Clients != nil {
 		if finalURL, ok := h.handleReturnTo(r, orgDB, info.ID, userID, returnTo); ok {
+			recordLoginAttempt(reqCtx, info.ID, userID, creds.Username, true, "")
 			response.SuccessResponse(w, http.StatusOK, struct {
 				RedirectURL string `json:"redirect_url"`
 			}{RedirectURL: finalURL})
@@ -320,6 +333,7 @@ func (h *AppLoginHandler) ServeHTTP(reqCtx request.RequestContext) {
 		// login page assembles the final URL itself. This keeps the
 		// /a/…/oauth/authorize backend route completely out of the
 		// browser navigation path — the SPA never needs to handle it.
+		recordLoginAttempt(reqCtx, info.ID, userID, creds.Username, true, "")
 		response.SuccessResponse(w, http.StatusOK, struct {
 			RedirectURL string `json:"redirect_url"`
 			Code        string `json:"code"`
@@ -343,6 +357,13 @@ func (h *AppLoginHandler) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(w, http.StatusInternalServerError, "token signing failed: "+err.Error())
 		return
 	}
+	// Login itself succeeded here — a token was issued against
+	// verified credentials. The downstream redirect dispatch below is
+	// a separate infrastructure concern (the app's own callback
+	// endpoint being reachable), not part of the login outcome being
+	// audited. See plan/login-audit-log/plan.md Step 7: "success once
+	// a token or code is actually issued."
+	recordLoginAttempt(reqCtx, info.ID, userID, creds.Username, true, "")
 	dispatched, err := dispatchRedirect(loginSettings, tokenResp.AccessToken, tokenResp.RefreshToken)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadGateway, "login dispatch failed: "+err.Error())
@@ -460,8 +481,153 @@ func resolveOrgDB(reg *dbregistry.OrgUserDBRegistry, orgID string) (*sql.DB, err
 	return orgrouter.ForOrg(reg, orgID)
 }
 
+func resolveAppLoginLogRegistry(ctx interface{}) *loginlog_dbregistry.Registry {
+	bag, ok := ctx.(bagGetter)
+	if !ok {
+		return nil
+	}
+	raw, ok := bag.Get(loginlog_dbregistry.ContextBagKey)
+	if !ok {
+		return nil
+	}
+	reg, _ := raw.(*loginlog_dbregistry.Registry)
+	return reg
+}
+
+// resolveIPGuard duck-types against IPGuardSecurityLayer's own
+// ClientIP method rather than importing config/di — same reasoning
+// as every other resolver in this file: avoids depending on the
+// concrete ContextBag type.
+func resolveIPGuard(ctx interface{}) *ipguard.IPGuardSecurityLayer {
+	bag, ok := ctx.(interface {
+		GetIPGuard() *ipguard.IPGuardSecurityLayer
+	})
+	if !ok {
+		return nil
+	}
+	return bag.GetIPGuard()
+}
+
+// resolveGeoIP duck-types against the shared geoip.Lookup accessor,
+// same reasoning as resolveIPGuard above — avoids importing
+// config/di directly.
+func resolveGeoIP(ctx interface{}) geoip.Lookup {
+	bag, ok := ctx.(interface {
+		GetGeoIP() geoip.Lookup
+	})
+	if !ok {
+		return nil
+	}
+	return bag.GetGeoIP()
+}
+
+// lookupGeoIPInfo resolves ip's country/city/ISP via the shared
+// geoip.Lookup already wired at boot, and marshals it into the JSON
+// snapshot this login attempt stores. Returns "" if ip is
+// loopback/private, has no GeoLite2 coverage, GeoIP is disabled, or
+// the lookup fails — never surfaced as a login recording failure.
+// See plan/login-log-geoip/plan.md.
+func lookupGeoIPInfo(ctx interface{}, ip string) string {
+	if ip == "" || geoip.IsLoopbackOrPrivate(ip) {
+		return ""
+	}
+	geo := resolveGeoIP(ctx)
+	if geo == nil {
+		return ""
+	}
+	info, ok := geo.Lookup(ip)
+	if !ok {
+		return ""
+	}
+	raw, err := json.Marshal(info)
+	if err != nil {
+		return ""
+	}
+	return string(raw)
+}
+
+// recordLoginAttempt persists one application end-user login attempt
+// into applicationID's own <slug>_login.db, best-effort — a write
+// failure is logged and swallowed, never surfacing as a failure of
+// the login itself. Silently does nothing if applicationID was never
+// provisioned (e.g. an application created before this feature
+// existed, or whose slug reservation failed) — nothing to write to,
+// not worth logging on every single login attempt. IP/user-agent use
+// the same ipguard.ClientIP resolution as every other rejection path
+// in this codebase (see plan/attack-ip-attribution/plan.md), not a
+// second IP-resolution path. See plan/login-audit-log/plan.md Step 7.
+func recordLoginAttempt(reqCtx request.RequestContext, applicationID, applicationUserID, username string, success bool, failureReason string) {
+	ctx := reqCtx.GetDI()
+	registry := resolveAppLoginLogRegistry(ctx)
+	if registry == nil {
+		return
+	}
+	handle, err := registry.For(applicationID)
+	if err != nil {
+		return
+	}
+
+	r := reqCtx.GetRequest()
+	var ip string
+	if guard := resolveIPGuard(ctx); guard != nil {
+		ip = guard.ClientIP(r)
+	}
+
+	geoIPInfo := lookupGeoIPInfo(ctx, ip)
+
+	repo := loginlog_persistent.NewApplicationLoginPersistentRepo(handle)
+	if err := repo.RecordAttempt(applicationUserID, username, success, failureReason, ip, r.UserAgent(), geoIPInfo); err != nil {
+		if log := reqCtx.GetDI().GetLogger(); log != nil {
+			log.Warning("application login-log: failed to record attempt for %s: %v", applicationID, err)
+		}
+		return
+	}
+
+	if !success && ip != "" {
+		checkApplicationFailureBan(reqCtx, handle, ip)
+	}
+}
+
+// checkApplicationFailureBan counts this IP's recent failed
+// application-login attempts and, if the configured (global, not
+// per-application) threshold is crossed, bans it through the existing
+// ipguard.Ban — reusing its allowlist bypass, firewall integration,
+// and admin bans UI rather than building a second enforcement path.
+// Best-effort, like recordLoginAttempt itself: an error here is
+// swallowed, never surfacing as a failure of the login attempt being
+// recorded. See plan/login-ban-rules/plan.md.
+func checkApplicationFailureBan(reqCtx request.RequestContext, handle *dbhandle.Handle, ip string) {
+	manager := reqCtx.GetDI().GetDatabaseManager()
+	if manager == nil || manager.Connector == nil || manager.Connector.DB == nil {
+		return
+	}
+	rules, err := loginbans.NewSettingsQueryRepo(manager.Connector.DB).LoadSettings()
+	if err != nil || !rules.Application.Enabled {
+		return
+	}
+
+	since := time.Now().UTC().Add(-time.Duration(rules.Application.WindowSeconds) * time.Second)
+	count, err := loginlog_query.NewApplicationLoginQueryRepo(handle).CountRecentFailures(ip, since)
+	if err != nil || count < rules.Application.Threshold {
+		return
+	}
+
+	guard := resolveIPGuard(reqCtx.GetDI())
+	if guard == nil {
+		return
+	}
+	reason := fmt.Sprintf("%d failed application login attempts within %ds", count, rules.Application.WindowSeconds)
+	if err := guard.Ban(ip, "application-login-failures", reason, time.Duration(rules.Application.BanSeconds)*time.Second, nil); err != nil {
+		if log := reqCtx.GetDI().GetLogger(); log != nil {
+			log.Warning("application login-log: failed to ban %s after %d failed logins: %v", ip, count, err)
+		}
+	}
+}
+
 func resolveOrgExpiryChecker(ctx interface{}) *orgpwexpiry.Checker {
-	bag, ok := ctx.(interface{ Get(string) (interface{}, bool) })
+	bag, ok := ctx.(interface {
+		Get(string) (interface{}, bool)
+	})
 	if !ok {
 		return nil
 	}

@@ -72,6 +72,8 @@ routes:
             scopes:
               - applications:write
               - applications
+              - applications:login_templates:recovery_toggle
+              - applications:login_templates:registration_toggle
               - super:admin
           - path: /{res:applications}/{id}
             method: PUT
@@ -80,6 +82,8 @@ routes:
             scopes:
               - applications:write
               - applications
+              - applications:login_templates:recovery_toggle
+              - applications:login_templates:registration_toggle
               - super:admin
           - path: /{res:application_scopes}
             method: GET

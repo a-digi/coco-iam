@@ -136,6 +136,37 @@ routes:
               - applications:write
               - applications
               - super:admin
+          # Per-application end-user login-attempt audit log — one
+          # SQLite file per application, rotated the same way
+          # ip-attacks.db/admin_login.db are. See
+          # plan/login-audit-log/plan.md Step 8.
+          - path: /{res:applications}/{id}/login-log
+            method: GET
+            executor: AppLoginLogListHandler
+            security: authenticated
+            scopes:
+              - applications:login_log:read
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/login-log/archives
+            method: GET
+            executor: AppLoginLogArchiveListHandler
+            security: authenticated
+            scopes:
+              - applications:login_log:read
+              - applications:read
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/login-log/archives/{archiveId}/attempts
+            method: GET
+            executor: AppLoginLogArchiveAttemptsHandler
+            security: authenticated
+            scopes:
+              - applications:login_log:read
+              - applications:read
+              - applications
+              - super:admin
           # Per-application external-IdP OAuth providers — Google,
           # GitHub, Microsoft config used by the user-facing login
           # page's "Continue with …" buttons. Secrets are encrypted

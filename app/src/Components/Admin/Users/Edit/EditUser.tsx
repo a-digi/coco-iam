@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Title from '../../../../Shared/Components/Font/Title';
 import { useHttpClient } from '../../../../api/http/useHttpClient';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { type User, StandardSchema } from '../model/user';
 import { mapObjects } from '../../../../config/data/mapper/mapper';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
@@ -26,14 +26,15 @@ export const EditUser: React.FC = () => {
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [oldPassword, setOldPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [inheritedScopes, setInheritedScopes] = useState<InheritedScopes[]>([]);
 
-  const { get, patch } = useHttpClient();
+  const { get, patch, post } = useHttpClient();
   const { successMessage, errorMessage } = useSnackBar();
 
   const fetchUser = React.useCallback(async () => {
@@ -96,24 +97,38 @@ export const EditUser: React.FC = () => {
     void handlePatch({ email }, 'Email');
   };
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  // Admin-privileged reset for ANOTHER user's password — deliberately a
+  // separate endpoint from the generic PATCH used elsewhere in this
+  // file, and deliberately never shown for your own account (see the
+  // "auth" accordion item below): resetting someone else's password
+  // needs no "old password" at all, since the privilege boundary is
+  // the admin:users:write/super:admin scope on this route, not a
+  // secret the admin has no way of knowing. Self password changes stay
+  // on the dedicated Change Password page, which correctly still
+  // requires your current password.
+  const handleResetPassword = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
+    if (newPassword !== confirmNewPassword) {
       errorMessage('Passwords do not match');
       return;
     }
-
-    if (password.length < 8) {
+    if (newPassword.length < 8) {
       errorMessage('Password must be at least 8 characters long');
       return;
     }
 
-    void handlePatch({ password, old_password: oldPassword }, 'Authentication').then(() => {
-      setPassword('');
-      setConfirmPassword('');
-      setOldPassword('');
-    });
-
+    setResettingPassword(true);
+    post(`admin/users/{id:${id}}/reset-password`, { new_password: newPassword })
+      .then(() => {
+        successMessage('Password reset successfully!');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setShowResetPassword(false);
+      })
+      .catch((err: unknown) => {
+        errorMessage(err instanceof Error ? err.message : 'Failed to reset password');
+      })
+      .finally(() => setResettingPassword(false));
   };
 
 
@@ -138,41 +153,74 @@ export const EditUser: React.FC = () => {
     {
       id: 'auth',
       title: 'Authentication',
-      content: (
-        <form onSubmit={handleAuthSubmit} className="space-y-4">
-          <FormInput
-            id="oldPassword"
-            type="password"
-            label="Old Password"
-            value={oldPassword}
-            onChange={setOldPassword}
-            minLength={8}
-            required
-          />
+      scopes: [
+        ...(id === authToken?.user?.id ? [AppScopes.UserMe] : []),
+        AppScopes.AdminUsersWrite,
+        AppScopes.SuperAdmin
+      ],
+      content: id === authToken?.user?.id ? (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Manage your own password from the dedicated Change Password page — it correctly
+            verifies your current password first.
+          </p>
+          <Link
+            to="/account/change-password"
+            className="inline-block text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+          >
+            Change my password →
+          </Link>
+        </div>
+      ) : (
+        <form onSubmit={handleResetPassword} className="space-y-4">
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            You are resetting {username || 'this user'}&apos;s password as an administrator —
+            they&apos;ll need to use this new password to log in next time.
+          </p>
           <FormInput
             id="newPassword"
-            type="password"
+            type={showResetPassword ? 'text' : 'password'}
             label="New Password"
-            value={password}
-            onChange={setPassword}
+            value={newPassword}
+            onChange={setNewPassword}
             minLength={8}
             required
+            trailing={
+              <button
+                type="button"
+                onClick={() => setShowResetPassword(v => !v)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                aria-label={showResetPassword ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+              >
+                {showResetPassword ? (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                )}
+              </button>
+            }
           />
           <FormInput
-            id="confirmPassword"
-            type="password"
+            id="confirmNewPassword"
+            type={showResetPassword ? 'text' : 'password'}
             label="Confirm New Password"
-            value={confirmPassword}
-            onChange={setConfirmPassword}
+            value={confirmNewPassword}
+            onChange={setConfirmNewPassword}
             minLength={8}
             required
           />
           <div className="flex justify-end">
             <Submit
-              loading={loading}
-              loadingText="Saving..."
-              disabled={!password || !confirmPassword}
-              label="Update Password"
+              loading={resettingPassword}
+              loadingText="Resetting..."
+              disabled={!newPassword || !confirmNewPassword}
+              label="Reset Password"
             />
           </div>
         </form>
