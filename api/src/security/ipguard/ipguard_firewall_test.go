@@ -59,6 +59,15 @@ func (f *fakeFirewall) ListBannedIPs() ([]string, error) {
 	}
 	return ips, nil
 }
+func (f *fakeFirewall) RemoveAllRules(ip string) (int, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if !f.banned[ip] {
+		return 0, nil
+	}
+	delete(f.banned, ip)
+	return 1, nil
+}
 func (f *fakeFirewall) isBanned(ip string) bool {
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -181,6 +190,69 @@ func TestFirewallStatus_ReportsBackendState(t *testing.T) {
 	name, available, detail := g.FirewallStatus()
 	if name != "fake" || !available || detail != "" {
 		t.Fatalf("FirewallStatus() = (%q, %v, %q), want (fake, true, \"\")", name, available, detail)
+	}
+}
+
+// TestRemoveAllFirewallRules_ResyncsWhenStillActivelyBanned is the
+// core "avoid stale data" guarantee: removing a (possibly duplicated)
+// OS-level rule for an IP the DB still actively bans must not leave
+// that IP silently unenforced at the OS level — a clean rule gets
+// re-applied immediately, synchronously, in the same call.
+func TestRemoveAllFirewallRules_ResyncsWhenStillActivelyBanned(t *testing.T) {
+	fw := newFakeFirewall()
+	g := newTestGuardWithFirewall(t, testConfig(), fw)
+
+	if err := g.Ban("198.51.100.5", "manual", "test", time.Hour, nil); err != nil {
+		t.Fatalf("Ban() error = %v", err)
+	}
+	waitFor(t, func() bool { return fw.isBanned("198.51.100.5") })
+
+	removed, resynced, err := g.RemoveAllFirewallRules("198.51.100.5")
+	if err != nil {
+		t.Fatalf("RemoveAllFirewallRules() error = %v", err)
+	}
+	if removed != 1 {
+		t.Fatalf("removed = %d, want 1", removed)
+	}
+	if !resynced {
+		t.Fatal("expected resynced = true since the IP is still actively banned in the DB")
+	}
+	if !fw.isBanned("198.51.100.5") {
+		t.Fatal("expected the firewall to have the IP banned again after the resync")
+	}
+}
+
+// TestRemoveAllFirewallRules_DoesNotResyncWhenNotActivelyBanned covers
+// the other half: an IP with a leftover OS-level rule but no active DB
+// ban (e.g. the ban already expired and was pruned, or was deleted by
+// some other path) should just be removed, not re-applied.
+func TestRemoveAllFirewallRules_DoesNotResyncWhenNotActivelyBanned(t *testing.T) {
+	fw := newFakeFirewall()
+	g := newTestGuardWithFirewall(t, testConfig(), fw)
+
+	if err := g.Ban("198.51.100.5", "manual", "test", time.Hour, nil); err != nil {
+		t.Fatalf("Ban() error = %v", err)
+	}
+	waitFor(t, func() bool { return fw.isBanned("198.51.100.5") })
+
+	// Simulate a stale OS-level rule: the DB row is gone (e.g. deleted
+	// through some other path) but the firewall rule wasn't cleaned up.
+	if err := g.banPersist.DeleteBan("198.51.100.5"); err != nil {
+		t.Fatalf("DeleteBan() error = %v", err)
+	}
+
+	removed, resynced, err := g.RemoveAllFirewallRules("198.51.100.5")
+	if err != nil {
+		t.Fatalf("RemoveAllFirewallRules() error = %v", err)
+	}
+	if removed != 1 {
+		t.Fatalf("removed = %d, want 1", removed)
+	}
+	if resynced {
+		t.Fatal("expected resynced = false since the IP has no active DB ban")
+	}
+	if fw.isBanned("198.51.100.5") {
+		t.Fatal("expected the firewall rule to stay removed")
 	}
 }
 

@@ -95,8 +95,9 @@ func (b *linuxBanner) Unban(ip string) error {
 // CIDR or 0.0.0.0/0), destination 0.0.0.0/0, no protocol restriction.
 // Best-effort heuristic, not cryptographic proof of origin — an
 // admin's own unrelated single-IP DROP rule in INPUT would also match.
-// Informational only; this list never drives an unban action. See
-// plan/firewall-live-rules/plan.md.
+// One entry per matching rule, so a duplicated rule (Ban() never
+// checks for an existing one before inserting another) shows up more
+// than once. See plan/firewall-live-rules/plan.md.
 func (b *linuxBanner) ListBannedIPs() ([]string, error) {
 	if !b.available {
 		return nil, nil
@@ -122,6 +123,36 @@ func (b *linuxBanner) ListBannedIPs() ([]string, error) {
 		ips = append(ips, src)
 	}
 	return ips, nil
+}
+
+// maxDuplicateRulesToRemove bounds RemoveAllRules' delete loop — a
+// safety backstop against looping forever if iptables ever returns a
+// transient non-terminal error, not a number expected to matter in
+// practice.
+const maxDuplicateRulesToRemove = 1000
+
+// RemoveAllRules repeatedly issues the same -D INPUT -s ip -j DROP
+// Unban() uses, since each call only removes one matching rule at a
+// time — that's exactly how duplicates accumulate in the first place
+// (Ban() never checks for an existing rule before inserting another).
+// Stops at the first failure, which is the expected terminal state
+// ("no more matching rules") in the common case, not treated as an
+// error — the caller only cares how many were actually removed.
+func (b *linuxBanner) RemoveAllRules(ip string) (int, error) {
+	if !b.available {
+		return 0, nil
+	}
+	if err := validateIP(ip); err != nil {
+		return 0, err
+	}
+	removed := 0
+	for i := 0; i < maxDuplicateRulesToRemove; i++ {
+		if err := b.runIPTables(ip, "-D", "INPUT", "-s", ip, "-j", "DROP"); err != nil {
+			break
+		}
+		removed++
+	}
+	return removed, nil
 }
 
 // runIPTables validates ip explicitly (never trusting its position

@@ -158,6 +158,34 @@ func TestDarwinBanner_ListBannedIPs_EmptyWhenUnavailable(t *testing.T) {
 	}
 }
 
+func TestDarwinBanner_RemoveAllRules_RemovesWhenPresent(t *testing.T) {
+	r := &recordingRunner{output: []byte("203.0.113.7\n198.51.100.5\n")}
+	b := newDarwinBanner(nil, r.run, foundLookPath)
+	r.calls = nil
+
+	removed, err := b.RemoveAllRules("203.0.113.7")
+	if err != nil {
+		t.Fatalf("RemoveAllRules() error = %v", err)
+	}
+	if removed != 1 {
+		t.Fatalf("removed = %d, want 1", removed)
+	}
+}
+
+func TestDarwinBanner_RemoveAllRules_ZeroWhenNotPresent(t *testing.T) {
+	r := &recordingRunner{output: []byte("198.51.100.5\n")}
+	b := newDarwinBanner(nil, r.run, foundLookPath)
+	r.calls = nil
+
+	removed, err := b.RemoveAllRules("203.0.113.7")
+	if err != nil {
+		t.Fatalf("RemoveAllRules() error = %v", err)
+	}
+	if removed != 0 {
+		t.Fatalf("removed = %d, want 0", removed)
+	}
+}
+
 func equalSlices(a, b []string) bool {
 	if len(a) != len(b) {
 		return false

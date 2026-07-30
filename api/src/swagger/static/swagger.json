@@ -4547,6 +4547,64 @@
                 }
             }
         },
+        "/admin/security/firewall/rules/{ip}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes every OS-level rule for ip — there may be more than one if Ban() was\ncalled repeatedly for an already-banned IP. If ip is still actively banned in\n/admin/security/ip-bans, a single clean rule is immediately re-applied afterward, so\nthis never silently leaves an actively-banned IP unenforced at the OS level.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Remove OS-level firewall rules for one IP",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "IP address, as {ip:\u003cvalue\u003e}",
+                        "name": "ip",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.FirewallRuleRemoveSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/geoip/search": {
             "get": {
                 "security": [
@@ -11719,6 +11777,44 @@
                 }
             }
         },
+        "entity.FirewallRuleEntry": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                }
+            }
+        },
+        "entity.FirewallRuleRemoveResponse": {
+            "type": "object",
+            "properties": {
+                "removed": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "resynced": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "entity.FirewallRuleRemoveSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.FirewallRuleRemoveResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "entity.FirewallRulesResponse": {
             "type": "object",
             "properties": {
@@ -11729,7 +11825,7 @@
                 "rules": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/entity.FirewallRuleEntry"
                     }
                 }
             }

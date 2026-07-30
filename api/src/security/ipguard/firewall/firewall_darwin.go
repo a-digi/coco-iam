@@ -121,6 +121,38 @@ func (b *darwinBanner) ListBannedIPs() ([]string, error) {
 	return ips, nil
 }
 
+// RemoveAllRules removes ip from the pf table. Unlike the Linux
+// backend, pf tables are sets — an IP can appear at most once, so
+// there's no duplicate-accumulation concern here and this is just
+// Unban() with a presence check first so the caller gets an accurate
+// removed count (0 or 1) instead of always reporting 1.
+func (b *darwinBanner) RemoveAllRules(ip string) (int, error) {
+	if !b.available {
+		return 0, nil
+	}
+	if err := validateIP(ip); err != nil {
+		return 0, err
+	}
+	existing, err := b.ListBannedIPs()
+	if err != nil {
+		return 0, err
+	}
+	present := false
+	for _, e := range existing {
+		if e == ip {
+			present = true
+			break
+		}
+	}
+	if !present {
+		return 0, nil
+	}
+	if err := b.Unban(ip); err != nil {
+		return 0, err
+	}
+	return 1, nil
+}
+
 func (b *darwinBanner) runPfctl(ip string, args ...string) error {
 	if !b.available {
 		return fmt.Errorf("firewall: pf not available (%s)", b.detail)

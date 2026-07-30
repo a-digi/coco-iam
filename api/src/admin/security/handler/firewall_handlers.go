@@ -2,9 +2,11 @@ package handler
 
 import (
 	"net/http"
+	"sort"
 	"time"
 
 	security_entity "github.com/a-digi/coco-iam/src/admin/security/entity"
+	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
@@ -85,17 +87,77 @@ func (h *FirewallRulesHandler) ServeHTTP(reqCtx request.RequestContext) {
 	}
 
 	name, _, _ := guard.FirewallStatus()
-	rules, err := guard.ListFirewallRules()
+	rawRules, err := guard.ListFirewallRules()
 	if err != nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if rules == nil {
-		rules = []string{}
-	}
 
 	response.SuccessResponse(w, http.StatusOK, security_entity.FirewallRulesResponse{
 		Backend: name,
-		Rules:   rules,
+		Rules:   countFirewallRules(rawRules),
+	})
+}
+
+// countFirewallRules aggregates a raw per-rule list (one entry per
+// underlying OS rule, so a duplicated rule appears more than once)
+// into distinct IPs with a count — a count above 1 is the exact
+// duplicate-rule symptom this feature exists to surface. Sorted by IP
+// for a stable, deterministic response.
+func countFirewallRules(raw []string) []security_entity.FirewallRuleEntry {
+	counts := make(map[string]int, len(raw))
+	for _, ip := range raw {
+		counts[ip]++
+	}
+	entries := make([]security_entity.FirewallRuleEntry, 0, len(counts))
+	for ip, count := range counts {
+		entries = append(entries, security_entity.FirewallRuleEntry{IP: ip, Count: count})
+	}
+	sort.Slice(entries, func(i, j int) bool { return entries[i].IP < entries[j].IP })
+	return entries
+}
+
+// FirewallRuleRemoveHandler serves DELETE
+// /api/v1/admin/security/firewall/rules/{ip:<value>} — a manual
+// removal of every OS-level rule for one IP. See this package's doc
+// comment for the {key:value} path convention.
+type FirewallRuleRemoveHandler struct{}
+
+// @Summary     Remove OS-level firewall rules for one IP
+// @Description Removes every OS-level rule for ip — there may be more than one if Ban() was
+// @Description called repeatedly for an already-banned IP. If ip is still actively banned in
+// @Description /admin/security/ip-bans, a single clean rule is immediately re-applied afterward, so
+// @Description this never silently leaves an actively-banned IP unenforced at the OS level.
+// @Tags        security
+// @Produce     json
+// @Security    BearerAuth
+// @Param       ip path string true "IP address, as {ip:<value>}"
+// @Success     200 {object} security_entity.FirewallRuleRemoveSuccess
+// @Failure     400,401,403,500 {object} response.ErrorBody
+// @Router      /admin/security/firewall/rules/{ip} [delete]
+func (h *FirewallRuleRemoveHandler) ServeHTTP(reqCtx request.RequestContext) {
+	w := reqCtx.GetWriter()
+	r := reqCtx.GetRequest()
+
+	key, ip := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	if key != "ip" || ip == "" {
+		response.ErrorResponse(w, http.StatusBadRequest, "ip is required")
+		return
+	}
+
+	guard, ok := resolveIPGuard(reqCtx)
+	if !ok {
+		return
+	}
+
+	removed, resynced, err := guard.RemoveAllFirewallRules(ip)
+	if err != nil {
+		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.SuccessResponse(w, http.StatusOK, security_entity.FirewallRuleRemoveResponse{
+		Removed:  removed,
+		Resynced: resynced,
 	})
 }

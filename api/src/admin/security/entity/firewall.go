@@ -18,13 +18,23 @@ type FirewallResyncSuccess struct {
 	Message FirewallResyncResponse `json:"message"`
 }
 
+// FirewallRuleEntry is one distinct IP currently blocked at the OS
+// firewall level, with how many underlying rules exist for it — a
+// count above 1 means duplicated rules (Ban() never checks for an
+// existing rule before inserting another; see
+// plan/firewall-live-rules/plan.md's follow-up on this feature).
+type FirewallRuleEntry struct {
+	IP    string `json:"ip" example:"203.0.113.7"`
+	Count int    `json:"count" example:"3"`
+}
+
 // FirewallRulesResponse lists the IPs currently blocked at the OS
 // firewall level, read live from the backend in use — informational
 // only; ip_bans (via /admin/security/ip-bans) stays the source of
 // truth for what *should* be banned. See plan/firewall-live-rules/plan.md.
 type FirewallRulesResponse struct {
-	Backend string   `json:"backend" example:"iptables"`
-	Rules   []string `json:"rules"`
+	Backend string              `json:"backend" example:"iptables"`
+	Rules   []FirewallRuleEntry `json:"rules"`
 }
 
 // Swag-friendly success envelope.
@@ -32,4 +42,21 @@ type FirewallRulesResponse struct {
 type FirewallRulesSuccess struct {
 	Success bool                  `json:"success" example:"true"`
 	Message FirewallRulesResponse `json:"message"`
+}
+
+// FirewallRuleRemoveResponse reports the outcome of manually removing
+// every OS-level rule for one IP. Resynced is true when the IP was
+// still actively banned in ip_bans, in which case exactly one clean
+// rule was immediately re-applied — see
+// IPGuardSecurityLayer.RemoveAllFirewallRules' doc comment for why.
+type FirewallRuleRemoveResponse struct {
+	Removed  int  `json:"removed" example:"3"`
+	Resynced bool `json:"resynced" example:"false"`
+}
+
+// Swag-friendly success envelope.
+
+type FirewallRuleRemoveSuccess struct {
+	Success bool                       `json:"success" example:"true"`
+	Message FirewallRuleRemoveResponse `json:"message"`
 }

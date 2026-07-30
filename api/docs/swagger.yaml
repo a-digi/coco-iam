@@ -646,6 +646,32 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.FirewallRuleEntry:
+    properties:
+      count:
+        example: 3
+        type: integer
+      ip:
+        example: 203.0.113.7
+        type: string
+    type: object
+  entity.FirewallRuleRemoveResponse:
+    properties:
+      removed:
+        example: 3
+        type: integer
+      resynced:
+        example: false
+        type: boolean
+    type: object
+  entity.FirewallRuleRemoveSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.FirewallRuleRemoveResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.FirewallRulesResponse:
     properties:
       backend:
@@ -653,7 +679,7 @@ definitions:
         type: string
       rules:
         items:
-          type: string
+          $ref: '#/definitions/entity.FirewallRuleEntry'
         type: array
     type: object
   entity.FirewallRulesSuccess:
@@ -4988,6 +5014,47 @@ paths:
       security:
       - BearerAuth: []
       summary: List OS-level firewall ban rules
+      tags:
+      - security
+  /admin/security/firewall/rules/{ip}:
+    delete:
+      description: |-
+        Removes every OS-level rule for ip — there may be more than one if Ban() was
+        called repeatedly for an already-banned IP. If ip is still actively banned in
+        /admin/security/ip-bans, a single clean rule is immediately re-applied afterward, so
+        this never silently leaves an actively-banned IP unenforced at the OS level.
+      parameters:
+      - description: IP address, as {ip:<value>}
+        in: path
+        name: ip
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.FirewallRuleRemoveSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Remove OS-level firewall rules for one IP
       tags:
       - security
   /admin/security/geoip/search:

@@ -109,6 +109,37 @@ func (b *windowsBanner) ListBannedIPs() ([]string, error) {
 	return ips, nil
 }
 
+// RemoveAllRules deletes every rule named ruleName(ip) — netsh's
+// delete-by-name removes every matching rule in one call, not just
+// one, so this collapses any duplicate `add rule` calls in a single
+// invocation. Counts existing occurrences first so the caller gets an
+// accurate removed count.
+func (b *windowsBanner) RemoveAllRules(ip string) (int, error) {
+	if !b.available {
+		return 0, nil
+	}
+	if err := validateIP(ip); err != nil {
+		return 0, err
+	}
+	existing, err := b.ListBannedIPs()
+	if err != nil {
+		return 0, err
+	}
+	count := 0
+	for _, e := range existing {
+		if e == ip {
+			count++
+		}
+	}
+	if count == 0 {
+		return 0, nil
+	}
+	if err := b.Unban(ip); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (b *windowsBanner) runNetsh(ip string, args ...string) error {
 	if !b.available {
 		return fmt.Errorf("firewall: windows firewall not available (%s)", b.detail)

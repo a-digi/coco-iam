@@ -448,6 +448,47 @@ func (g *IPGuardSecurityLayer) ListFirewallRules() ([]string, error) {
 	return g.firewall.ListBannedIPs()
 }
 
+// RemoveAllFirewallRules removes every OS-level rule for ip (there may
+// be duplicates — see firewall.Banner.RemoveAllRules' doc comment),
+// then checks ip_bans directly: if ip is still actively (non-expired)
+// banned there, it re-applies exactly one clean rule immediately
+// afterward. Without this check, an admin cleaning up a duplicated
+// rule for an IP the DB still considers banned would silently leave it
+// completely unenforced at the OS level until the next reboot or a
+// manual "Resync now" — the exact stale-data gap this method closes.
+// Runs the re-apply synchronously (not via the fire-and-forget
+// banFirewall helper) since this is an explicit, foreground admin
+// action that should report a real, immediate outcome.
+func (g *IPGuardSecurityLayer) RemoveAllFirewallRules(ip string) (removed int, resynced bool, err error) {
+	if g.firewall == nil {
+		return 0, false, nil
+	}
+	removed, err = g.firewall.RemoveAllRules(ip)
+	if err != nil {
+		return removed, false, fmt.Errorf("ipguard: remove firewall rules for %s: %w", ip, err)
+	}
+
+	now := time.Now()
+	active, err := g.banQuery.ListActive(now)
+	if err != nil {
+		return removed, false, fmt.Errorf("ipguard: check active bans for %s: %w", ip, err)
+	}
+	for _, b := range active {
+		if b.IP != ip {
+			continue
+		}
+		expiresAt, ok := parseTime(b.ExpiresAt)
+		if !ok || expiresAt.Before(now) {
+			continue
+		}
+		if err := g.firewall.Ban(ip, expiresAt.Sub(now)); err != nil {
+			return removed, false, fmt.Errorf("ipguard: resync %s after removal: %w", ip, err)
+		}
+		return removed, true, nil
+	}
+	return removed, false, nil
+}
+
 // PruneStaleCounters evicts in-memory rate-limit counters idle past
 // twice the largest configured window — bounds memory growth from IPs
 // that have stopped sending traffic. See plan section 1's "Memory

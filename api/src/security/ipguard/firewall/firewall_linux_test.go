@@ -10,16 +10,22 @@ import (
 )
 
 // recordingRunner captures every command invocation instead of really
-// executing anything.
+// executing anything. failAfterCalls, when > 0, makes every call past
+// that count fail — simulates iptables -D erroring once no more
+// matching rules exist, for RemoveAllRules' delete-loop tests.
 type recordingRunner struct {
-	calls  [][]string
-	err    error
-	output []byte
+	calls          [][]string
+	err            error
+	output         []byte
+	failAfterCalls int
 }
 
 func (r *recordingRunner) run(ctx context.Context, name string, args ...string) ([]byte, error) {
 	call := append([]string{name}, args...)
 	r.calls = append(r.calls, call)
+	if r.failAfterCalls > 0 && len(r.calls) > r.failAfterCalls {
+		return nil, errors.New("iptables: Bad rule (does a matching rule exist in that chain?)")
+	}
 	return r.output, r.err
 }
 
@@ -160,6 +166,63 @@ func TestLinuxBanner_ListBannedIPs_EmptyWhenUnavailable(t *testing.T) {
 	}
 	if len(ips) != 0 {
 		t.Fatalf("ListBannedIPs() = %v, want empty when unavailable", ips)
+	}
+}
+
+func TestLinuxBanner_RemoveAllRules_RemovesEveryDuplicate(t *testing.T) {
+	r := &recordingRunner{failAfterCalls: 3} // 3 duplicate rules exist
+	b := newLinuxBanner(nil, r.run, foundLookPath)
+
+	removed, err := b.RemoveAllRules("203.0.113.7")
+	if err != nil {
+		t.Fatalf("RemoveAllRules() error = %v", err)
+	}
+	if removed != 3 {
+		t.Fatalf("removed = %d, want 3", removed)
+	}
+	want := []string{"iptables", "-D", "INPUT", "-s", "203.0.113.7", "-j", "DROP"}
+	for i := 0; i < 3; i++ {
+		if !equalSlices(r.calls[i], want) {
+			t.Fatalf("call %d = %v, want %v", i, r.calls[i], want)
+		}
+	}
+}
+
+func TestLinuxBanner_RemoveAllRules_ZeroWhenNoneExist(t *testing.T) {
+	r := &recordingRunner{failAfterCalls: 0, err: errors.New("iptables: Bad rule")}
+	b := newLinuxBanner(nil, r.run, foundLookPath)
+
+	removed, err := b.RemoveAllRules("203.0.113.7")
+	if err != nil {
+		t.Fatalf("RemoveAllRules() error = %v", err)
+	}
+	if removed != 0 {
+		t.Fatalf("removed = %d, want 0", removed)
+	}
+}
+
+func TestLinuxBanner_RemoveAllRules_RejectsInvalidIP(t *testing.T) {
+	r := &recordingRunner{}
+	b := newLinuxBanner(nil, r.run, foundLookPath)
+
+	if _, err := b.RemoveAllRules("not-an-ip"); err == nil {
+		t.Fatal("expected an error for an invalid IP")
+	}
+	if len(r.calls) != 0 {
+		t.Fatalf("expected zero commands for invalid input, got %d", len(r.calls))
+	}
+}
+
+func TestLinuxBanner_RemoveAllRules_EmptyWhenUnavailable(t *testing.T) {
+	r := &recordingRunner{}
+	b := newLinuxBanner(nil, r.run, missingLookPath)
+
+	removed, err := b.RemoveAllRules("203.0.113.7")
+	if err != nil {
+		t.Fatalf("RemoveAllRules() error = %v", err)
+	}
+	if removed != 0 {
+		t.Fatalf("removed = %d, want 0 when unavailable", removed)
 	}
 }
 

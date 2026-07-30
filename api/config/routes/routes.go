@@ -895,6 +895,7 @@ func Init(ctx serverdi.Context) {
 		"SecurityStatusHandler":            &admin_security.SecurityStatusHandler{},
 		"FirewallResyncHandler":            &admin_security.FirewallResyncHandler{},
 		"FirewallRulesHandler":             &admin_security.FirewallRulesHandler{},
+		"FirewallRuleRemoveHandler":        &admin_security.FirewallRuleRemoveHandler{},
 		"AttackListHandler":                &admin_security_attacks.AttackListHandler{},
 		"AttackDetailHandler":              &admin_security_attacks.AttackDetailHandler{},
 		"AttackFetchGeoIPHandler":          &admin_security_attacks.FetchGeoIPHandler{},
