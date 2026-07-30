@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -80,6 +81,22 @@ func main() {
 		}
 
 		defer log.Close()
+
+		// COCO_IAM_PUBLIC_BASE_URL feeds link-building across the admin
+		// profile/me, OAuth login, and observe-agent code paths (see
+		// routes.go's several osGetenv("COCO_IAM_PUBLIC_BASE_URL")
+		// call sites). Left unset it silently falls back to
+		// http://localhost:2026 — fine for local dev, so that stays
+		// as-is. But a value that IS set and malformed would silently
+		// produce broken links everywhere rather than failing loudly
+		// at the one place it's easy to diagnose. See
+		// plan/todo/security/header-and-cache-poisoning.md.
+		if raw := os.Getenv("COCO_IAM_PUBLIC_BASE_URL"); raw != "" {
+			if err := validatePublicBaseURL(raw); err != nil {
+				fmt.Printf("invalid COCO_IAM_PUBLIC_BASE_URL: %v\n", err)
+				os.Exit(1)
+			}
+		}
 		migrationsPath, err := config.ExtractMigrationsToTemp()
 		if err != nil {
 			fmt.Printf("Migrationen konnten nicht extrahiert werden: %v\n", err)
@@ -814,4 +831,24 @@ func main() {
 func initLogger() (logger.Logger, error) {
 	logFilePath := server.LogFileName("server")
 	return logger.NewLogger(logFilePath, "data/logs")
+}
+
+// validatePublicBaseURL requires raw to parse as an absolute http(s)
+// URL with a host — called only when COCO_IAM_PUBLIC_BASE_URL is
+// actually set (empty is handled separately, by the existing
+// silent-fallback-to-localhost behavior at every call site).
+func validatePublicBaseURL(raw string) error {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("must be a valid URL: %w", err)
+	}
+	switch u.Scheme {
+	case "http", "https":
+	default:
+		return fmt.Errorf("must use http or https, got %q", u.Scheme)
+	}
+	if u.Host == "" {
+		return fmt.Errorf("must include a host")
+	}
+	return nil
 }
