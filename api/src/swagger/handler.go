@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/a-digi/coco-server/server/request"
+	"github.com/a-digi/coco-server/server/response"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -34,6 +35,15 @@ func (h *SpecHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 
+	// HSTS/nosniff/Referrer-Policy only, deliberately not the shared
+	// CSP default — swagger-ui-dist (embedded, no CDN calls) commonly
+	// relies on inline styles/scripts, which a strict default-src
+	// 'self' would break without verifying first. See
+	// plan/todo/security/header-and-cache-poisoning.md.
+	w.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+
 	httpSwagger.Handler(
 		httpSwagger.URL("/api/v1/docs/openapi.json"),
 	).ServeHTTP(w, r)
@@ -46,6 +56,7 @@ func (h *RawSpecHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	response.SetBaselineSecurityHeaders(w)
 	w.WriteHeader(http.StatusOK)
 	w.Write(specJSON)
 }

@@ -3,7 +3,9 @@ package routes
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/a-digi/coco-iam/config"
@@ -86,6 +88,7 @@ import (
 	"github.com/a-digi/coco-server/server/fileserver"
 	app_media "github.com/a-digi/coco-server/server/media"
 	"github.com/a-digi/coco-server/server/request"
+	"github.com/a-digi/coco-server/server/response"
 	"github.com/a-digi/coco-server/server/routing"
 )
 
@@ -578,11 +581,34 @@ func (s stdShim) ServeHTTP(reqCtx request.RequestContext) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, PATCH")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	response.SetBaselineSecurityHeaders(w)
 	s.h.ServeHTTP(w, reqCtx.GetRequest())
 }
 
 const observeAgentsBasePath = "/api/v1/admin/observe/agents"
+
+// validateAggregatorURL requires an absolute http(s) URL with a host.
+// Duplicated (not imported) from plugins/coco-observe/agent's own
+// identical validator — that package belongs to a separate Go
+// module this one doesn't otherwise depend on, and this is the
+// established convention in this codebase for small validation
+// helpers rather than adding a cross-module dependency for one
+// function. See plan/todo/security/header-and-cache-poisoning.md.
+func validateAggregatorURL(raw string) error {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("must be a valid URL: %w", err)
+	}
+	switch u.Scheme {
+	case "http", "https":
+	default:
+		return fmt.Errorf("must use http or https, got %q", u.Scheme)
+	}
+	if u.Host == "" {
+		return fmt.Errorf("must include a host")
+	}
+	return nil
+}
 
 // buildObserveHandlers initialises the coco-observe aggregator and returns
 // four framework-compatible handler shims. DataDir defaults to
@@ -601,6 +627,19 @@ func buildObserveHandlers() (push, query, agents, download routing.HandlerInterf
 			publicBase = "http://localhost:2026"
 		}
 		aggregatorURL = publicBase + "/api/v1/admin/observe/push"
+	} else if err := validateAggregatorURL(aggregatorURL); err != nil {
+		// Only the explicitly-set env var needs validating here — the
+		// derived default is always well-formed (built from a fixed
+		// prefix + a scheme/host already checked at boot, see
+		// validatePublicBaseURL in main.go). This only disables the
+		// observe agent-download feature, not core auth, so it
+		// degrades the same way an aggregator construction failure
+		// already does below, rather than crashing the whole server.
+		// See plan/todo/security/header-and-cache-poisoning.md.
+		broken := stdShim{h: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, `{"error":"invalid OBSERVE_AGGREGATOR_URL: `+err.Error()+`"}`, http.StatusServiceUnavailable)
+		})}
+		return broken, broken, broken, broken
 	}
 	agg, err := observe_agg.New(observe_agg.Config{
 		DataDir:       dataDir,
@@ -848,6 +887,7 @@ func Init(ctx serverdi.Context) {
 		"IPBanListHandler":                 &admin_security.IPBanListHandler{},
 		"IPBanCreateHandler":               &admin_security.IPBanCreateHandler{},
 		"IPBanDeleteHandler":               &admin_security.IPBanDeleteHandler{},
+		"IPBanAccountsHandler":             &admin_security.IPBanAccountsHandler{},
 		"IPAllowlistListHandler":           &admin_security.IPAllowlistListHandler{},
 		"IPAllowlistCreateHandler":         &admin_security.IPAllowlistCreateHandler{},
 		"IPAllowlistDeleteHandler":         &admin_security.IPAllowlistDeleteHandler{},

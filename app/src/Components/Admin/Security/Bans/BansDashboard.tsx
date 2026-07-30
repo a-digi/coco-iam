@@ -8,6 +8,13 @@ import { AppScopes } from '../../../../config/security/scopes';
 import { useHttpClient } from '../../../../api/http/useHttpClient';
 import { useSnackBar } from '../../../../Shared/Components/SnackBar/SnackBarContext';
 import BanIPModal from './BanIPModal';
+import IPBanAccountsModal from './IPBanAccountsModal';
+
+// Tiers this codebase's login-ban-rules feature issues (see
+// plan/login-ban-rules/plan.md) — the only ones with any attempted-
+// account data to show. Other tiers (global/sensitive/manual) are
+// volume- or admin-triggered, not tied to a specific login attempt.
+const LOGIN_FRAUD_TIERS = ['admin-login-failures', 'application-login-failures'];
 
 interface IPBan {
     ip: string;
@@ -34,6 +41,7 @@ export const BansDashboard: React.FC = () => {
     const [showBanModal, setShowBanModal] = useState(false);
     const [unbanTarget, setUnbanTarget] = useState<string | null>(null);
     const [unbanning, setUnbanning] = useState(false);
+    const [accountsTarget, setAccountsTarget] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -80,9 +88,20 @@ export const BansDashboard: React.FC = () => {
             key: 'actions',
             label: '',
             render: (_value, row) => (
-                <ScopeBasedComponentAccess requiredScopes={WRITE_SCOPES}>
-                    <Remove label="Unban" onClick={() => setUnbanTarget(row.ip)} />
-                </ScopeBasedComponentAccess>
+                <div className="flex items-center gap-3">
+                    {LOGIN_FRAUD_TIERS.includes(row.tier) && (
+                        <button
+                            type="button"
+                            onClick={() => setAccountsTarget(row.ip)}
+                            className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                        >
+                            View accounts
+                        </button>
+                    )}
+                    <ScopeBasedComponentAccess requiredScopes={WRITE_SCOPES}>
+                        <Remove label="Unban" onClick={() => setUnbanTarget(row.ip)} />
+                    </ScopeBasedComponentAccess>
+                </div>
             ),
         },
     ];
@@ -124,6 +143,8 @@ export const BansDashboard: React.FC = () => {
                     onCancel={() => setUnbanTarget(null)}
                 />
             )}
+
+            <IPBanAccountsModal ip={accountsTarget} onClose={() => setAccountsTarget(null)} />
         </div>
     );
 };

@@ -190,6 +190,27 @@ definitions:
       workspace_id:
         type: string
     type: object
+  entity.ApplicationFailedUsernameSummary:
+    properties:
+      account_id:
+        example: a3bead61-9f22-ff1f-8315-117b1ce373d0
+        type: string
+      application_id:
+        example: 5543a098-4e99-4778-859e-ab54328f47d6
+        type: string
+      application_title:
+        example: Login Flow Test App
+        type: string
+      attempts:
+        example: 3
+        type: integer
+      last_attempt_at:
+        example: "2026-07-30T20:41:00Z"
+        type: string
+      username:
+        example: jdoe
+        type: string
+    type: object
   entity.ApplicationLoginAttempt:
     properties:
       application_user_id:
@@ -567,6 +588,21 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.FailedUsernameSummary:
+    properties:
+      account_id:
+        example: 793424dd-7913-4190-be88-b928559ab4ef
+        type: string
+      attempts:
+        example: 3
+        type: integer
+      last_attempt_at:
+        example: "2026-07-30T20:41:00Z"
+        type: string
+      username:
+        example: jdoe
+        type: string
+    type: object
   entity.FetchGeoIPResponse:
     properties:
       geoip_info:
@@ -655,6 +691,25 @@ definitions:
       tier:
         example: sensitive
         type: string
+    type: object
+  entity.IPBanAccountsResponse:
+    properties:
+      admin_attempts:
+        items:
+          $ref: '#/definitions/entity.FailedUsernameSummary'
+        type: array
+      application_attempts:
+        items:
+          $ref: '#/definitions/entity.ApplicationFailedUsernameSummary'
+        type: array
+    type: object
+  entity.IPBanAccountsSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.IPBanAccountsResponse'
+      success:
+        example: true
+        type: boolean
     type: object
   entity.IPBanListSuccess:
     properties:
@@ -5192,6 +5247,47 @@ paths:
       security:
       - BearerAuth: []
       summary: Unban an IP
+      tags:
+      - security
+  /admin/security/ip-bans/{ip}/accounts:
+    get:
+      description: |-
+        Summarizes failed login attempts from this IP — admin console and every
+        application — username, attempt count, last-attempt time. admin_attempts is
+        omitted (null) without admin:security:login-log:read; application_attempts without
+        applications:login_log:read.
+      parameters:
+      - description: Banned IP address, as {ip:<value>}
+        in: path
+        name: ip
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.IPBanAccountsSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List accounts a banned IP attempted to log into
       tags:
       - security
   /admin/security/login-bans/settings:

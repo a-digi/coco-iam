@@ -146,8 +146,8 @@ func applicationCreate(reqCtx request.RequestContext) {
 
 	// Best-effort, like ensureKeypair below - a reservation failure
 	// must never block application creation itself. See
-	// reserveApplicationSlug's own doc comment.
-	slug := reserveApplicationSlug(reqCtx, id, orgID, body.Title)
+	// ReserveApplicationSlug's own doc comment.
+	slug := ReserveApplicationSlug(reqCtx, id, orgID, body.Title)
 	var slugArg interface{}
 	if slug != "" {
 		slugArg = slug
@@ -508,17 +508,21 @@ func scanApplicationRow(rows *sql.Rows) (applicationRow, error) {
 var slugPattern = regexp.MustCompile(`[^a-z0-9]+`)
 
 // maxSlugCollisionAttempts bounds the "-2", "-3", ... retry loop in
-// reserveApplicationSlug - a real title producing this many exact
+// ReserveApplicationSlug - a real title producing this many exact
 // collisions is implausible; bailing out with a logged warning beats
 // looping forever.
 const maxSlugCollisionAttempts = 50
 
-// deriveSlug lowercases title, collapses every run of non-alphanumeric
+// DeriveSlug lowercases title, collapses every run of non-alphanumeric
 // characters into a single hyphen, and trims leading/trailing
 // hyphens - the same kebab-case convention used for URL slugs
 // elsewhere. Falls back to "app" if title has no alphanumeric
-// characters at all, so a candidate is never empty.
-func deriveSlug(title string) string {
+// characters at all, so a candidate is never empty. Exported so the
+// login-log read path can replay this exact derivation for
+// applications that predate slug reservation entirely — see
+// ReserveApplicationSlug's own doc comment and
+// plan/login-log-provisioning-selfheal/plan.md.
+func DeriveSlug(title string) string {
 	s := slugPattern.ReplaceAllString(strings.ToLower(title), "-")
 	s = strings.Trim(s, "-")
 	if s == "" {
@@ -527,11 +531,11 @@ func deriveSlug(title string) string {
 	return s
 }
 
-// reserveApplicationSlug reserves a globally-unique, immutable slug
+// ReserveApplicationSlug reserves a globally-unique, immutable slug
 // for a new application in the main DB's application_slugs table -
 // the only place cross-org uniqueness can actually be enforced, since
 // applications themselves live in each organization's own users.db.
-// Starts from deriveSlug(title) and appends "-2", "-3", ... on a
+// Starts from DeriveSlug(title) and appends "-2", "-3", ... on a
 // collision. Best-effort, like ensureKeypair below: a reservation
 // failure (e.g. the main DB briefly unavailable) must never block
 // application creation itself, since the slug only matters for a
@@ -539,7 +543,14 @@ func deriveSlug(title string) string {
 // Returns "" on any failure, after logging a warning - the
 // application simply won't get login-log provisioning until an
 // operator investigates. See plan/login-audit-log/plan.md Step 5.
-func reserveApplicationSlug(reqCtx request.RequestContext, applicationID, organizationID, title string) string {
+//
+// Exported (not just used internally at creation time) so the
+// login-log read path's self-heal can call this same, already-tested
+// collision-retry logic for applications that were never provisioned —
+// either because they predate this reservation existing, or because
+// this call failed transiently at creation time. See
+// plan/login-log-provisioning-selfheal/plan.md.
+func ReserveApplicationSlug(reqCtx request.RequestContext, applicationID, organizationID, title string) string {
 	log := reqCtx.GetDI().GetLogger()
 	manager := reqCtx.GetDI().GetDatabaseManager()
 	if manager == nil || manager.Connector == nil || manager.Connector.DB == nil {
@@ -549,7 +560,7 @@ func reserveApplicationSlug(reqCtx request.RequestContext, applicationID, organi
 		return ""
 	}
 
-	base := deriveSlug(title)
+	base := DeriveSlug(title)
 	candidate := base
 	for attempt := 1; attempt <= maxSlugCollisionAttempts; attempt++ {
 		if attempt > 1 {

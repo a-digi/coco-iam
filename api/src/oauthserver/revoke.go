@@ -72,5 +72,6 @@ func (h *RevokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Access tokens are stateless JWTs in our model; we can't
 	// revoke them server-side. The spec allows the server to
 	// silently ignore unsupported token types.
+	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
 }

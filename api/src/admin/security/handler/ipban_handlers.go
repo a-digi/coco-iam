@@ -6,7 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-digi/coco-iam/config/di"
 	security_entity "github.com/a-digi/coco-iam/src/admin/security/entity"
+	loginlog_query "github.com/a-digi/coco-iam/src/admin/security/loginlog/repository/query"
+	app_loginlog_dbregistry "github.com/a-digi/coco-iam/src/applications/loginlog/dbregistry"
+	app_loginlog_query "github.com/a-digi/coco-iam/src/applications/loginlog/repository/query"
+	"github.com/a-digi/coco-iam/src/auth/scopecheck"
+	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
+	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
@@ -145,4 +152,142 @@ func (h *IPBanDeleteHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 	response.SuccessResponse(w, http.StatusOK, security_entity.StatusResponse{Status: "unbanned"})
+}
+
+// IPBanAccountsHandler serves GET
+// /api/v1/admin/security/ip-bans/{ip:<value>}/accounts — summarizes
+// which accounts a banned IP tried to log in as. AdminAttempts is
+// populated only when the caller also holds
+// admin:security:login-log:read; ApplicationAttempts only when the
+// caller also holds applications:login_log:read — both independent
+// of the admin:security:ipbans:read scope gating this endpoint
+// itself. Each is nil, not an empty slice, when the caller lacks the
+// corresponding scope, so the frontend can distinguish "not
+// authorized" from "authorized, nothing found". See
+// plan/ip-ban-accounts/plan.md.
+type IPBanAccountsHandler struct{}
+
+// @Summary     List accounts a banned IP attempted to log into
+// @Description Summarizes failed login attempts from this IP — admin console and every
+// @Description application — username, attempt count, last-attempt time. admin_attempts is
+// @Description omitted (null) without admin:security:login-log:read; application_attempts without
+// @Description applications:login_log:read.
+// @Tags        security
+// @Produce     json
+// @Security    BearerAuth
+// @Param       ip path string true "Banned IP address, as {ip:<value>}"
+// @Success     200 {object} security_entity.IPBanAccountsSuccess
+// @Failure     400,401,403,500 {object} response.ErrorBody
+// @Router      /admin/security/ip-bans/{ip}/accounts [get]
+func (h *IPBanAccountsHandler) ServeHTTP(reqCtx request.RequestContext) {
+	w := reqCtx.GetWriter()
+	r := reqCtx.GetRequest()
+
+	key, ip := uri.ExtractKeyAndValueFromURI(r.URL.Path)
+	if key != "ip" || ip == "" {
+		response.ErrorResponse(w, http.StatusBadRequest, "ip is required")
+		return
+	}
+
+	bag, ok := reqCtx.GetDI().(*di.ContextBag)
+	if !ok {
+		response.ErrorResponse(w, http.StatusInternalServerError, "DI context has unexpected type")
+		return
+	}
+
+	var result security_entity.IPBanAccountsResponse
+
+	checker := scopecheck.NewChecker()
+	hasLoginLogRead, _ := checker.HasScope(r.Header, "admin:security:login-log:read")
+	if hasLoginLogRead {
+		handle := bag.GetAdminLoginHandle()
+		if handle == nil {
+			response.ErrorResponse(w, http.StatusInternalServerError, "admin login-log database not available")
+			return
+		}
+		summaries, err := loginlog_query.NewAdminLoginQueryRepo(handle).ListFailedUsernamesForIP(ip)
+		if err != nil {
+			response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		result.AdminAttempts = make([]security_entity.FailedUsernameSummary, 0, len(summaries))
+		for _, s := range summaries {
+			result.AdminAttempts = append(result.AdminAttempts, security_entity.FailedUsernameSummary{
+				Username:      s.Username,
+				AccountID:     s.AdminUserID,
+				Attempts:      s.Attempts,
+				LastAttemptAt: s.LastAttemptAt,
+			})
+		}
+	}
+
+	hasAppLoginLogRead, _ := checker.HasScope(r.Header, "applications:login_log:read")
+	if hasAppLoginLogRead {
+		appAttempts, err := listApplicationFailedUsernamesForIP(bag, ip)
+		if err != nil {
+			response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		result.ApplicationAttempts = appAttempts
+	}
+
+	response.SuccessResponse(w, http.StatusOK, result)
+}
+
+// listApplicationFailedUsernamesForIP fans out across every
+// currently-provisioned application's own login-log DB, collecting
+// only the applications where ip has at least one recorded failure.
+// O(known applications) per call — acceptable at the scale a single
+// admin console realistically has; would need reconsidering (caching
+// KnownAppIDs, requiring an org filter) at a much larger scale. See
+// plan/ip-ban-accounts/plan.md's flagged tradeoff.
+func listApplicationFailedUsernamesForIP(bag *di.ContextBag, ip string) ([]security_entity.ApplicationFailedUsernameSummary, error) {
+	loginlogRaw, ok := bag.Get(app_loginlog_dbregistry.ContextBagKey)
+	if !ok {
+		return []security_entity.ApplicationFailedUsernameSummary{}, nil
+	}
+	loginlogReg, ok := loginlogRaw.(*app_loginlog_dbregistry.Registry)
+	if !ok {
+		return []security_entity.ApplicationFailedUsernameSummary{}, nil
+	}
+	usersRaw, ok := bag.Get(users_dbregistry.ContextBagKey)
+	if !ok {
+		return []security_entity.ApplicationFailedUsernameSummary{}, nil
+	}
+	usersReg, ok := usersRaw.(*users_dbregistry.OrgUserDBRegistry)
+	if !ok {
+		return []security_entity.ApplicationFailedUsernameSummary{}, nil
+	}
+
+	out := []security_entity.ApplicationFailedUsernameSummary{}
+	for _, appID := range loginlogReg.KnownAppIDs() {
+		handle, err := loginlogReg.For(appID)
+		if err != nil {
+			continue
+		}
+		summaries, err := app_loginlog_query.NewApplicationLoginQueryRepo(handle).ListFailedUsernamesForIP(ip)
+		if err != nil || len(summaries) == 0 {
+			continue
+		}
+
+		title := appID
+		if orgDB, _, err := orgrouter.OrgDBForApp(usersReg, appID); err == nil {
+			var t string
+			if orgDB.QueryRow(`SELECT title FROM applications WHERE id = ?`, appID).Scan(&t) == nil && t != "" {
+				title = t
+			}
+		}
+
+		for _, s := range summaries {
+			out = append(out, security_entity.ApplicationFailedUsernameSummary{
+				ApplicationID:    appID,
+				ApplicationTitle: title,
+				Username:         s.Username,
+				AccountID:        s.ApplicationUserID,
+				Attempts:         s.Attempts,
+				LastAttemptAt:    s.LastAttemptAt,
+			})
+		}
+	}
+	return out, nil
 }

@@ -5040,6 +5040,64 @@
                 }
             }
         },
+        "/admin/security/ip-bans/{ip}/accounts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Summarizes failed login attempts from this IP — admin console and every\napplication — username, attempt count, last-attempt time. admin_attempts is\nomitted (null) without admin:security:login-log:read; application_attempts without\napplications:login_log:read.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List accounts a banned IP attempted to log into",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Banned IP address, as {ip:\u003cvalue\u003e}",
+                        "name": "ip",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.IPBanAccountsSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/login-bans/settings": {
             "get": {
                 "security": [
@@ -10870,6 +10928,35 @@
                 }
             }
         },
+        "entity.ApplicationFailedUsernameSummary": {
+            "type": "object",
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "example": "a3bead61-9f22-ff1f-8315-117b1ce373d0"
+                },
+                "application_id": {
+                    "type": "string",
+                    "example": "5543a098-4e99-4778-859e-ab54328f47d6"
+                },
+                "application_title": {
+                    "type": "string",
+                    "example": "Login Flow Test App"
+                },
+                "attempts": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "last_attempt_at": {
+                    "type": "string",
+                    "example": "2026-07-30T20:41:00Z"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "jdoe"
+                }
+            }
+        },
         "entity.ApplicationLoginAttempt": {
             "type": "object",
             "properties": {
@@ -11359,6 +11446,27 @@
                 }
             }
         },
+        "entity.FailedUsernameSummary": {
+            "type": "object",
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "example": "793424dd-7913-4190-be88-b928559ab4ef"
+                },
+                "attempts": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "last_attempt_at": {
+                    "type": "string",
+                    "example": "2026-07-30T20:41:00Z"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "jdoe"
+                }
+            }
+        },
         "entity.FetchGeoIPResponse": {
             "type": "object",
             "properties": {
@@ -11483,6 +11591,35 @@
                 "tier": {
                     "type": "string",
                     "example": "sensitive"
+                }
+            }
+        },
+        "entity.IPBanAccountsResponse": {
+            "type": "object",
+            "properties": {
+                "admin_attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.FailedUsernameSummary"
+                    }
+                },
+                "application_attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.ApplicationFailedUsernameSummary"
+                    }
+                }
+            }
+        },
+        "entity.IPBanAccountsSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.IPBanAccountsResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

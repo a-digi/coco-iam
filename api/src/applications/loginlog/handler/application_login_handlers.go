@@ -6,6 +6,7 @@
 package handler
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"net/url"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	archives_entity "github.com/a-digi/coco-iam/src/admin/security/archives/entity"
+	applications_admin "github.com/a-digi/coco-iam/src/applications/admin"
 	loginlog_dbregistry "github.com/a-digi/coco-iam/src/applications/loginlog/dbregistry"
 	loginlog_entity "github.com/a-digi/coco-iam/src/applications/loginlog/entity"
 	loginlog_query "github.com/a-digi/coco-iam/src/applications/loginlog/repository/query"
@@ -77,6 +79,55 @@ func resolveOrgIDForApp(reqCtx request.RequestContext, appID string) (string, er
 	return orgID, nil
 }
 
+// selfHealProvisioning attempts to provision appID's login-log DB on
+// first read, covering two populations that never got provisioned at
+// application-creation time: (a) applications that have a slug but
+// whose Provision call failed transiently, and (b) applications with
+// no slug at all — either because they predate the slug column
+// entirely, or ReserveApplicationSlug itself failed at creation time.
+// Both cases are silently unrecoverable otherwise: SweepExisting (run
+// at every server boot) only re-opens a <slug>_login.db that already
+// exists on disk, it never creates one from scratch. Best-effort,
+// like every other step in this chain — any failure here just means
+// the caller keeps seeing the original 404. See
+// plan/login-log-provisioning-selfheal/plan.md.
+func selfHealProvisioning(reqCtx request.RequestContext, registry *loginlog_dbregistry.Registry, appID string) bool {
+	bag, ok := reqCtx.GetDI().(bagGetter)
+	if !ok {
+		return false
+	}
+	raw, ok := bag.Get(users_dbregistry.ContextBagKey)
+	if !ok {
+		return false
+	}
+	reg, ok := raw.(*users_dbregistry.OrgUserDBRegistry)
+	if !ok {
+		return false
+	}
+	orgDB, orgID, err := orgrouter.OrgDBForApp(reg, appID)
+	if err != nil {
+		return false
+	}
+
+	var slug, title sql.NullString
+	if err := orgDB.QueryRow(`SELECT slug, title FROM applications WHERE id = ?`, appID).Scan(&slug, &title); err != nil {
+		return false
+	}
+
+	resolvedSlug := slug.String
+	if resolvedSlug == "" {
+		resolvedSlug = applications_admin.ReserveApplicationSlug(reqCtx, appID, orgID, title.String)
+		if resolvedSlug == "" {
+			return false
+		}
+		if _, err := orgDB.Exec(`UPDATE applications SET slug = ? WHERE id = ?`, resolvedSlug, appID); err != nil {
+			return false
+		}
+	}
+
+	return registry.Provision(appID, orgID, resolvedSlug) == nil
+}
+
 // AppLoginLogListHandler serves GET
 // /api/v1/applications/{res:applications}/{id}/login-log. Query
 // parameters:
@@ -121,8 +172,19 @@ func (h *AppLoginLogListHandler) ServeHTTP(reqCtx request.RequestContext) {
 	}
 	handle, err := registry.For(appID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusNotFound, "login log not provisioned for this application")
-		return
+		// Self-heal: this application was never provisioned (predates
+		// the provisioning hook, or a transient failure at creation
+		// time swallowed the error — both are best-effort at creation
+		// time and never retried since). Try once, on this read, to
+		// fix it permanently rather than failing forever. See
+		// plan/login-log-provisioning-selfheal/plan.md.
+		if selfHealProvisioning(reqCtx, registry, appID) {
+			handle, err = registry.For(appID)
+		}
+		if err != nil {
+			response.ErrorResponse(w, http.StatusNotFound, "login log not provisioned for this application")
+			return
+		}
 	}
 	query := loginlog_query.NewApplicationLoginQueryRepo(handle)
 

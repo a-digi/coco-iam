@@ -397,6 +397,7 @@ func buildRedirect(base string, params map[string]string) string {
 // Used for server-rendered failures (no client redirect).
 func writeJSONError(w http.ResponseWriter, code entity.OAuthErrorCode, description string, status int) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(map[string]any{
 		"error":             string(code),

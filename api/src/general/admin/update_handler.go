@@ -3,6 +3,8 @@ package admin
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 
 	"github.com/a-digi/coco-iam/src/general"
@@ -47,6 +49,11 @@ func (h *AdminGeneralSettingsUpdateHandler) ServeHTTP(reqCtx request.RequestCont
 					"base_url must start with http:// or https://")
 				return
 			}
+			if !isAllowedBaseURLHost(v) {
+				response.ErrorResponse(w, http.StatusBadRequest,
+					"base_url host is not in the configured allowlist")
+				return
+			}
 		}
 		updates[general.KeyBaseURL] = strings.TrimRight(v, "/")
 	}
@@ -73,4 +80,31 @@ func (h *AdminGeneralSettingsUpdateHandler) ServeHTTP(reqCtx request.RequestCont
 		return
 	}
 	response.SuccessResponse(w, http.StatusOK, snap)
+}
+
+// isAllowedBaseURLHost checks rawURL's host against
+// ALLOWED_FRONTEND_BASE_URL_HOSTS, a comma-separated allowlist an
+// operator opts into at deploy time. Unset (the default) means no
+// restriction — base_url is legitimately allowed to point at a
+// different domain than COCO_IAM_PUBLIC_BASE_URL (frontend and API
+// can live on different subdomains), so this can't just reuse that
+// value; it needs its own explicit opt-in list. Once set, this is
+// what stops an admin (or a compromised admin session) from pointing
+// activation/recovery email links at an attacker-controlled domain.
+// See plan/todo/security/header-and-cache-poisoning.md.
+func isAllowedBaseURLHost(rawURL string) bool {
+	allowlist := strings.TrimSpace(os.Getenv("ALLOWED_FRONTEND_BASE_URL_HOSTS"))
+	if allowlist == "" {
+		return true
+	}
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Host == "" {
+		return false
+	}
+	for _, allowed := range strings.Split(allowlist, ",") {
+		if strings.EqualFold(strings.TrimSpace(allowed), u.Host) {
+			return true
+		}
+	}
+	return false
 }

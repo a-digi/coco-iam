@@ -94,5 +94,13 @@ func (h *DiscoveryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	meta := BuildDiscovery(h.IssuerFromRequest(r), h.BasePathFromRequest(r), h.ScopesSupported)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "public, max-age=300")
+	// OIDC discovery documents are standardly fetched cross-origin by
+	// relying parties — this endpoint previously had no CORS headers
+	// at all, silently blocking that. A static "*" (not a per-origin
+	// reflection) needs no Vary: Origin — the response never differs
+	// by request Origin, so there's nothing a shared cache could
+	// serve inconsistently across origins. See
+	// plan/todo/security/header-and-cache-poisoning.md.
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	_ = json.NewEncoder(w).Encode(meta)
 }

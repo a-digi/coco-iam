@@ -55,4 +55,4 @@ replace github.com/a-digi/coco-server => ../plugins/coco-server
 
 replace github.com/a-digi/coco-lift => ../plugins/coco-lift
 
-// replace github.com/a-digi/coco-observe => ../plugins/coco-observe
+replace github.com/a-digi/coco-observe => ../plugins/coco-observe

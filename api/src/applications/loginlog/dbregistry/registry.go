@@ -105,6 +105,25 @@ func New(baseDir, migrationsPath string, threshold int64, orgUserRegistry *org_u
 	}
 }
 
+// KnownAppIDs returns the application ids whose login-log DB
+// currently has a cached handle — mirrors
+// organizations/users/dbregistry.Registry.KnownOrgIDs() exactly, same
+// "point-in-time snapshot of what's currently provisioned" contract.
+// Callers that want every application (not just ones already
+// provisioned this run) should invoke SweepExisting first. Used by
+// the IP-bans "which accounts did this IP try" fan-out — see
+// plan/ip-ban-accounts/plan.md.
+func (r *Registry) KnownAppIDs() []string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	ids := make([]string, 0, len(r.cache))
+	for appID := range r.cache {
+		ids = append(ids, appID)
+	}
+	return ids
+}
+
 // For returns the cached handle for applicationID — a pure cache
 // lookup (see the package doc comment for why this can't lazily
 // construct one). Returns an error if applicationID was never
