@@ -62,3 +62,40 @@ func (h *FirewallResyncHandler) ServeHTTP(reqCtx request.RequestContext) {
 		Failed:         failed,
 	})
 }
+
+// FirewallRulesHandler serves GET /api/v1/admin/security/firewall/rules.
+type FirewallRulesHandler struct{}
+
+// @Summary     List OS-level firewall ban rules
+// @Description Returns the IPs currently blocked at the OS firewall level, read live from the
+// @Description backend in use (iptables/pf) — informational; /admin/security/ip-bans remains the
+// @Description source of truth for what should be banned.
+// @Tags        security
+// @Produce     json
+// @Security    BearerAuth
+// @Success     200 {object} security_entity.FirewallRulesSuccess
+// @Failure     401,403,500 {object} response.ErrorBody
+// @Router      /admin/security/firewall/rules [get]
+func (h *FirewallRulesHandler) ServeHTTP(reqCtx request.RequestContext) {
+	w := reqCtx.GetWriter()
+
+	guard, ok := resolveIPGuard(reqCtx)
+	if !ok {
+		return
+	}
+
+	name, _, _ := guard.FirewallStatus()
+	rules, err := guard.ListFirewallRules()
+	if err != nil {
+		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if rules == nil {
+		rules = []string{}
+	}
+
+	response.SuccessResponse(w, http.StatusOK, security_entity.FirewallRulesResponse{
+		Backend: name,
+		Rules:   rules,
+	})
+}

@@ -5,7 +5,9 @@ package firewall
 import (
 	"context"
 	"fmt"
+	"net"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/a-digi/coco-logger/logger"
@@ -86,6 +88,40 @@ func (b *linuxBanner) Ban(ip string, duration time.Duration) error {
 // plan section 15's "Unban must be idempotent and tolerant of drift".
 func (b *linuxBanner) Unban(ip string) error {
 	return b.runIPTables(ip, "-D", "INPUT", "-s", ip, "-j", "DROP")
+}
+
+// ListBannedIPs parses `iptables -L INPUT -n` for rows this backend's
+// own Ban() shape produces: target DROP, a single source IP (not a
+// CIDR or 0.0.0.0/0), destination 0.0.0.0/0, no protocol restriction.
+// Best-effort heuristic, not cryptographic proof of origin — an
+// admin's own unrelated single-IP DROP rule in INPUT would also match.
+// Informational only; this list never drives an unban action. See
+// plan/firewall-live-rules/plan.md.
+func (b *linuxBanner) ListBannedIPs() ([]string, error) {
+	if !b.available {
+		return nil, nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+	defer cancel()
+	out, err := b.run(ctx, "iptables", "-L", "INPUT", "-n")
+	if err != nil {
+		return nil, fmt.Errorf("firewall: iptables -L INPUT -n: %w (output: %s)", err, string(out))
+	}
+	var ips []string
+	for _, line := range strings.Split(string(out), "\n") {
+		fields := strings.Fields(line)
+		// Expected shape: target prot opt source destination, e.g.
+		// "DROP  all  --  203.0.113.7  0.0.0.0/0"
+		if len(fields) < 5 || fields[0] != "DROP" || fields[4] != "0.0.0.0/0" {
+			continue
+		}
+		src := fields[3]
+		if net.ParseIP(src) == nil {
+			continue // a CIDR or anything else isn't a single-IP ban rule
+		}
+		ips = append(ips, src)
+	}
+	return ips, nil
 }
 
 // runIPTables validates ip explicitly (never trusting its position

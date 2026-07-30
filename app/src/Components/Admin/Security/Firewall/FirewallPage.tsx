@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Alert from '../../../../Shared/Components/Alert/Alert';
 import { Submit } from '../../../../Shared/Components/Button';
 import ScopeBasedComponentAccess from '../../../../Shared/Components/Access/ScopeBasedComponentAccess';
@@ -22,6 +23,11 @@ interface FirewallResyncResponse {
     failed: number;
 }
 
+interface FirewallRulesResponse {
+    backend: string;
+    rules: string[];
+}
+
 const WRITE_SCOPES = [AppScopes.AdminSecurityFirewallWrite, AppScopes.SuperAdmin];
 
 // FirewallPage is the dedicated Security > Firewall view — a fuller
@@ -36,8 +42,18 @@ export const FirewallPage: React.FC = () => {
     const { successMessage, errorMessage } = useSnackBar();
 
     const [status, setStatus] = useState<SecurityStatus | null>(null);
+    const [rules, setRules] = useState<FirewallRulesResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [resyncing, setResyncing] = useState(false);
+
+    const loadRules = useCallback(async () => {
+        try {
+            const resp = await get<{ message: FirewallRulesResponse }>('admin/security/firewall/rules');
+            setRules(resp.message);
+        } catch (err: unknown) {
+            errorMessage(err instanceof Error ? err.message : 'Failed to load firewall rules.');
+        }
+    }, [get, errorMessage]);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -49,7 +65,8 @@ export const FirewallPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [get, errorMessage]);
+        await loadRules();
+    }, [get, errorMessage, loadRules]);
 
     useEffect(() => {
         void load();
@@ -63,6 +80,7 @@ export const FirewallPage: React.FC = () => {
             successMessage(
                 `Resync complete — ${r.synced} synced, ${r.skipped_expired} skipped (expired), ${r.failed} failed.`
             );
+            await loadRules();
         } catch (err: unknown) {
             errorMessage(err instanceof Error ? err.message : 'Failed to resync firewall.');
         } finally {
@@ -139,6 +157,32 @@ block drop from <coco_iam_banned> to any`}
                             </div>
                         )}
                     </>
+                )}
+
+                {rules && (
+                    <div className="p-4 bg-gray-50 dark:bg-surface-900 rounded-lg border border-gray-100 dark:border-gray-600">
+                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+                            Currently blocked IPs (OS level)
+                        </div>
+                        {rules.rules.length === 0 ? (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                No IPs are currently blocked at the OS level via {rules.backend}.
+                            </p>
+                        ) : (
+                            <ul className="text-sm text-gray-900 dark:text-gray-100 font-mono space-y-1">
+                                {rules.rules.map(ip => (
+                                    <li key={ip}>{ip}</li>
+                                ))}
+                            </ul>
+                        )}
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            Read live from {rules.backend} — informational, not authoritative. The{' '}
+                            <Link to="/admin/security/bans" className="underline">
+                                Bans
+                            </Link>{' '}
+                            page is the source of truth for what should be banned.
+                        </p>
+                    </div>
                 )}
 
                 <ScopeBasedComponentAccess requiredScopes={WRITE_SCOPES}>

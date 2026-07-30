@@ -34,6 +34,11 @@ type Banner interface {
 	Available() bool
 	// Detail explains why Available() is false. Empty when available.
 	Detail() string
+	// ListBannedIPs returns the IPs currently blocked at the OS level,
+	// read live from the backend — informational only (the ip_bans DB
+	// table stays the source of truth for what should be banned).
+	// Returns an empty slice, not an error, when unavailable.
+	ListBannedIPs() ([]string, error)
 }
 
 // Detect picks the right backend for the current OS (detectPlatform
@@ -66,6 +71,7 @@ func (n *NoopBanner) Unban(ip string) error                       { return nil }
 func (n *NoopBanner) Name() string                                { return "none" }
 func (n *NoopBanner) Available() bool                             { return false }
 func (n *NoopBanner) Detail() string                              { return n.detail }
+func (n *NoopBanner) ListBannedIPs() ([]string, error)            { return nil, nil }
 
 // validateIP rejects anything that isn't a syntactically valid
 // IPv4/IPv6 address — the mandatory gate before ip reaches any

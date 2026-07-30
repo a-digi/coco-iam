@@ -4504,6 +4504,49 @@
                 }
             }
         },
+        "/admin/security/firewall/rules": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the IPs currently blocked at the OS firewall level, read live from the\nbackend in use (iptables/pf) — informational; /admin/security/ip-bans remains the\nsource of truth for what should be banned.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "List OS-level firewall ban rules",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.FirewallRulesSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/geoip/search": {
             "get": {
                 "security": [
@@ -11669,6 +11712,33 @@
             "properties": {
                 "message": {
                     "$ref": "#/definitions/entity.FirewallResyncResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.FirewallRulesResponse": {
+            "type": "object",
+            "properties": {
+                "backend": {
+                    "type": "string",
+                    "example": "iptables"
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "entity.FirewallRulesSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.FirewallRulesResponse"
                 },
                 "success": {
                     "type": "boolean",

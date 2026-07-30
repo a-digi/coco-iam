@@ -438,6 +438,16 @@ func (g *IPGuardSecurityLayer) FirewallStatus() (name string, available bool, de
 	return g.firewall.Name(), g.firewall.Available(), g.firewall.Detail()
 }
 
+// ListFirewallRules returns the IPs currently blocked at the OS
+// firewall level, read live from the backend — informational, not the
+// source of truth (ip_bans is). See plan/firewall-live-rules/plan.md.
+func (g *IPGuardSecurityLayer) ListFirewallRules() ([]string, error) {
+	if g.firewall == nil {
+		return nil, nil
+	}
+	return g.firewall.ListBannedIPs()
+}
+
 // PruneStaleCounters evicts in-memory rate-limit counters idle past
 // twice the largest configured window — bounds memory growth from IPs
 // that have stopped sending traffic. See plan section 1's "Memory

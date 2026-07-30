@@ -22,6 +22,9 @@ func TestNoopBanner_NeverAvailableAndNeverErrors(t *testing.T) {
 	if err := b.Unban("203.0.113.7"); err != nil {
 		t.Fatalf("Unban() on a no-op backend must never error, got %v", err)
 	}
+	if ips, err := b.ListBannedIPs(); err != nil || len(ips) != 0 {
+		t.Fatalf("ListBannedIPs() on a no-op backend = (%v, %v), want (empty, nil)", ips, err)
+	}
 }
 
 func TestValidateIP_AcceptsValidAddresses(t *testing.T) {

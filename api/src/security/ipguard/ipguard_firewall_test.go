@@ -50,6 +50,15 @@ func (f *fakeFirewall) Unban(ip string) error {
 func (f *fakeFirewall) Name() string    { return "fake" }
 func (f *fakeFirewall) Available() bool { return true }
 func (f *fakeFirewall) Detail() string  { return "" }
+func (f *fakeFirewall) ListBannedIPs() ([]string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	ips := make([]string, 0, len(f.banned))
+	for ip := range f.banned {
+		ips = append(ips, ip)
+	}
+	return ips, nil
+}
 func (f *fakeFirewall) isBanned(ip string) bool {
 	f.mu.Lock()
 	defer f.mu.Unlock()

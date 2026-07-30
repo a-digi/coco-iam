@@ -17,3 +17,19 @@ type FirewallResyncSuccess struct {
 	Success bool                   `json:"success" example:"true"`
 	Message FirewallResyncResponse `json:"message"`
 }
+
+// FirewallRulesResponse lists the IPs currently blocked at the OS
+// firewall level, read live from the backend in use — informational
+// only; ip_bans (via /admin/security/ip-bans) stays the source of
+// truth for what *should* be banned. See plan/firewall-live-rules/plan.md.
+type FirewallRulesResponse struct {
+	Backend string   `json:"backend" example:"iptables"`
+	Rules   []string `json:"rules"`
+}
+
+// Swag-friendly success envelope.
+
+type FirewallRulesSuccess struct {
+	Success bool                  `json:"success" example:"true"`
+	Message FirewallRulesResponse `json:"message"`
+}

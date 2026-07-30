@@ -646,6 +646,24 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.FirewallRulesResponse:
+    properties:
+      backend:
+        example: iptables
+        type: string
+      rules:
+        items:
+          type: string
+        type: array
+    type: object
+  entity.FirewallRulesSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.FirewallRulesResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.IPAllowlistEntry:
     properties:
       created_at:
@@ -4940,6 +4958,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Resync active IP bans into the OS-level firewall
+      tags:
+      - security
+  /admin/security/firewall/rules:
+    get:
+      description: |-
+        Returns the IPs currently blocked at the OS firewall level, read live from the
+        backend in use (iptables/pf) — informational; /admin/security/ip-bans remains the
+        source of truth for what should be banned.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.FirewallRulesSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List OS-level firewall ban rules
       tags:
       - security
   /admin/security/geoip/search:

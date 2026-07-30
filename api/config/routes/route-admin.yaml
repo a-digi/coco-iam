@@ -662,6 +662,14 @@ routes:
             scopes:
               - admin:security:firewall:write
               - super:admin
+          # Live OS-level rule list — see plan/firewall-live-rules/plan.md.
+          - path: /security/firewall/rules
+            method: GET
+            executor: FirewallRulesHandler
+            security: authenticated
+            scopes:
+              - admin:security:firewall:read
+              - super:admin
           - path: /security/geoip/settings
             method: GET
             executor: GeoIPGetSettingsHandler

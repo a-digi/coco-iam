@@ -5,7 +5,9 @@ package firewall
 import (
 	"context"
 	"fmt"
+	"net"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/a-digi/coco-logger/logger"
@@ -90,6 +92,33 @@ func (b *darwinBanner) Ban(ip string, duration time.Duration) error {
 // Unban removes ip from the pf table.
 func (b *darwinBanner) Unban(ip string) error {
 	return b.runPfctl(ip, "-t", pfTable, "-T", "delete", ip)
+}
+
+// ListBannedIPs reads the pf table directly — unlike the Linux
+// heuristic, this is exact: coco_iam_banned is a dedicated table this
+// backend owns, not a shared chain another rule might also populate.
+func (b *darwinBanner) ListBannedIPs() ([]string, error) {
+	if !b.available {
+		return nil, nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+	defer cancel()
+	out, err := b.run(ctx, "pfctl", "-t", pfTable, "-T", "show")
+	if err != nil {
+		return nil, fmt.Errorf("firewall: pfctl -t %s -T show: %w (output: %s)", pfTable, err, string(out))
+	}
+	var ips []string
+	for _, line := range strings.Split(string(out), "\n") {
+		ip := strings.TrimSpace(line)
+		if ip == "" {
+			continue
+		}
+		if net.ParseIP(ip) == nil {
+			continue
+		}
+		ips = append(ips, ip)
+	}
+	return ips, nil
 }
 
 func (b *darwinBanner) runPfctl(ip string, args ...string) error {
