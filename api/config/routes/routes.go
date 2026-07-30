@@ -887,6 +887,7 @@ func Init(ctx serverdi.Context) {
 		"IPBanListHandler":                 &admin_security.IPBanListHandler{},
 		"IPBanCreateHandler":               &admin_security.IPBanCreateHandler{},
 		"IPBanDeleteHandler":               &admin_security.IPBanDeleteHandler{},
+		"IPBanAccountsHandler":             &admin_security.IPBanAccountsHandler{},
 		"IPAllowlistListHandler":           &admin_security.IPAllowlistListHandler{},
 		"IPAllowlistCreateHandler":         &admin_security.IPAllowlistCreateHandler{},
 		"IPAllowlistDeleteHandler":         &admin_security.IPAllowlistDeleteHandler{},

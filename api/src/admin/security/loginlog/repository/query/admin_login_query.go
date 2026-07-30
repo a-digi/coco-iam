@@ -134,6 +134,50 @@ func (r *AdminLoginQueryRepo) CountRecentFailures(ip string, since time.Time) (i
 	return n, nil
 }
 
+// UsernameFailureSummary is one username a given IP has failed to log
+// in as, aggregated across every recorded failure — see
+// ListFailedUsernamesForIP.
+type UsernameFailureSummary struct {
+	Username      string
+	AdminUserID   string
+	Attempts      int
+	LastAttemptAt string
+}
+
+// ListFailedUsernamesForIP returns every distinct username ip has
+// ever failed a login attempt as, newest-first, with a per-username
+// attempt count — used by the IP-bans page's "which accounts did
+// this IP try" view. Not scoped to any particular time window
+// (unlike CountRecentFailures) since a ban's own triggering window
+// may since have changed, or the ban may be manual with no window at
+// all — this shows the full history. See plan/ip-ban-accounts/plan.md.
+func (r *AdminLoginQueryRepo) ListFailedUsernamesForIP(ip string) ([]UsernameFailureSummary, error) {
+	rows, err := r.handle.DB().Query(
+		`SELECT username, COALESCE(admin_user_id, ''), COUNT(*), MAX(created_at)
+		 FROM admin_login_attempts WHERE ip = ? AND success = 0
+		 GROUP BY username ORDER BY MAX(created_at) DESC`,
+		ip,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("admin-login-attempt: list failed usernames: %w", err)
+	}
+	defer rows.Close()
+
+	var out []UsernameFailureSummary
+	for rows.Next() {
+		var s UsernameFailureSummary
+		if err := rows.Scan(&s.Username, &s.AdminUserID, &s.Attempts, &s.LastAttemptAt); err != nil {
+			return nil, fmt.Errorf("admin-login-attempt: scan failed usernames: %w", err)
+		}
+		s.LastAttemptAt = normalizeTimestamp(s.LastAttemptAt)
+		out = append(out, s)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("admin-login-attempt: rows failed usernames: %w", err)
+	}
+	return out, nil
+}
+
 // normalizeTimestamp rewrites created_at to a single consistent
 // RFC3339 format — same defensive parse attacks_query.go's own
 // normalizeTimestamp uses, in case a COALESCE-wrapped or raw scan ever

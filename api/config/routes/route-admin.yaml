@@ -498,6 +498,18 @@ routes:
             scopes:
               - admin:security:ipbans:write
               - super:admin
+          # "Which accounts did this IP try" — see plan/ip-ban-accounts/plan.md.
+          # Section-level scope gating happens inside the handler
+          # (admin_attempts needs admin:security:login-log:read too),
+          # so the route-level gate here is deliberately just the base
+          # ipbans:read requirement.
+          - path: /security/ip-bans/{ip}/accounts
+            method: GET
+            executor: IPBanAccountsHandler
+            security: authenticated
+            scopes:
+              - admin:security:ipbans:read
+              - super:admin
           - path: /security/ip-allowlist
             method: GET
             executor: IPAllowlistListHandler
