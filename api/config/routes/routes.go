@@ -72,6 +72,7 @@ import (
 	organization_users_admin "github.com/a-digi/coco-iam/src/organizations/users/admin"
 	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
+	attackbans_handler "github.com/a-digi/coco-iam/src/security/attackbans/handler"
 	"github.com/a-digi/coco-iam/src/security/geoip"
 	geoip_handler "github.com/a-digi/coco-iam/src/security/geoip/handler"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
@@ -908,6 +909,9 @@ func Init(ctx serverdi.Context) {
 		// Failed-login ban-rule settings — see plan/login-ban-rules/plan.md.
 		"LoginBansGetSettingsHandler": &loginbans_handler.GetSettingsHandler{},
 		"LoginBansPutSettingsHandler": &loginbans_handler.PutSettingsHandler{},
+
+		"AttackBansGetSettingsHandler": &attackbans_handler.GetSettingsHandler{},
+		"AttackBansPutSettingsHandler": &attackbans_handler.PutSettingsHandler{},
 		// Admin GeoIP settings + process control — see
 		// plan/geoip-enrichment/plan.md.
 		"GeoIPGetSettingsHandler":              &geoip_handler.GetSettingsHandler{},

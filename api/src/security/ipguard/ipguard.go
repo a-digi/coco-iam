@@ -19,6 +19,7 @@ import (
 	security_entity "github.com/a-digi/coco-iam/src/admin/security/entity"
 	security_persistent "github.com/a-digi/coco-iam/src/admin/security/repository/persistent"
 	security_query "github.com/a-digi/coco-iam/src/admin/security/repository/query"
+	"github.com/a-digi/coco-iam/src/security/attackbans"
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
 	"github.com/a-digi/coco-iam/src/security/geoip"
 	"github.com/a-digi/coco-iam/src/security/ipguard/firewall"
@@ -72,8 +73,9 @@ type IPGuardSecurityLayer struct {
 	allowQuery   *security_query.IPAllowlistQueryRepo
 	allowPersist *security_persistent.IPAllowlistPersistentRepo
 
-	attackPersist *attacks_persistent.AttackPersistentRepo
-	attackLog     logger.Logger // dedicated log file — see plan section 12
+	attackPersist  *attacks_persistent.AttackPersistentRepo
+	attackLog      logger.Logger                 // dedicated log file — see plan section 12
+	attackBanQuery *attackbans.SettingsQueryRepo // admin-editable scan/probe ban rule, see plan/attack-ban-rules/plan.md
 
 	firewall firewall.Banner // OS-level enforcement, see plan section 14
 	geo      geoip.Lookup    // country/ASN/ISP enrichment, may be nil — see plan/geoip-enrichment/plan.md
@@ -118,21 +120,22 @@ func New(cfg Config, inner security.SecurityLayer, ctx di.Context, attacksHandle
 // entirely — every use is guarded the same way firewall's is).
 func NewWithDB(cfg Config, inner security.SecurityLayer, db *sql.DB, log logger.Logger, attacksHandle *dbhandle.Handle, attackLog logger.Logger, fw firewall.Banner, geo geoip.Lookup) (*IPGuardSecurityLayer, error) {
 	g := &IPGuardSecurityLayer{
-		inner:         inner,
-		cfg:           cfg,
-		log:           log,
-		limiter:       NewLimiter(),
-		banQuery:      security_query.NewIPBanQueryRepo(db),
-		banPersist:    security_persistent.NewIPBanPersistentRepo(db),
-		allowQuery:    security_query.NewIPAllowlistQueryRepo(db),
-		allowPersist:  security_persistent.NewIPAllowlistPersistentRepo(db),
-		attackPersist: attacks_persistent.NewAttackPersistentRepo(attacksHandle),
-		attackLog:     attackLog,
-		firewall:      fw,
-		geo:           geo,
-		bans:          make(map[string]banEntry),
-		allow:         make(map[string]struct{}),
-		attacks:       make(map[string]*attackState),
+		inner:          inner,
+		cfg:            cfg,
+		log:            log,
+		limiter:        NewLimiter(),
+		banQuery:       security_query.NewIPBanQueryRepo(db),
+		banPersist:     security_persistent.NewIPBanPersistentRepo(db),
+		allowQuery:     security_query.NewIPAllowlistQueryRepo(db),
+		allowPersist:   security_persistent.NewIPAllowlistPersistentRepo(db),
+		attackPersist:  attacks_persistent.NewAttackPersistentRepo(attacksHandle),
+		attackLog:      attackLog,
+		attackBanQuery: attackbans.NewSettingsQueryRepo(db),
+		firewall:       fw,
+		geo:            geo,
+		bans:           make(map[string]banEntry),
+		allow:          make(map[string]struct{}),
+		attacks:        make(map[string]*attackState),
 	}
 	if err := g.hydrate(); err != nil {
 		return nil, err
@@ -607,6 +610,7 @@ func (g *IPGuardSecurityLayer) recordAttackHit(ip, tier, reason string, r *http.
 	}
 	attackID := state.attackID
 	hits := state.hits
+	startedAt := state.startedAt
 	g.attacksMu.Unlock()
 
 	if needsCreate {
@@ -619,6 +623,36 @@ func (g *IPGuardSecurityLayer) recordAttackHit(ip, tier, reason string, r *http.
 	}
 
 	g.logAttackHit(ip, tier, reason, method, path, attackID, hits)
+
+	// Only the "unmatched" tier (requests to nonexistent routes, via
+	// RecordRecon) reaches here without having already gone through
+	// Authorize's own global/sensitive ban logic — gating on it avoids
+	// a second, redundant autoBan for tiers that already ban themselves
+	// earlier in the request lifecycle. See plan/attack-ban-rules/plan.md.
+	if tier == "unmatched" {
+		g.maybeAutoBanAttack(ip, hits, startedAt, now)
+	}
+}
+
+// maybeAutoBanAttack applies the admin-configured attack ban rule
+// (api/src/security/attackbans) to a scan/probe episode. Uses the
+// episode's startedAt rather than a true rolling window over
+// individual hit timestamps (attackState tracks neither) — this
+// correctly catches a burst (many hits in a short span) but not a slow
+// trickle spread across longer than WindowSeconds. Disabled by
+// default; a LoadSettings error is treated the same as disabled so a
+// transient DB hiccup never blocks the request.
+func (g *IPGuardSecurityLayer) maybeAutoBanAttack(ip string, hits int, startedAt, now time.Time) {
+	rules, err := g.attackBanQuery.LoadSettings()
+	if err != nil || !rules.Enabled {
+		return
+	}
+	windowStart := now.Add(-time.Duration(rules.WindowSeconds) * time.Second)
+	if hits < rules.Threshold || startedAt.Before(windowStart) {
+		return
+	}
+	reason := fmt.Sprintf("%d probe hits to nonexistent routes within %ds", hits, rules.WindowSeconds)
+	g.autoBan(ip, "attack-scan", reason, time.Duration(rules.BanSeconds)*time.Second)
 }
 
 // graceFor returns how long an episode may stay quiet before

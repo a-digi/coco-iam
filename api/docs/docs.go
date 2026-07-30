@@ -4193,6 +4193,110 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/security/attack-bans/settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the current global ban-rule settings for high-volume scan/probe traffic against nonexistent routes. Disabled until explicitly turned on.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-attack-bans"
+                ],
+                "summary": "Get attack ban-rule settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates the global ban-rule settings for high-volume scan/probe traffic against nonexistent routes. When disabled, submitted numbers are stored but skip validation, since no live rule depends on them yet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security-attack-bans"
+                ],
+                "summary": "Update attack ban-rule settings",
+                "parameters": [
+                    {
+                        "description": "Ban-rule settings",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/attacks": {
             "get": {
                 "security": [
@@ -12397,6 +12501,60 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsRequest": {
+            "type": "object",
+            "properties": {
+                "ban_seconds": {
+                    "type": "integer",
+                    "example": 3600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "threshold": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "window_seconds": {
+                    "type": "integer",
+                    "example": 60
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "ban_seconds": {
+                    "type": "integer",
+                    "example": 3600
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "threshold": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "window_seconds": {
+                    "type": "integer",
+                    "example": 60
+                }
+            }
+        },
+        "github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

@@ -629,6 +629,21 @@ routes:
             scopes:
               - admin:security:login-bans:write
               - super:admin
+          # Attack ban rules — see plan/attack-ban-rules/plan.md.
+          - path: /security/attack-bans/settings
+            method: GET
+            executor: AttackBansGetSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:attack-bans:read
+              - super:admin
+          - path: /security/attack-bans/settings
+            method: PUT
+            executor: AttackBansPutSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:attack-bans:write
+              - super:admin
           - path: /security/status
             method: GET
             executor: SecurityStatusHandler

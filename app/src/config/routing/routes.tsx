@@ -65,6 +65,7 @@ import AdminLoginLogDashboard from '../../Components/Admin/Security/LoginLog/Adm
 import AdminLoginLogArchivesDashboard from '../../Components/Admin/Security/LoginLog/AdminLoginLogArchivesDashboard';
 import LoginBanRulesSettings from '../../Components/Admin/Security/LoginBans/LoginBanRulesSettings';
 import FirewallPage from '../../Components/Admin/Security/Firewall/FirewallPage';
+import AttackBanRulesSettings from '../../Components/Admin/Security/AttackBans/AttackBanRulesSettings';
 
 export const routes: RouteConfig[] = [
   {
@@ -484,6 +485,16 @@ export const routes: RouteConfig[] = [
       <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityFirewallRead]}>
         <SecurityPage>
           <FirewallPage />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/attack-bans',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityAttackBansRead]}>
+        <SecurityPage>
+          <AttackBanRulesSettings />
         </SecurityPage>
       </AuthGuard>
     ),

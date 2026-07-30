@@ -1222,6 +1222,44 @@ definitions:
       username:
         type: string
     type: object
+  github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsRequest:
+    properties:
+      ban_seconds:
+        example: 3600
+        type: integer
+      enabled:
+        example: true
+        type: boolean
+      threshold:
+        example: 50
+        type: integer
+      window_seconds:
+        example: 60
+        type: integer
+    type: object
+  github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsResponse:
+    properties:
+      ban_seconds:
+        example: 3600
+        type: integer
+      enabled:
+        example: true
+        type: boolean
+      threshold:
+        example: 50
+        type: integer
+      window_seconds:
+        example: 60
+        type: integer
+    type: object
+  github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   github_com_a-digi_coco-iam_src_security_geoip_handler.SettingsRequest:
     properties:
       check_interval_seconds:
@@ -4690,6 +4728,75 @@ paths:
       summary: Get one attack episode within one archive
       tags:
       - security
+  /admin/security/attack-bans/settings:
+    get:
+      description: Returns the current global ban-rule settings for high-volume scan/probe
+        traffic against nonexistent routes. Disabled until explicitly turned on.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get attack ban-rule settings
+      tags:
+      - security-attack-bans
+    put:
+      consumes:
+      - application/json
+      description: Updates the global ban-rule settings for high-volume scan/probe
+        traffic against nonexistent routes. When disabled, submitted numbers are stored
+        but skip validation, since no live rule depends on them yet.
+      parameters:
+      - description: Ban-rule settings
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_a-digi_coco-iam_src_security_attackbans_handler.SettingsSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update attack ban-rule settings
+      tags:
+      - security-attack-bans
   /admin/security/attacks:
     get:
       description: Lists historical (and currently ongoing) attack episodes, newest

@@ -378,6 +378,20 @@
                                 "description": "Allows manually resyncing active bans into the OS-level firewall."
                             }
                         ]
+                    },
+                    {
+                        "id": "admin:security:attack-bans",
+                        "description": "Allows viewing and configuring automatic IP-ban rules for high-volume scanning/probing traffic against nonexistent routes.",
+                        "scopes": [
+                            {
+                                "id": "admin:security:attack-bans:read",
+                                "description": "Allows viewing attack ban rule settings."
+                            },
+                            {
+                                "id": "admin:security:attack-bans:write",
+                                "description": "Allows changing attack ban rule settings."
+                            }
+                        ]
                     }
                 ]
             }
