@@ -636,6 +636,17 @@ routes:
             scopes:
               - admin:security:attacks:read
               - super:admin
+          # Dedicated Firewall page — see plan/firewall-page/plan.md.
+          # The status this page shows still comes from the shared
+          # /security/status endpoint above; this is only the new
+          # mutating resync action.
+          - path: /security/firewall/resync
+            method: POST
+            executor: FirewallResyncHandler
+            security: authenticated
+            scopes:
+              - admin:security:firewall:write
+              - super:admin
           - path: /security/geoip/settings
             method: GET
             executor: GeoIPGetSettingsHandler

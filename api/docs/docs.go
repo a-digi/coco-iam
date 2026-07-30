@@ -4363,6 +4363,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/security/firewall/resync": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Re-applies every currently-active (non-expired) ip_bans row through the same\nBan() path a fresh ban already uses — useful after a host reboot or manual firewall\nflush. Already-loaded IPs are safely re-applied, not duplicated at the DB level.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Resync active IP bans into the OS-level firewall",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.FirewallResyncSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/security/geoip/search": {
             "get": {
                 "security": [
@@ -11503,6 +11546,35 @@ const docTemplate = `{
             "properties": {
                 "available": {
                     "type": "boolean"
+                }
+            }
+        },
+        "entity.FirewallResyncResponse": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "skipped_expired": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "synced": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "entity.FirewallResyncSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.FirewallResyncResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

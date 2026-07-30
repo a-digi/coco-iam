@@ -364,6 +364,20 @@
                                 "description": "Allows changing failed-login ban rule settings."
                             }
                         ]
+                    },
+                    {
+                        "id": "admin:security:firewall",
+                        "description": "Allows viewing OS-level firewall enforcement status and manually resyncing active IP bans into it.",
+                        "scopes": [
+                            {
+                                "id": "admin:security:firewall:read",
+                                "description": "Allows viewing firewall status."
+                            },
+                            {
+                                "id": "admin:security:firewall:write",
+                                "description": "Allows manually resyncing active bans into the OS-level firewall."
+                            }
+                        ]
                     }
                 ]
             }

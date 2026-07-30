@@ -64,6 +64,7 @@ import GeoIPSettings from '../../Components/Admin/Security/GeoIP/GeoIPSettings';
 import AdminLoginLogDashboard from '../../Components/Admin/Security/LoginLog/AdminLoginLogDashboard';
 import AdminLoginLogArchivesDashboard from '../../Components/Admin/Security/LoginLog/AdminLoginLogArchivesDashboard';
 import LoginBanRulesSettings from '../../Components/Admin/Security/LoginBans/LoginBanRulesSettings';
+import FirewallPage from '../../Components/Admin/Security/Firewall/FirewallPage';
 
 export const routes: RouteConfig[] = [
   {
@@ -473,6 +474,16 @@ export const routes: RouteConfig[] = [
       <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityLoginBansRead]}>
         <SecurityPage>
           <LoginBanRulesSettings />
+        </SecurityPage>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/admin/security/firewall',
+    element: (
+      <AuthGuard accessScopes={[AppScopes.SuperAdmin, AppScopes.AdminSecurityFirewallRead]}>
+        <SecurityPage>
+          <FirewallPage />
         </SecurityPage>
       </AuthGuard>
     ),

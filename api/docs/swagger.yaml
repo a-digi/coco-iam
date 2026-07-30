@@ -626,6 +626,26 @@ definitions:
       available:
         type: boolean
     type: object
+  entity.FirewallResyncResponse:
+    properties:
+      failed:
+        example: 0
+        type: integer
+      skipped_expired:
+        example: 1
+        type: integer
+      synced:
+        example: 3
+        type: integer
+    type: object
+  entity.FirewallResyncSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.FirewallResyncResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.IPAllowlistEntry:
     properties:
       created_at:
@@ -4783,6 +4803,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Backfill GeoIP data for an attack episode
+      tags:
+      - security
+  /admin/security/firewall/resync:
+    post:
+      description: |-
+        Re-applies every currently-active (non-expired) ip_bans row through the same
+        Ban() path a fresh ban already uses — useful after a host reboot or manual firewall
+        flush. Already-loaded IPs are safely re-applied, not duplicated at the DB level.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.FirewallResyncSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Resync active IP bans into the OS-level firewall
       tags:
       - security
   /admin/security/geoip/search:

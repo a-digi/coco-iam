@@ -215,6 +215,10 @@ export const AppScopes = {
     // Automatic IP-ban rules for repeated failed logins — see plan/login-ban-rules/plan.md.
     AdminSecurityLoginBansRead: 'admin:security:login-bans:read',
     AdminSecurityLoginBansWrite: 'admin:security:login-bans:write',
+
+    // OS-level firewall enforcement status + manual resync — see plan/firewall-page/plan.md.
+    AdminSecurityFirewallRead: 'admin:security:firewall:read',
+    AdminSecurityFirewallWrite: 'admin:security:firewall:write',
 } as const;
 
 export type AppScope = typeof AppScopes[keyof typeof AppScopes];
