@@ -144,3 +144,11 @@ routes:
         method: DELETE
         executor: AppOAuthSrvConsentsRevokeHandler
         security: public
+      # Self-service "my login history" — same RS256 bearer auth as
+      # /profile/me, identity resolved from the caller's own token,
+      # never a URL/query parameter. See
+      # plan/self-service-login-log/plan.md.
+      - path: /{orgSlug}/{wsSlug}/{appSlug}/profile/me/login-log
+        method: GET
+        executor: AppMyLoginLogHandler
+        security: public

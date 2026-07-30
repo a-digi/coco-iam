@@ -246,11 +246,12 @@ func buildOAuthLoginHandlers(ctx serverdi.Context) (routing.HandlerInterface, ro
 	}
 
 	authorize := &oauth_login.AuthorizeHandler{
-		Slugs:       slugs,
-		Providers:   providers,
-		State:       state,
-		Resolvers:   oauth_login.ResolverFactoryDefault,
-		RedirectURI: publicBase,
+		Slugs:         slugs,
+		Providers:     providers,
+		State:         state,
+		Resolvers:     oauth_login.ResolverFactoryDefault,
+		LoginSettings: loginSvc,
+		RedirectURI:   publicBase,
 	}
 	callback := &oauth_login.CallbackHandler{
 		Slugs:       slugs,
@@ -646,6 +647,18 @@ func buildProfileMeHandler(deps profileMeDeps) routing.HandlerInterface {
 	}
 }
 
+// buildMyLoginLogHandler wires GET /profile/me/login-log — reuses
+// the exact same slugs/keys/users collaborators /profile/me itself
+// resolves, since both are the same self-service RS256-bearer auth
+// flow. See plan/self-service-login-log/plan.md.
+func buildMyLoginLogHandler(deps profileMeDeps) routing.HandlerInterface {
+	return &app_loginlog.MyLoginLogHandler{
+		Slugs: deps.slugs,
+		Keys:  deps.keys,
+		Users: deps.users,
+	}
+}
+
 // buildProfileMePatchHandler wires the PATCH /profile/me handler.
 // Shares slug resolver + auth + profile reader with the GET variant;
 // adds the ProfileWriter for the merge-result apply step.
@@ -1010,6 +1023,7 @@ func Init(ctx serverdi.Context) {
 		// through interface fields instead of resolving them
 		// per-request from the DI bag.
 		"AppApiProfileMeHandler":              buildProfileMeHandler(profileMe),
+		"AppMyLoginLogHandler":                buildMyLoginLogHandler(profileMe),
 		"AppApiProfileMePatchHandler":         buildProfileMePatchHandler(profileMe),
 		"AppApiProfileMeFileUploadHandler":    buildProfileMeFileUploadHandler(profileMe),
 		"AppApiProfileMeFileDeleteHandler":    buildProfileMeFileDeleteHandler(profileMe),

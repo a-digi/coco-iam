@@ -471,6 +471,64 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/login-log": {
+            "get": {
+                "description": "Lists the calling end-user's own login attempts (success and failure), newest\nfirst. Identity comes from the caller's own bearer token — there is no way to\nquery another user's history through this endpoint.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "app-profile-me"
+                ],
+                "summary": "Get my own login history",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Filter by outcome",
+                        "name": "success",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "created_at \u003e= from, RFC3339",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "created_at \u003c= to, RFC3339",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max 500, default 50",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Default 0",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.MyLoginAttemptListSuccess"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorBody"
+                        }
+                    }
+                }
+            }
+        },
         "/a/{orgSlug}/{wsSlug}/{appSlug}/register": {
             "post": {
                 "consumes": [
@@ -11628,6 +11686,70 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "$ref": "#/definitions/entity.MfaStatus"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "entity.MyLoginAttempt": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-29T20:41:00Z"
+                },
+                "failure_reason": {
+                    "type": "string",
+                    "example": "invalid_credentials"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.7"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0 ..."
+                }
+            }
+        },
+        "entity.MyLoginAttemptListResponse": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.MyLoginAttempt"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "offset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 12
+                }
+            }
+        },
+        "entity.MyLoginAttemptListSuccess": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/entity.MyLoginAttemptListResponse"
                 },
                 "success": {
                     "type": "boolean",

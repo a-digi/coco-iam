@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/a-digi/coco-iam/src/applications/loginpage"
 	"github.com/a-digi/coco-iam/src/applications/oauthproviders/adapters"
 	"github.com/a-digi/coco-iam/src/applications/oauthproviders/authstate"
 	"github.com/a-digi/coco-iam/src/applications/oauthproviders/entity"
@@ -27,6 +28,22 @@ type fakeSlugs struct {
 
 func (f *fakeSlugs) ResolveSlugs(_, _, _ string) (string, string, error) {
 	return f.appID, f.orgID, f.err
+}
+
+type fakeLoginSettings struct {
+	redirectURL string
+	err         error
+}
+
+func (f *fakeLoginSettings) LoadSettings(_ string) (loginpage.Settings, error) {
+	if f.err != nil {
+		return loginpage.Settings{}, f.err
+	}
+	return loginpage.Settings{
+		RedirectURL:    f.redirectURL,
+		RedirectSecret: "secret",
+		RedirectMethod: "POST",
+	}, nil
 }
 
 type fakeProviders struct {
@@ -147,11 +164,12 @@ func activeCfg() entity.ProviderConfig {
 func TestAuthorize_HappyPathRedirectsToIdP(t *testing.T) {
 	cfg := activeCfg()
 	h := &AuthorizeHandler{
-		Slugs:       &fakeSlugs{appID: "app-1", orgID: "org-1"},
-		Providers:   &fakeProviders{cfg: &cfg},
-		State:       openStateStore(t),
-		Resolvers:   resolverFactoryOf(&fakeResolver{authorizeURL: "https://idp.example/auth"}),
-		RedirectURI: "https://us.example",
+		Slugs:         &fakeSlugs{appID: "app-1", orgID: "org-1"},
+		Providers:     &fakeProviders{cfg: &cfg},
+		State:         openStateStore(t),
+		Resolvers:     resolverFactoryOf(&fakeResolver{authorizeURL: "https://idp.example/auth"}),
+		LoginSettings: &fakeLoginSettings{redirectURL: "https://app"},
+		RedirectURI:   "https://us.example",
 	}
 	rec := serve(t, http.MethodGet,
 		"/a/acme/prod/web/auth/oauth/google/authorize?return_url=https%3A%2F%2Fapp%2Fcb",
@@ -186,10 +204,11 @@ func TestAuthorize_UnknownProviderReturns400(t *testing.T) {
 func TestAuthorize_InvalidReturnURLReturns400(t *testing.T) {
 	cfg := activeCfg()
 	h := &AuthorizeHandler{
-		Slugs:     &fakeSlugs{appID: "app-1", orgID: "org-1"},
-		Providers: &fakeProviders{cfg: &cfg},
-		State:     openStateStore(t),
-		Resolvers: resolverFactoryOf(&fakeResolver{}),
+		Slugs:         &fakeSlugs{appID: "app-1", orgID: "org-1"},
+		Providers:     &fakeProviders{cfg: &cfg},
+		State:         openStateStore(t),
+		Resolvers:     resolverFactoryOf(&fakeResolver{}),
+		LoginSettings: &fakeLoginSettings{redirectURL: "https://app"},
 	}
 	rec := serve(t, http.MethodGet,
 		"/a/acme/prod/web/auth/oauth/google/authorize?return_url=javascript%3Aalert(1)",
@@ -199,14 +218,57 @@ func TestAuthorize_InvalidReturnURLReturns400(t *testing.T) {
 	}
 }
 
+// TestAuthorize_ReturnURLDifferentOriginReturns400 is the regression
+// test for the token-exfiltration open redirect this handler used to
+// allow: return_url pointing at ANY http(s) host used to pass,
+// regardless of the application's own configured redirect target.
+// See plan/security-return-url-allowlist/plan.md.
+func TestAuthorize_ReturnURLDifferentOriginReturns400(t *testing.T) {
+	cfg := activeCfg()
+	h := &AuthorizeHandler{
+		Slugs:         &fakeSlugs{appID: "app-1", orgID: "org-1"},
+		Providers:     &fakeProviders{cfg: &cfg},
+		State:         openStateStore(t),
+		Resolvers:     resolverFactoryOf(&fakeResolver{}),
+		LoginSettings: &fakeLoginSettings{redirectURL: "https://app.example"},
+	}
+	rec := serve(t, http.MethodGet,
+		"/a/acme/prod/web/auth/oauth/google/authorize?return_url=https%3A%2F%2Fattacker.example%2Fsteal",
+		h)
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("want 400 on cross-origin return_url, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+// TestAuthorize_UnconfiguredAppRejectsReturnURL confirms an
+// application with no redirect configured at all fails closed rather
+// than accepting any return_url.
+func TestAuthorize_UnconfiguredAppRejectsReturnURL(t *testing.T) {
+	cfg := activeCfg()
+	h := &AuthorizeHandler{
+		Slugs:         &fakeSlugs{appID: "app-1", orgID: "org-1"},
+		Providers:     &fakeProviders{cfg: &cfg},
+		State:         openStateStore(t),
+		Resolvers:     resolverFactoryOf(&fakeResolver{}),
+		LoginSettings: &fakeLoginSettings{redirectURL: ""},
+	}
+	rec := serve(t, http.MethodGet,
+		"/a/acme/prod/web/auth/oauth/google/authorize?return_url=https%3A%2F%2Fapp",
+		h)
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("want 400 on unconfigured app, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
 func TestAuthorize_ProviderDisabledReturns403(t *testing.T) {
 	cfg := activeCfg()
 	cfg.AllowLogin = false
 	h := &AuthorizeHandler{
-		Slugs:     &fakeSlugs{appID: "app-1", orgID: "org-1"},
-		Providers: &fakeProviders{cfg: &cfg},
-		State:     openStateStore(t),
-		Resolvers: resolverFactoryOf(&fakeResolver{}),
+		Slugs:         &fakeSlugs{appID: "app-1", orgID: "org-1"},
+		Providers:     &fakeProviders{cfg: &cfg},
+		State:         openStateStore(t),
+		Resolvers:     resolverFactoryOf(&fakeResolver{}),
+		LoginSettings: &fakeLoginSettings{redirectURL: "https://app"},
 	}
 	rec := serve(t, http.MethodGet,
 		"/a/acme/prod/web/auth/oauth/google/authorize?return_url=https%3A%2F%2Fapp",
@@ -218,10 +280,11 @@ func TestAuthorize_ProviderDisabledReturns403(t *testing.T) {
 
 func TestAuthorize_ProviderNotConfiguredReturns404(t *testing.T) {
 	h := &AuthorizeHandler{
-		Slugs:     &fakeSlugs{appID: "app-1"},
-		Providers: &fakeProviders{err: entity.ErrProviderNotFound},
-		State:     openStateStore(t),
-		Resolvers: resolverFactoryOf(&fakeResolver{}),
+		Slugs:         &fakeSlugs{appID: "app-1"},
+		Providers:     &fakeProviders{err: entity.ErrProviderNotFound},
+		State:         openStateStore(t),
+		Resolvers:     resolverFactoryOf(&fakeResolver{}),
+		LoginSettings: &fakeLoginSettings{redirectURL: "https://app"},
 	}
 	rec := serve(t, http.MethodGet,
 		"/a/acme/prod/web/auth/oauth/google/authorize?return_url=https%3A%2F%2Fapp",
@@ -393,19 +456,31 @@ func TestParseAuthPath(t *testing.T) {
 
 func TestIsSafeReturnURL(t *testing.T) {
 	cases := []struct {
-		url  string
-		want bool
+		url     string
+		allowed string
+		want    bool
 	}{
-		{"", false},
-		{"https://app.example/cb", true},
-		{"http://localhost:3000", true},
-		{"javascript:alert(1)", false},
-		{"data:text/html,1", false},
-		{"//evil", false},
+		{"", "https://app.example", false},
+		{"https://app.example/cb", "https://app.example", true},
+		{"https://app.example/cb?x=1", "https://app.example", true},
+		{"http://localhost:3000", "http://localhost:3000", true},
+		// Same scheme+host, different port — Host includes the port,
+		// so this is correctly a mismatch, not a false positive.
+		{"http://localhost:3000", "http://localhost:4000", false},
+		{"javascript:alert(1)", "https://app.example", false},
+		{"data:text/html,1", "https://app.example", false},
+		{"//evil", "https://app.example", false},
+		// The actual exploit this closes: any http(s) host used to
+		// pass regardless of the app's configured redirect target.
+		{"https://attacker.example/steal", "https://app.example", false},
+		// Case-insensitive scheme/host match.
+		{"HTTPS://APP.EXAMPLE/cb", "https://app.example", true},
+		// No allowed URL configured at all — fail closed.
+		{"https://app.example", "", false},
 	}
 	for _, c := range cases {
-		if got := isSafeReturnURL(c.url); got != c.want {
-			t.Errorf("%q: got %v want %v", c.url, got, c.want)
+		if got := isSafeReturnURL(c.url, c.allowed); got != c.want {
+			t.Errorf("isSafeReturnURL(%q, %q): got %v want %v", c.url, c.allowed, got, c.want)
 		}
 	}
 }

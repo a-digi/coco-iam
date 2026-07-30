@@ -778,6 +778,51 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.MyLoginAttempt:
+    properties:
+      created_at:
+        example: "2026-07-29T20:41:00Z"
+        type: string
+      failure_reason:
+        example: invalid_credentials
+        type: string
+      id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
+        type: string
+      ip:
+        example: 203.0.113.7
+        type: string
+      success:
+        example: false
+        type: boolean
+      user_agent:
+        example: Mozilla/5.0 ...
+        type: string
+    type: object
+  entity.MyLoginAttemptListResponse:
+    properties:
+      attempts:
+        items:
+          $ref: '#/definitions/entity.MyLoginAttempt'
+        type: array
+      limit:
+        example: 50
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      total:
+        example: 12
+        type: integer
+    type: object
+  entity.MyLoginAttemptListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.MyLoginAttemptListResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
   entity.OAuthErrorResponse:
     properties:
       error:
@@ -2079,6 +2124,47 @@ paths:
       - application/json
       responses: {}
       summary: Upload profile file
+      tags:
+      - app-profile-me
+  /a/{orgSlug}/{wsSlug}/{appSlug}/profile/me/login-log:
+    get:
+      description: |-
+        Lists the calling end-user's own login attempts (success and failure), newest
+        first. Identity comes from the caller's own bearer token — there is no way to
+        query another user's history through this endpoint.
+      parameters:
+      - description: Filter by outcome
+        in: query
+        name: success
+        type: boolean
+      - description: created_at >= from, RFC3339
+        in: query
+        name: from
+        type: string
+      - description: created_at <= to, RFC3339
+        in: query
+        name: to
+        type: string
+      - description: Max 500, default 50
+        in: query
+        name: limit
+        type: integer
+      - description: Default 0
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.MyLoginAttemptListSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      summary: Get my own login history
       tags:
       - app-profile-me
   /a/{orgSlug}/{wsSlug}/{appSlug}/register:
