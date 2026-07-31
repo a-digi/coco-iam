@@ -75,9 +75,9 @@ import (
 	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	attackbans_handler "github.com/a-digi/coco-iam/src/security/attackbans/handler"
-	"github.com/a-digi/coco-iam/src/security/geoip"
+	"github.com/a-digi/coco-sec/geoip"
 	geoip_handler "github.com/a-digi/coco-iam/src/security/geoip/handler"
-	"github.com/a-digi/coco-iam/src/security/ipguard"
+	"github.com/a-digi/coco-sec/ipguard"
 	ipsearch_handler "github.com/a-digi/coco-iam/src/security/ipsearch/handler"
 	loginbans_handler "github.com/a-digi/coco-iam/src/security/loginbans/handler"
 	swagger_handler "github.com/a-digi/coco-iam/src/swagger"
@@ -1191,7 +1191,7 @@ func Init(ctx serverdi.Context) {
 
 	// geoip enrichment — see plan/geoip-enrichment/plan.md. geoipCfg's
 	// static (config.json) values are merged with whatever's been
-	// saved via the admin settings UI (main DB, geoip_settings) — the
+	// saved via the admin settings UI (main DB, security_geoip_settings) — the
 	// DB values win when present, config.json is the fallback for a
 	// fresh install nobody has configured yet.
 	geoipCfg, err := geoip.LoadConfig(authCfgBytes)

@@ -4474,7 +4474,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Re-applies every currently-active (non-expired) ip_bans row through the same\nBan() path a fresh ban already uses — useful after a host reboot or manual firewall\nflush. Already-loaded IPs are safely re-applied, not duplicated at the DB level.",
+                "description": "Re-applies every currently-active (non-expired) security_ip_bans row through the same\nBan() path a fresh ban already uses — useful after a host reboot or manual firewall\nflush. Already-loaded IPs are safely re-applied, not duplicated at the DB level.",
                 "produces": [
                     "application/json"
                 ],
@@ -4560,7 +4560,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Removes every OS-level rule for ip — there may be more than one if Ban() was called\nrepeatedly for an already-banned IP. If ip is still actively banned in\n/admin/security/ip-bans, that ban row is deleted too: removing an IP from this page\nmeans fully unbanning it, not leaving a rule that would just reappear on the next\nresync. Requires both admin:security:firewall:write (route-level) and\nadmin:security:ipbans:write (checked here), since this can delete an ip_bans row —\nmirrors IPBanAccountsHandler's pattern of an additional in-handler scope check beyond\nthe route's own gate.",
+                "description": "Removes every OS-level rule for ip — there may be more than one if Ban() was called\nrepeatedly for an already-banned IP. If ip is still actively banned in\n/admin/security/ip-bans, that ban row is deleted too: removing an IP from this page\nmeans fully unbanning it, not leaving a rule that would just reappear on the next\nresync. Requires both admin:security:firewall:write (route-level) and\nadmin:security:ipbans:write (checked here), since this can delete a security_ip_bans row —\nmirrors IPBanAccountsHandler's pattern of an additional in-handler scope check beyond\nthe route's own gate.",
                 "produces": [
                     "application/json"
                 ],
@@ -13846,7 +13846,7 @@ const docTemplate = `{
                     "example": "2026-07-26T10:30:00Z"
                 },
                 "geoip_info": {
-                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later (geoip.db keeps no history of its own).\nPopulated on both the list and the detail fetch. Empty if geoip\nwas disabled, IP was loopback/private, or nothing matched.",
+                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later. Populated on both the list and the detail\nfetch. Empty if geoip was disabled, IP was loopback/private, or\nnothing matched.",
                     "type": "string",
                     "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
                 },
@@ -13869,7 +13869,7 @@ const docTemplate = `{
                 "origin_hint": {
                     "description": "OriginHint is a JSON snapshot of client-identifying request\nheaders, captured only when IP resolved to a loopback/private\naddress — populated on the detail fetch only, never on the list.",
                     "type": "string",
-                    "example": "{\"x_forwarded_for\":\"203.0.113.7\",\"host\":\"coco-iam.example.com\"}"
+                    "example": "{\"x_forwarded_for\":\"203.0.113.7\",\"host\":\"example.com\"}"
                 },
                 "started_at": {
                     "type": "string",
@@ -13893,7 +13893,7 @@ const docTemplate = `{
                     "example": "2026-07-26T10:30:00Z"
                 },
                 "geoip_info": {
-                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later (geoip.db keeps no history of its own).\nPopulated on both the list and the detail fetch. Empty if geoip\nwas disabled, IP was loopback/private, or nothing matched.",
+                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later. Populated on both the list and the detail\nfetch. Empty if geoip was disabled, IP was loopback/private, or\nnothing matched.",
                     "type": "string",
                     "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
                 },
@@ -13916,7 +13916,7 @@ const docTemplate = `{
                 "origin_hint": {
                     "description": "OriginHint is a JSON snapshot of client-identifying request\nheaders, captured only when IP resolved to a loopback/private\naddress — populated on the detail fetch only, never on the list.",
                     "type": "string",
-                    "example": "{\"x_forwarded_for\":\"203.0.113.7\",\"host\":\"coco-iam.example.com\"}"
+                    "example": "{\"x_forwarded_for\":\"203.0.113.7\",\"host\":\"example.com\"}"
                 },
                 "started_at": {
                     "type": "string",

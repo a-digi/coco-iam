@@ -1,11 +1,12 @@
 // Package ipsearch answers "search for this IP" queries by composing a
-// live geoip.Lookup with the distinct known IPs already recorded in
-// ip-attacks.db (ip_attacks/scan_episodes). Deliberately its own
-// package rather than folded into api/src/security/geoip: it composes
-// two domains this plan otherwise keeps decoupled (geoip.db lookups
-// and attack/scan history), while still living under api/src/security
-// per this whole plan's established placement. See
-// plan/geoip-enrichment/plan.md's "Extension: IP search" section.
+// live geoip.Lookup (github.com/a-digi/coco-sec/geoip) with the
+// distinct known IPs already recorded in ip-attacks.db (ip_attacks/
+// scan_episodes). Deliberately its own package rather than folded into
+// the geoip library itself: it composes two domains that library
+// otherwise keeps decoupled (geoip.db lookups and attack/scan
+// history), and is host-specific admin-console glue, not portable
+// library code. See plan/geoip-enrichment/plan.md's "Extension: IP
+// search" section.
 package ipsearch
 
 import (
@@ -14,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
-	"github.com/a-digi/coco-iam/src/security/geoip"
+	"github.com/a-digi/coco-sec/geoip"
 )
 
 // DefaultLimit and MaxLimit bound how many autocomplete suggestions a

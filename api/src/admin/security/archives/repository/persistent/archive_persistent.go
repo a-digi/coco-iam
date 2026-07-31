@@ -39,7 +39,7 @@ func NewArchiveRecorder(mainDB *sql.DB) *ArchiveRecorder {
 // DATETIME type and hands back RFC3339 (unlike, say, wrapping a column
 // in COALESCE, which loses that type metadata and comes back as a
 // plain string) — parsed defensively against either shape anyway, the
-// same way ipguard's own parseTime does for ip_bans.expires_at.
+// same way ipguard's own parseTime does for security_ip_bans.expires_at.
 func (r *ArchiveRecorder) EarliestStartedAt(db *sql.DB) string {
 	var raw sql.NullString
 	if err := db.QueryRow(`SELECT MIN(started_at) FROM ip_attacks`).Scan(&raw); err != nil || !raw.Valid {

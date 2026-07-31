@@ -610,9 +610,9 @@ definitions:
         description: |-
           GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for
           IP at the moment this episode opened — frozen then, never
-          re-derived later (geoip.db keeps no history of its own).
-          Populated on both the list and the detail fetch. Empty if geoip
-          was disabled, IP was loopback/private, or nothing matched.
+          re-derived later. Populated on both the list and the detail
+          fetch. Empty if geoip was disabled, IP was loopback/private, or
+          nothing matched.
         example: '{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche
           Telekom AG"}'
         type: string
@@ -633,7 +633,7 @@ definitions:
           OriginHint is a JSON snapshot of client-identifying request
           headers, captured only when IP resolved to a loopback/private
           address — populated on the detail fetch only, never on the list.
-        example: '{"x_forwarded_for":"203.0.113.7","host":"coco-iam.example.com"}'
+        example: '{"x_forwarded_for":"203.0.113.7","host":"example.com"}'
         type: string
       started_at:
         example: "2026-07-26T10:00:00Z"
@@ -654,9 +654,9 @@ definitions:
         description: |-
           GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for
           IP at the moment this episode opened — frozen then, never
-          re-derived later (geoip.db keeps no history of its own).
-          Populated on both the list and the detail fetch. Empty if geoip
-          was disabled, IP was loopback/private, or nothing matched.
+          re-derived later. Populated on both the list and the detail
+          fetch. Empty if geoip was disabled, IP was loopback/private, or
+          nothing matched.
         example: '{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche
           Telekom AG"}'
         type: string
@@ -677,7 +677,7 @@ definitions:
           OriginHint is a JSON snapshot of client-identifying request
           headers, captured only when IP resolved to a loopback/private
           address — populated on the detail fetch only, never on the list.
-        example: '{"x_forwarded_for":"203.0.113.7","host":"coco-iam.example.com"}'
+        example: '{"x_forwarded_for":"203.0.113.7","host":"example.com"}'
         type: string
       started_at:
         example: "2026-07-26T10:00:00Z"
@@ -5427,7 +5427,7 @@ paths:
   /admin/security/firewall/resync:
     post:
       description: |-
-        Re-applies every currently-active (non-expired) ip_bans row through the same
+        Re-applies every currently-active (non-expired) security_ip_bans row through the same
         Ban() path a fresh ban already uses — useful after a host reboot or manual firewall
         flush. Already-loaded IPs are safely re-applied, not duplicated at the DB level.
       produces:
@@ -5492,7 +5492,7 @@ paths:
         /admin/security/ip-bans, that ban row is deleted too: removing an IP from this page
         means fully unbanning it, not leaving a rule that would just reappear on the next
         resync. Requires both admin:security:firewall:write (route-level) and
-        admin:security:ipbans:write (checked here), since this can delete an ip_bans row —
+        admin:security:ipbans:write (checked here), since this can delete a security_ip_bans row —
         mirrors IPBanAccountsHandler's pattern of an additional in-handler scope check beyond
         the route's own gate.
       parameters:

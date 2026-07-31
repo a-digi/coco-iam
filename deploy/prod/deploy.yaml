@@ -73,4 +73,59 @@ hooks:
 remote_hooks:
   pre_deploy:
   post_deploy:
-    - systemctl restart caddy
+
+# Each entry is inserted into /etc/caddy/Caddyfile exactly once, on
+# whichever deploy first finds its block_id missing, and never
+# touched again afterward — even if this block's text changes here in
+# a later edit (see plugins/coco-deploy's caddy package and
+# plan/coco-deploy-caddy-driver/plan.md's "Explicit tradeoff"
+# section). Replaces the old blind `systemctl restart caddy`
+# post-deploy hook above (now empty) — reload, not restart, so this
+# is also a zero-downtime improvement over the old behavior.
+#
+# remote_path assumes Caddy's default /etc/caddy/Caddyfile on the
+# production host — this has NOT been verified against the real host
+# (91.99.88.180) and MUST be confirmed before this is ever actually
+# deployed; if the real file lives elsewhere, these blocks would be
+# written to the wrong place and never take effect.
+caddy:
+  - remote_path: /etc/caddy/Caddyfile
+    block_id: coco-iam-api
+    block: |
+      coco-iam-api.t-digi.com {
+          @cors_preflight {
+              method OPTIONS
+          }
+          request_body {
+              max_size 10MB
+          }
+
+          reverse_proxy 0.0.0.0:2026 {
+              transport http {
+                  read_timeout 360s
+              }
+
+              header_down -Access-Control-Allow-Origin
+          }
+
+          @options {
+              method OPTIONS
+          }
+
+          header {
+              Access-Control-Allow-Origin *
+              Access-Control-Allow-Credentials true
+              Access-Control-Allow-Methods *
+              Access-Control-Allow-Headers *
+              defer
+          }
+      }
+
+  - remote_path: /etc/caddy/Caddyfile
+    block_id: coco-iam-frontend
+    block: |
+      coco-iam.t-digi.com {
+              root * /app/coco-iam-front
+              file_server
+              try_files {path} /index.html
+      }

@@ -9,6 +9,7 @@ import (
 	"github.com/a-digi/coco-iam/config/di"
 	security_entity "github.com/a-digi/coco-iam/src/admin/security/entity"
 	loginlog_query "github.com/a-digi/coco-iam/src/admin/security/loginlog/repository/query"
+	cocosecentity "github.com/a-digi/coco-sec/ipguard/entity"
 	app_loginlog_dbregistry "github.com/a-digi/coco-iam/src/applications/loginlog/dbregistry"
 	app_loginlog_query "github.com/a-digi/coco-iam/src/applications/loginlog/repository/query"
 	"github.com/a-digi/coco-iam/src/auth/scopecheck"
@@ -43,7 +44,7 @@ func (h *IPBanListHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 	if bans == nil {
-		bans = []security_entity.IPBan{}
+		bans = []cocosecentity.IPBan{}
 	}
 	response.SuccessResponse(w, http.StatusOK, bans)
 }
@@ -117,7 +118,7 @@ func (h *IPBanCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 	}
 	// Should be unreachable — Ban() just wrote this row — but avoid a
 	// silent empty 201 if the read-back ever races with something.
-	response.SuccessResponse(w, http.StatusCreated, security_entity.IPBan{IP: req.IP, Tier: "manual", Reason: req.Reason})
+	response.SuccessResponse(w, http.StatusCreated, cocosecentity.IPBan{IP: req.IP, Tier: "manual", Reason: req.Reason})
 }
 
 // IPBanDeleteHandler serves DELETE

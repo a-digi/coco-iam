@@ -16,7 +16,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	archives_entity "github.com/a-digi/coco-iam/src/admin/security/archives/entity"
-	attacks_query "github.com/a-digi/coco-iam/src/admin/security/attacks/repository/query"
+	attacks_query "github.com/a-digi/coco-sec/ipguard/repository/query"
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
 )
 

@@ -3,7 +3,7 @@
 // checks on its own ticker whether geoip.db needs refreshing from
 // MaxMind GeoLite2, and if so downloads, imports, and atomically
 // swaps in a fresh copy. All real logic lives in
-// api/src/security/geoip/updater; this file is only wiring.
+// github.com/a-digi/coco-sec/geoip/updater; this file is only wiring.
 //
 // Runs as its own executable, independent of the main coco-iam
 // server. Deliberately never launched via cron, and — confirmed with
@@ -27,8 +27,8 @@ import (
 	"github.com/a-digi/coco-server/server"
 
 	"github.com/a-digi/coco-iam/config"
-	"github.com/a-digi/coco-iam/src/security/geoip"
-	"github.com/a-digi/coco-iam/src/security/geoip/updater"
+	"github.com/a-digi/coco-sec/geoip"
+	"github.com/a-digi/coco-sec/geoip/updater"
 )
 
 // mainDBPath matches the fixed path main.go itself constructs the
@@ -91,7 +91,7 @@ func main() {
 	updater.New(cfg, migrationsPath, log).Run(ctx, forceCh)
 }
 
-// loadSettings reads the admin-editable geoip_settings row from the
+// loadSettings reads the admin-editable security_geoip_settings row from the
 // main database — a one-shot read at startup, not hot-reloaded while
 // this process runs (an admin changing credentials requires a
 // stop/start to pick them up, the same way any other config-at-launch

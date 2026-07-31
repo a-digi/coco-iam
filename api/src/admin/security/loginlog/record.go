@@ -15,8 +15,8 @@ import (
 	loginlog_persistent "github.com/a-digi/coco-iam/src/admin/security/loginlog/repository/persistent"
 	loginlog_query "github.com/a-digi/coco-iam/src/admin/security/loginlog/repository/query"
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
-	"github.com/a-digi/coco-iam/src/security/geoip"
-	"github.com/a-digi/coco-iam/src/security/loginbans"
+	"github.com/a-digi/coco-sec/geoip"
+	"github.com/a-digi/coco-sec/loginbans"
 	"github.com/a-digi/coco-server/server/request"
 )
 

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/a-digi/coco-iam/config/di"
-	"github.com/a-digi/coco-iam/src/security/geoip"
+	"github.com/a-digi/coco-sec/geoip"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
@@ -27,7 +27,7 @@ func resolveBag(reqCtx request.RequestContext) (*di.ContextBag, bool) {
 }
 
 // resolveMainDB returns the main database's *sql.DB — the same one
-// ipguard's ban/allowlist repos and geoip_settings both live in.
+// ipguard's ban/allowlist repos and security_geoip_settings both live in.
 func resolveMainDB(reqCtx request.RequestContext) (*sql.DB, bool) {
 	w := reqCtx.GetWriter()
 	bag, ok := resolveBag(reqCtx)

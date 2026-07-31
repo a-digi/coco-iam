@@ -5,14 +5,14 @@ import (
 	"net/http"
 
 	"github.com/a-digi/coco-iam/config/di"
-	"github.com/a-digi/coco-iam/src/security/loginbans"
+	"github.com/a-digi/coco-sec/loginbans"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
 
 // resolveMainDB returns the main database's *sql.DB — the same one
-// login_ban_rules, geoip_settings, and ipguard's ban/allowlist repos
-// all live in.
+// security_login_ban_rules, security_geoip_settings, and ipguard's
+// ban/allowlist repos all live in.
 func resolveMainDB(reqCtx request.RequestContext) (*sql.DB, bool) {
 	w := reqCtx.GetWriter()
 	bag, ok := reqCtx.GetDI().(*di.ContextBag)
