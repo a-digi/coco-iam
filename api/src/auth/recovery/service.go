@@ -11,12 +11,12 @@ import (
 
 	bcryptx "github.com/a-digi/coco-iam/src/auth/crypto/bcrypt"
 	"github.com/a-digi/coco-iam/src/general"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	"github.com/a-digi/coco-iam/src/mail/scopedsettings"
+	iam_notification "github.com/a-digi/coco-iam/src/notification"
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/userrules"
 	"github.com/a-digi/coco-logger/logger"
+	coconotification "github.com/a-digi/coco-notification"
 )
 
 // ErrRecoveryFailed collapses every authentication-related failure
@@ -32,8 +32,8 @@ type Service struct {
 	orgRegistry *dbregistry.OrgUserDBRegistry
 	adminStore  *AdminStore
 	orgStore    *OrgStore
-	mail        iam_mail.MailService
-	mailConfig  *scopedsettings.ScopedResolver
+	mail        coconotification.Service
+	mailConfig  *iam_notification.ScopedResolver
 	settings    *SettingsReader
 	rules       *userrules.Store
 	log         logger.Logger
@@ -47,8 +47,8 @@ func NewService(
 	orgRegistry *dbregistry.OrgUserDBRegistry,
 	adminStore *AdminStore,
 	orgStore *OrgStore,
-	mail iam_mail.MailService,
-	mailConfig *scopedsettings.ScopedResolver,
+	mail coconotification.Service,
+	mailConfig *iam_notification.ScopedResolver,
 	settings *SettingsReader,
 	rules *userrules.Store,
 	log logger.Logger,
@@ -460,10 +460,9 @@ func (s *Service) sendRecoveryEmail(ctx context.Context, ref userRef, link strin
 		"ExpiresIn":    s.settings.TTLHumanReadable(),
 	}
 
-	task := iam_mail.MailTask{
-		Account: account,
-		OrgID:   resolvedOrgID,
-		To:      []iam_mail.Address{{Email: ref.Email, Name: ref.Username}},
+	task := coconotification.Task{
+		Ref: coconotification.SenderRef{Name: account, Scope: iam_notification.Scope(resolvedOrgID, "")},
+		To:  []coconotification.Address{{Email: ref.Email, Name: ref.Username}},
 	}
 	// Prefer this org's own active template of the same name over the
 	// global renderer — falls through untouched when the org has none.

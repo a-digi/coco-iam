@@ -29,12 +29,12 @@ import (
 	regfields_entity "github.com/a-digi/coco-iam/src/applications/registrationfields/entity"
 	regfields_repo "github.com/a-digi/coco-iam/src/applications/registrationfields/repository"
 	"github.com/a-digi/coco-iam/src/general"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailscopedsettings "github.com/a-digi/coco-iam/src/mail/scopedsettings"
+	iam_notification "github.com/a-digi/coco-iam/src/notification"
 	profile_dbregistry "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
 	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/userrules"
+	coconotification "github.com/a-digi/coco-notification"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
@@ -408,11 +408,9 @@ func sendNotificationEmail(ctx interface{}, orgID, appID, email, username, login
 		"LoginURL":     loginURL,
 		"WebsiteTitle": websiteTitle,
 	}
-	task := iam_mail.MailTask{
-		Account: account,
-		OrgID:   resolvedOrgID,
-		AppID:   resolvedAppID,
-		To:      []iam_mail.Address{{Email: email, Name: username}},
+	task := coconotification.Task{
+		Ref: coconotification.SenderRef{Name: account, Scope: iam_notification.Scope(resolvedOrgID, resolvedAppID)},
+		To:  []coconotification.Address{{Email: email, Name: username}},
 	}
 	// Prefer this application's own active template of the same name,
 	// then this org's, over the global renderer — falls through
@@ -563,29 +561,29 @@ func resolveUserRulesStore(ctx interface{}) *userrules.Store {
 	return store
 }
 
-func resolveMailService(ctx interface{}) iam_mail.MailService {
+func resolveMailService(ctx interface{}) coconotification.Service {
 	bag, ok := ctx.(bagGetter)
 	if !ok {
 		return nil
 	}
-	raw, ok := bag.Get(iam_mail.ContextBagKeyMailService)
+	raw, ok := bag.Get(iam_notification.ContextBagKeyService)
 	if !ok {
 		return nil
 	}
-	svc, _ := raw.(iam_mail.MailService)
+	svc, _ := raw.(coconotification.Service)
 	return svc
 }
 
-func resolveMailScopedResolver(ctx interface{}) *mailscopedsettings.ScopedResolver {
+func resolveMailScopedResolver(ctx interface{}) *iam_notification.ScopedResolver {
 	bag, ok := ctx.(bagGetter)
 	if !ok {
 		return nil
 	}
-	raw, ok := bag.Get(mailscopedsettings.ContextBagKey)
+	raw, ok := bag.Get(iam_notification.ContextBagKey)
 	if !ok {
 		return nil
 	}
-	r, _ := raw.(*mailscopedsettings.ScopedResolver)
+	r, _ := raw.(*iam_notification.ScopedResolver)
 	return r
 }
 

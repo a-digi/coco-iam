@@ -16,13 +16,13 @@ import (
 // GET /api/v1/admin/mail/templates/starters.
 // Returns the built-in starter catalog — a list of template skeletons the
 // frontend can use to pre-fill the Create-Template form. Starters are
-// shipped as embedded files under api/config/mail/templates/starters/;
+// shipped as embedded files under api/config/notification/templates/starters/;
 // this handler reads the manifest + each starter's bodies and merges them
 // into a single response.
 type AdminMailTemplatesStartersHandler struct{}
 
-const startersDir = "mail/templates/starters"
-const manifestFile = "mail/templates/starters/manifest.json"
+const startersDir = "notification/templates/starters"
+const manifestFile = "notification/templates/starters/manifest.json"
 
 type starterToken struct {
 	Name        string `json:"name"`
@@ -125,4 +125,3 @@ func splitSubject(content string) (string, string) {
 	body := strings.TrimLeft(content[newline+1:], "\n")
 	return subject, body
 }
-

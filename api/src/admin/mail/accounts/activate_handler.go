@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/a-digi/coco-lift/resource/uri"
-	mailaccounts "github.com/a-digi/coco-iam/src/mail/accounts"
+	mailaccounts "github.com/a-digi/coco-notification/mailer"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )

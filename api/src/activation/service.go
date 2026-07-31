@@ -12,12 +12,12 @@ import (
 
 	"github.com/a-digi/coco-iam/src/auth/crypto/bcrypt"
 	"github.com/a-digi/coco-iam/src/general"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	"github.com/a-digi/coco-iam/src/mail/scopedsettings"
+	iam_notification "github.com/a-digi/coco-iam/src/notification"
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/userrules"
 	"github.com/a-digi/coco-logger/logger"
+	coconotification "github.com/a-digi/coco-notification"
 )
 
 // Service orchestrates the agnostic user activation flow. It is safe for
@@ -28,8 +28,8 @@ type Service struct {
 	orgRegistry *dbregistry.OrgUserDBRegistry
 	adminStore  *AdminStore
 	orgStore    *OrgStore
-	mail        iam_mail.MailService
-	mailConfig  *scopedsettings.ScopedResolver
+	mail        coconotification.Service
+	mailConfig  *iam_notification.ScopedResolver
 	settings    *SettingsReader
 	rules       *userrules.Store
 	log         logger.Logger
@@ -44,8 +44,8 @@ func NewService(
 	orgRegistry *dbregistry.OrgUserDBRegistry,
 	adminStore *AdminStore,
 	orgStore *OrgStore,
-	mail iam_mail.MailService,
-	mailConfig *scopedsettings.ScopedResolver,
+	mail coconotification.Service,
+	mailConfig *iam_notification.ScopedResolver,
 	settings *SettingsReader,
 	rules *userrules.Store,
 	log logger.Logger,
@@ -719,11 +719,9 @@ func (s *Service) sendInvite(ctx context.Context, args StartArgs, link, tempPass
 		"ResetLink":      link,
 	}
 
-	task := iam_mail.MailTask{
-		Account: account,
-		OrgID:   resolvedOrgID,
-		AppID:   resolvedAppID,
-		To:      []iam_mail.Address{{Email: args.Email, Name: args.Username}},
+	task := coconotification.Task{
+		Ref: coconotification.SenderRef{Name: account, Scope: iam_notification.Scope(resolvedOrgID, resolvedAppID)},
+		To:  []coconotification.Address{{Email: args.Email, Name: args.Username}},
 	}
 	// Prefer this application's own active template of the same name,
 	// then this org's, over the global renderer — falls through
