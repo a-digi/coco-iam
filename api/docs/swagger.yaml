@@ -601,8 +601,10 @@ definitions:
   entity.Attack:
     properties:
       ban_count:
+        example: 3
         type: integer
       ended_at:
+        example: "2026-07-26T10:30:00Z"
         type: string
       geoip_info:
         description: |-
@@ -611,31 +613,42 @@ definitions:
           re-derived later. Populated on both the list and the detail
           fetch. Empty if geoip was disabled, IP was loopback/private, or
           nothing matched.
+        example: '{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
         type: string
       hit_count:
+        example: 143
         type: integer
       id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
         type: string
       ip:
+        example: 203.0.113.7
         type: string
       last_seen_at:
+        example: "2026-07-26T10:04:12Z"
         type: string
       origin_hint:
         description: |-
           OriginHint is a JSON snapshot of client-identifying request
           headers, captured only when IP resolved to a loopback/private
           address — populated on the detail fetch only, never on the list.
+        example: '{"x_forwarded_for":"203.0.113.7","host":"example.com"}'
         type: string
       started_at:
+        example: "2026-07-26T10:00:00Z"
         type: string
       tier:
+        example: sensitive
         type: string
     type: object
   entity.AttackDetailResponse:
     properties:
       ban_count:
+        example: 3
         type: integer
       ended_at:
+        example: "2026-07-26T10:30:00Z"
         type: string
       geoip_info:
         description: |-
@@ -644,28 +657,37 @@ definitions:
           re-derived later. Populated on both the list and the detail
           fetch. Empty if geoip was disabled, IP was loopback/private, or
           nothing matched.
+        example: '{"country_code":"DE","country":"Germany","asn":3320,"as_org":"Deutsche
+          Telekom AG"}'
         type: string
       hit_count:
+        example: 143
         type: integer
       id:
+        example: b1f6c9e2-1234-4a5b-8c9d-abcdef012345
         type: string
       ip:
+        example: 203.0.113.7
         type: string
       last_seen_at:
+        example: "2026-07-26T10:04:12Z"
         type: string
       origin_hint:
         description: |-
           OriginHint is a JSON snapshot of client-identifying request
           headers, captured only when IP resolved to a loopback/private
           address — populated on the detail fetch only, never on the list.
+        example: '{"x_forwarded_for":"203.0.113.7","host":"example.com"}'
         type: string
       started_at:
+        example: "2026-07-26T10:00:00Z"
         type: string
       targets:
         items:
           $ref: '#/definitions/entity.AttackTarget'
         type: array
       tier:
+        example: sensitive
         type: string
     type: object
   entity.AttackDetailSuccess:
@@ -707,12 +729,16 @@ definitions:
           BodySample is the first-observed request body for this target,
           redacted and size-capped — nil if none was captured (a GET/HEAD
           hit, or a content type this app doesn't capture).
+        example: '{"email":"admin@x.com","password":"[REDACTED]"}'
         type: string
       hit_count:
+        example: 89
         type: integer
       method:
+        example: POST
         type: string
       path:
+        example: /admin/oauth/authenticate
         type: string
     type: object
   entity.CheckRequest:
@@ -901,12 +927,16 @@ definitions:
   entity.IPAllowlistEntry:
     properties:
       created_at:
+        example: "2026-07-26T10:00:00Z"
         type: string
       created_by:
+        example: 6b12ba0b-6b36-4a94-bce4-6ba3615b1f85
         type: string
       ip:
+        example: 203.0.113.7
         type: string
       note:
+        example: office egress
         type: string
     type: object
   entity.IPAllowlistEntrySuccess:
@@ -939,18 +969,25 @@ definitions:
   entity.IPBan:
     properties:
       banned_at:
+        example: "2026-07-26T10:00:00Z"
         type: string
       created_by:
+        example: 6b12ba0b-6b36-4a94-bce4-6ba3615b1f85
         type: string
       expires_at:
+        example: "2026-07-26T11:00:00Z"
         type: string
       hit_count:
+        example: 3
         type: integer
       ip:
+        example: 203.0.113.7
         type: string
       reason:
+        example: sensitive rate limit exceeded
         type: string
       tier:
+        example: sensitive
         type: string
     type: object
   entity.IPBanAccountsResponse:
@@ -5390,7 +5427,7 @@ paths:
   /admin/security/firewall/resync:
     post:
       description: |-
-        Re-applies every currently-active (non-expired) ip_bans row through the same
+        Re-applies every currently-active (non-expired) security_ip_bans row through the same
         Ban() path a fresh ban already uses — useful after a host reboot or manual firewall
         flush. Already-loaded IPs are safely re-applied, not duplicated at the DB level.
       produces:
@@ -5455,7 +5492,7 @@ paths:
         /admin/security/ip-bans, that ban row is deleted too: removing an IP from this page
         means fully unbanning it, not leaving a rule that would just reappear on the next
         resync. Requires both admin:security:firewall:write (route-level) and
-        admin:security:ipbans:write (checked here), since this can delete an ip_bans row —
+        admin:security:ipbans:write (checked here), since this can delete a security_ip_bans row —
         mirrors IPBanAccountsHandler's pattern of an additional in-handler scope check beyond
         the route's own gate.
       parameters:

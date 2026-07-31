@@ -18,8 +18,8 @@ github.com/a-digi/coco-orm v1.0.6 h1:WPxDPt5ckWwIhSUHDZqDBqZA+Q6mSEGJRTHMrSvrz44
 github.com/a-digi/coco-orm v1.0.6/go.mod h1:PC45QsEwzySD4Z6EfwjcfyhxAOc+SnsOKXfqBeFezYc=
 github.com/a-digi/coco-queue v0.0.1 h1:g15rQL3m6VvvEj2XE2T0ClsHQOipYhtLYsgqEeXIX38=
 github.com/a-digi/coco-queue v0.0.1/go.mod h1:g47Li55UNJewOE+pUjD3wVOdUL/xFOr1k5MWzh87SVs=
-github.com/a-digi/coco-sec v0.0.1 h1:VEV8Uy84b7hkiPHJTzMjZKPWNVWjPNo3RC+xLc+BrRg=
-github.com/a-digi/coco-sec v0.0.1/go.mod h1:APtaKcrSelLQptNvDH5rqL49II/m57GdYqB0qzlFv9o=
+github.com/a-digi/coco-sec v0.0.2 h1:fnX34IrgxZRBNWgyesmxDTeGzc+VJXYEdd26Kgs7Xqw=
+github.com/a-digi/coco-sec v0.0.2/go.mod h1:APtaKcrSelLQptNvDH5rqL49II/m57GdYqB0qzlFv9o=
 github.com/a-digi/coco-server v0.1.11 h1:NKn/KW5Jcwq78zzsRKqGMyTQCms29CzaqNk7Ojj5PZ8=
 github.com/a-digi/coco-server v0.1.11/go.mod h1:rBtC7MyOU1Sv6CrNjFc0jCAbS9ZemwEnLGxVU69evjI=
 github.com/alecthomas/assert/v2 v2.10.0 h1:jjRCHsj6hBJhkmhznrCzoNpbA3zqy0fYiUcYZP/GkPY=
