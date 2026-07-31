@@ -10,14 +10,15 @@ import (
 )
 
 type recordingRunner struct {
-	calls [][]string
-	err   error
+	calls  [][]string
+	err    error
+	output []byte
 }
 
 func (r *recordingRunner) run(ctx context.Context, name string, args ...string) ([]byte, error) {
 	call := append([]string{name}, args...)
 	r.calls = append(r.calls, call)
-	return nil, r.err
+	return r.output, r.err
 }
 
 func foundLookPath(file string) (string, error) { return "/sbin/" + file, nil }
@@ -126,6 +127,62 @@ func TestDarwinBanner_UnavailableBackendErrorsWithoutRunningACommand(t *testing.
 	}
 	if len(r.calls) != 0 {
 		t.Fatalf("expected zero commands run when unavailable, got %d", len(r.calls))
+	}
+}
+
+func TestDarwinBanner_ListBannedIPs_ParsesTableEntries(t *testing.T) {
+	r := &recordingRunner{output: []byte("203.0.113.7\n198.51.100.5\n")}
+	b := newDarwinBanner(nil, r.run, foundLookPath)
+	r.calls = nil
+
+	ips, err := b.ListBannedIPs()
+	if err != nil {
+		t.Fatalf("ListBannedIPs() error = %v", err)
+	}
+	want := []string{"203.0.113.7", "198.51.100.5"}
+	if !equalSlices(ips, want) {
+		t.Fatalf("ListBannedIPs() = %v, want %v", ips, want)
+	}
+}
+
+func TestDarwinBanner_ListBannedIPs_EmptyWhenUnavailable(t *testing.T) {
+	r := &recordingRunner{}
+	b := newDarwinBanner(nil, r.run, missingLookPath)
+
+	ips, err := b.ListBannedIPs()
+	if err != nil {
+		t.Fatalf("ListBannedIPs() error = %v", err)
+	}
+	if len(ips) != 0 {
+		t.Fatalf("ListBannedIPs() = %v, want empty when unavailable", ips)
+	}
+}
+
+func TestDarwinBanner_RemoveAllRules_RemovesWhenPresent(t *testing.T) {
+	r := &recordingRunner{output: []byte("203.0.113.7\n198.51.100.5\n")}
+	b := newDarwinBanner(nil, r.run, foundLookPath)
+	r.calls = nil
+
+	removed, err := b.RemoveAllRules("203.0.113.7")
+	if err != nil {
+		t.Fatalf("RemoveAllRules() error = %v", err)
+	}
+	if removed != 1 {
+		t.Fatalf("removed = %d, want 1", removed)
+	}
+}
+
+func TestDarwinBanner_RemoveAllRules_ZeroWhenNotPresent(t *testing.T) {
+	r := &recordingRunner{output: []byte("198.51.100.5\n")}
+	b := newDarwinBanner(nil, r.run, foundLookPath)
+	r.calls = nil
+
+	removed, err := b.RemoveAllRules("203.0.113.7")
+	if err != nil {
+		t.Fatalf("RemoveAllRules() error = %v", err)
+	}
+	if removed != 0 {
+		t.Fatalf("removed = %d, want 0", removed)
 	}
 }
 

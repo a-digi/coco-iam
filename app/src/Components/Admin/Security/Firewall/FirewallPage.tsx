@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Alert from '../../../../Shared/Components/Alert/Alert';
 import { Submit } from '../../../../Shared/Components/Button';
+import { ConfirmModal } from '../../../../Shared/Components/Modal/ConfirmModal';
 import ScopeBasedComponentAccess from '../../../../Shared/Components/Access/ScopeBasedComponentAccess';
 import { AppScopes } from '../../../../config/security/scopes';
 import { useHttpClient } from '../../../../api/http/useHttpClient';
@@ -22,6 +24,21 @@ interface FirewallResyncResponse {
     failed: number;
 }
 
+interface FirewallRuleEntry {
+    ip: string;
+    count: number;
+}
+
+interface FirewallRulesResponse {
+    backend: string;
+    rules: FirewallRuleEntry[];
+}
+
+interface FirewallRuleRemoveResponse {
+    removed: number;
+    also_unbanned: boolean;
+}
+
 const WRITE_SCOPES = [AppScopes.AdminSecurityFirewallWrite, AppScopes.SuperAdmin];
 
 // FirewallPage is the dedicated Security > Firewall view — a fuller
@@ -32,12 +49,24 @@ const WRITE_SCOPES = [AppScopes.AdminSecurityFirewallWrite, AppScopes.SuperAdmin
 // after a host reboot or a manual `iptables -F`/pf reload). See
 // plan/firewall-page/plan.md.
 export const FirewallPage: React.FC = () => {
-    const { get, post } = useHttpClient();
+    const { get, post, del } = useHttpClient();
     const { successMessage, errorMessage } = useSnackBar();
 
     const [status, setStatus] = useState<SecurityStatus | null>(null);
+    const [rules, setRules] = useState<FirewallRulesResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [resyncing, setResyncing] = useState(false);
+    const [removeTarget, setRemoveTarget] = useState<string | null>(null);
+    const [removing, setRemoving] = useState(false);
+
+    const loadRules = useCallback(async () => {
+        try {
+            const resp = await get<{ message: FirewallRulesResponse }>('admin/security/firewall/rules');
+            setRules(resp.message);
+        } catch (err: unknown) {
+            errorMessage(err instanceof Error ? err.message : 'Failed to load firewall rules.');
+        }
+    }, [get, errorMessage]);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -49,7 +78,8 @@ export const FirewallPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [get, errorMessage]);
+        await loadRules();
+    }, [get, errorMessage, loadRules]);
 
     useEffect(() => {
         void load();
@@ -63,10 +93,33 @@ export const FirewallPage: React.FC = () => {
             successMessage(
                 `Resync complete — ${r.synced} synced, ${r.skipped_expired} skipped (expired), ${r.failed} failed.`
             );
+            await loadRules();
         } catch (err: unknown) {
             errorMessage(err instanceof Error ? err.message : 'Failed to resync firewall.');
         } finally {
             setResyncing(false);
+        }
+    };
+
+    const confirmRemove = async () => {
+        if (!removeTarget) return;
+        setRemoving(true);
+        try {
+            const resp = await del<{ message: FirewallRuleRemoveResponse }>(
+                `admin/security/firewall/rules/{ip:${removeTarget}}`
+            );
+            const r = resp.message;
+            successMessage(
+                r.also_unbanned
+                    ? `Removed ${r.removed} rule(s) for ${removeTarget} and unbanned it — it was still on the Bans list.`
+                    : `Removed ${r.removed} rule(s) for ${removeTarget}.`
+            );
+            setRemoveTarget(null);
+            await loadRules();
+        } catch (err: unknown) {
+            errorMessage(err instanceof Error ? err.message : 'Failed to remove firewall rules.');
+        } finally {
+            setRemoving(false);
         }
     };
 
@@ -141,6 +194,48 @@ block drop from <coco_iam_banned> to any`}
                     </>
                 )}
 
+                {rules && (
+                    <div className="p-4 bg-gray-50 dark:bg-surface-900 rounded-lg border border-gray-100 dark:border-gray-600">
+                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+                            Currently blocked IPs (OS level)
+                        </div>
+                        {rules.rules.length === 0 ? (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                No IPs are currently blocked at the OS level via {rules.backend}.
+                            </p>
+                        ) : (
+                            <ul className="text-sm text-gray-900 dark:text-gray-100 space-y-1">
+                                {rules.rules.map(entry => (
+                                    <li key={entry.ip} className="flex items-center gap-2">
+                                        <span className="font-mono">{entry.ip}</span>
+                                        {entry.count > 1 && (
+                                            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                                                × {entry.count} duplicate rules
+                                            </span>
+                                        )}
+                                        <ScopeBasedComponentAccess requiredScopes={WRITE_SCOPES}>
+                                            <button
+                                                type="button"
+                                                className="text-xs text-red-600 dark:text-red-400 underline"
+                                                onClick={() => setRemoveTarget(entry.ip)}
+                                            >
+                                                Remove
+                                            </button>
+                                        </ScopeBasedComponentAccess>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            Read live from {rules.backend} — informational, not authoritative. The{' '}
+                            <Link to="/admin/security/bans" className="underline">
+                                Bans
+                            </Link>{' '}
+                            page is the source of truth for what should be banned.
+                        </p>
+                    </div>
+                )}
+
                 <ScopeBasedComponentAccess requiredScopes={WRITE_SCOPES}>
                     <div className="flex items-center gap-3 pt-2">
                         <Submit
@@ -156,6 +251,18 @@ block drop from <coco_iam_banned> to any`}
                     </div>
                 </ScopeBasedComponentAccess>
             </div>
+
+            {removeTarget && (
+                <ConfirmModal
+                    title="Remove firewall rule"
+                    message={`Remove every OS-level rule for ${removeTarget}? If it's still on the Bans list, it will be unbanned there too — this fully unblocks the IP, not just at the OS level.`}
+                    confirmLabel="Remove"
+                    variant="danger"
+                    isLoading={removing}
+                    onConfirm={confirmRemove}
+                    onCancel={() => setRemoveTarget(null)}
+                />
+            )}
         </div>
     );
 };

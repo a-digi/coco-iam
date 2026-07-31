@@ -19,6 +19,7 @@ import (
 	security_entity "github.com/a-digi/coco-iam/src/admin/security/entity"
 	security_persistent "github.com/a-digi/coco-iam/src/admin/security/repository/persistent"
 	security_query "github.com/a-digi/coco-iam/src/admin/security/repository/query"
+	"github.com/a-digi/coco-iam/src/security/attackbans"
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
 	"github.com/a-digi/coco-iam/src/security/geoip"
 	"github.com/a-digi/coco-iam/src/security/ipguard/firewall"
@@ -72,8 +73,9 @@ type IPGuardSecurityLayer struct {
 	allowQuery   *security_query.IPAllowlistQueryRepo
 	allowPersist *security_persistent.IPAllowlistPersistentRepo
 
-	attackPersist *attacks_persistent.AttackPersistentRepo
-	attackLog     logger.Logger // dedicated log file — see plan section 12
+	attackPersist  *attacks_persistent.AttackPersistentRepo
+	attackLog      logger.Logger                 // dedicated log file — see plan section 12
+	attackBanQuery *attackbans.SettingsQueryRepo // admin-editable scan/probe ban rule, see plan/attack-ban-rules/plan.md
 
 	firewall firewall.Banner // OS-level enforcement, see plan section 14
 	geo      geoip.Lookup    // country/ASN/ISP enrichment, may be nil — see plan/geoip-enrichment/plan.md
@@ -118,21 +120,22 @@ func New(cfg Config, inner security.SecurityLayer, ctx di.Context, attacksHandle
 // entirely — every use is guarded the same way firewall's is).
 func NewWithDB(cfg Config, inner security.SecurityLayer, db *sql.DB, log logger.Logger, attacksHandle *dbhandle.Handle, attackLog logger.Logger, fw firewall.Banner, geo geoip.Lookup) (*IPGuardSecurityLayer, error) {
 	g := &IPGuardSecurityLayer{
-		inner:         inner,
-		cfg:           cfg,
-		log:           log,
-		limiter:       NewLimiter(),
-		banQuery:      security_query.NewIPBanQueryRepo(db),
-		banPersist:    security_persistent.NewIPBanPersistentRepo(db),
-		allowQuery:    security_query.NewIPAllowlistQueryRepo(db),
-		allowPersist:  security_persistent.NewIPAllowlistPersistentRepo(db),
-		attackPersist: attacks_persistent.NewAttackPersistentRepo(attacksHandle),
-		attackLog:     attackLog,
-		firewall:      fw,
-		geo:           geo,
-		bans:          make(map[string]banEntry),
-		allow:         make(map[string]struct{}),
-		attacks:       make(map[string]*attackState),
+		inner:          inner,
+		cfg:            cfg,
+		log:            log,
+		limiter:        NewLimiter(),
+		banQuery:       security_query.NewIPBanQueryRepo(db),
+		banPersist:     security_persistent.NewIPBanPersistentRepo(db),
+		allowQuery:     security_query.NewIPAllowlistQueryRepo(db),
+		allowPersist:   security_persistent.NewIPAllowlistPersistentRepo(db),
+		attackPersist:  attacks_persistent.NewAttackPersistentRepo(attacksHandle),
+		attackLog:      attackLog,
+		attackBanQuery: attackbans.NewSettingsQueryRepo(db),
+		firewall:       fw,
+		geo:            geo,
+		bans:           make(map[string]banEntry),
+		allow:          make(map[string]struct{}),
+		attacks:        make(map[string]*attackState),
 	}
 	if err := g.hydrate(); err != nil {
 		return nil, err
@@ -161,6 +164,8 @@ func (g *IPGuardSecurityLayer) hydrate() error {
 		g.bans[b.IP] = banEntry{tier: b.Tier, reason: b.Reason, expiresAt: expiresAt}
 	}
 	g.bansMu.Unlock()
+
+	g.resyncFirewall(active)
 
 	entries, err := g.allowQuery.ListAllowlist()
 	if err != nil {
@@ -307,15 +312,48 @@ func (g *IPGuardSecurityLayer) Unban(ip string) error {
 // never wait on a subprocess. firewall_linux.go's own 2s timeout
 // bounds how long that goroutine can run; a nil g.firewall (no
 // backend configured, e.g. in tests) is a silent no-op.
+// banFirewall is the single choke point every ban path funnels
+// through — fresh manual/auto bans (via Ban()), the "Resync now"
+// handler (which calls Ban() per active row), and the automatic
+// startup resync (resyncFirewall, called from hydrate()). Checking for
+// an existing rule here, once, closes the duplicate-rule problem for
+// all of them at once instead of requiring each caller to remember to
+// check. See plan/firewall-live-rules/plan.md's duplicate-rules
+// follow-up.
 func (g *IPGuardSecurityLayer) banFirewall(ip string, duration time.Duration) {
 	if g.firewall == nil {
 		return
 	}
 	go func() {
+		already, err := g.firewallAlreadyHasRule(ip)
+		if err != nil {
+			// The check itself failed (e.g. a transient `iptables -L`
+			// error) — fail open toward enforcement rather than
+			// silently skipping a ban because a read-only list command
+			// hiccuped.
+			g.errorf("ipguard: failed to check existing firewall rule for %s (%s): %v — attempting ban anyway", ip, g.firewall.Name(), err)
+		} else if already {
+			return
+		}
 		if err := g.firewall.Ban(ip, duration); err != nil {
 			g.errorf("ipguard: firewall ban failed for %s (%s): %v", ip, g.firewall.Name(), err)
 		}
 	}()
+}
+
+// firewallAlreadyHasRule reports whether ip already has an OS-level
+// rule — g.firewall is assumed non-nil (callers already checked).
+func (g *IPGuardSecurityLayer) firewallAlreadyHasRule(ip string) (bool, error) {
+	existing, err := g.firewall.ListBannedIPs()
+	if err != nil {
+		return false, err
+	}
+	for _, e := range existing {
+		if e == ip {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (g *IPGuardSecurityLayer) unbanFirewall(ip string) {
@@ -327,6 +365,28 @@ func (g *IPGuardSecurityLayer) unbanFirewall(ip string) {
 			g.errorf("ipguard: firewall unban failed for %s (%s): %v", ip, g.firewall.Name(), err)
 		}
 	}()
+}
+
+// resyncFirewall re-applies every non-expired ban to the OS firewall at
+// startup. A fresh process (redeploy, crash restart, host reboot) has no
+// OS-level firewall rules of its own even though the DB/in-memory ban
+// state survives hydrate() — without this, a ban keeps working at the
+// application layer and keeps showing in the admin UI, but silently
+// stops being enforced at the network level until an admin notices and
+// clicks "Resync now" (see FirewallResyncHandler, which this mirrors).
+// See plan/firewall-startup-resync/plan.md.
+func (g *IPGuardSecurityLayer) resyncFirewall(active []security_entity.IPBan) {
+	if g.firewall == nil || !g.firewall.Available() {
+		return
+	}
+	now := time.Now()
+	for _, b := range active {
+		expiresAt, ok := parseTime(b.ExpiresAt)
+		if !ok || expiresAt.Before(now) {
+			continue
+		}
+		g.banFirewall(b.IP, expiresAt.Sub(now))
+	}
 }
 
 // ListBans returns every ban row, including already-expired ones the
@@ -409,6 +469,61 @@ func (g *IPGuardSecurityLayer) FirewallStatus() (name string, available bool, de
 		return "none", false, "no firewall backend configured"
 	}
 	return g.firewall.Name(), g.firewall.Available(), g.firewall.Detail()
+}
+
+// ListFirewallRules returns the IPs currently blocked at the OS
+// firewall level, read live from the backend — informational, not the
+// source of truth (ip_bans is). See plan/firewall-live-rules/plan.md.
+func (g *IPGuardSecurityLayer) ListFirewallRules() ([]string, error) {
+	if g.firewall == nil {
+		return nil, nil
+	}
+	return g.firewall.ListBannedIPs()
+}
+
+// RemoveAllFirewallRules removes every OS-level rule for ip (there may
+// be duplicates — see firewall.Banner.RemoveAllRules' doc comment),
+// then checks ip_bans directly: if ip is still actively (non-expired)
+// banned there, that ban row is deleted too (the same DB+in-memory
+// cleanup Unban() does, minus its own OS-level call — the OS side is
+// already handled above). Removing an OS-level rule for an IP the Bans
+// page still lists as banned would otherwise be pointless: the very
+// next boot's startup resync, or any repeat of whatever re-triggers a
+// ban for this IP, would just reinstate the rule — so "remove from the
+// Firewall page" now means "fully unban," matching what an admin
+// clicking Remove actually wants. See
+// plan/firewall-live-rules/plan.md's cascade-unban follow-up.
+func (g *IPGuardSecurityLayer) RemoveAllFirewallRules(ip string) (removed int, alsoUnbanned bool, err error) {
+	if g.firewall == nil {
+		return 0, false, nil
+	}
+	removed, err = g.firewall.RemoveAllRules(ip)
+	if err != nil {
+		return removed, false, fmt.Errorf("ipguard: remove firewall rules for %s: %w", ip, err)
+	}
+
+	now := time.Now()
+	active, err := g.banQuery.ListActive(now)
+	if err != nil {
+		return removed, false, fmt.Errorf("ipguard: check active bans for %s: %w", ip, err)
+	}
+	for _, b := range active {
+		if b.IP != ip {
+			continue
+		}
+		expiresAt, ok := parseTime(b.ExpiresAt)
+		if !ok || expiresAt.Before(now) {
+			continue
+		}
+		if err := g.banPersist.DeleteBan(ip); err != nil {
+			return removed, false, fmt.Errorf("ipguard: unban %s after firewall removal: %w", ip, err)
+		}
+		g.bansMu.Lock()
+		delete(g.bans, ip)
+		g.bansMu.Unlock()
+		return removed, true, nil
+	}
+	return removed, false, nil
 }
 
 // PruneStaleCounters evicts in-memory rate-limit counters idle past
@@ -607,6 +722,7 @@ func (g *IPGuardSecurityLayer) recordAttackHit(ip, tier, reason string, r *http.
 	}
 	attackID := state.attackID
 	hits := state.hits
+	startedAt := state.startedAt
 	g.attacksMu.Unlock()
 
 	if needsCreate {
@@ -619,6 +735,36 @@ func (g *IPGuardSecurityLayer) recordAttackHit(ip, tier, reason string, r *http.
 	}
 
 	g.logAttackHit(ip, tier, reason, method, path, attackID, hits)
+
+	// Only the "unmatched" tier (requests to nonexistent routes, via
+	// RecordRecon) reaches here without having already gone through
+	// Authorize's own global/sensitive ban logic — gating on it avoids
+	// a second, redundant autoBan for tiers that already ban themselves
+	// earlier in the request lifecycle. See plan/attack-ban-rules/plan.md.
+	if tier == "unmatched" {
+		g.maybeAutoBanAttack(ip, hits, startedAt, now)
+	}
+}
+
+// maybeAutoBanAttack applies the admin-configured attack ban rule
+// (api/src/security/attackbans) to a scan/probe episode. Uses the
+// episode's startedAt rather than a true rolling window over
+// individual hit timestamps (attackState tracks neither) — this
+// correctly catches a burst (many hits in a short span) but not a slow
+// trickle spread across longer than WindowSeconds. Disabled by
+// default; a LoadSettings error is treated the same as disabled so a
+// transient DB hiccup never blocks the request.
+func (g *IPGuardSecurityLayer) maybeAutoBanAttack(ip string, hits int, startedAt, now time.Time) {
+	rules, err := g.attackBanQuery.LoadSettings()
+	if err != nil || !rules.Enabled {
+		return
+	}
+	windowStart := now.Add(-time.Duration(rules.WindowSeconds) * time.Second)
+	if hits < rules.Threshold || startedAt.Before(windowStart) {
+		return
+	}
+	reason := fmt.Sprintf("%d probe hits to nonexistent routes within %ds", hits, rules.WindowSeconds)
+	g.autoBan(ip, "attack-scan", reason, time.Duration(rules.BanSeconds)*time.Second)
 }
 
 // graceFor returns how long an episode may stay quiet before

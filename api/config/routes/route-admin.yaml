@@ -629,6 +629,21 @@ routes:
             scopes:
               - admin:security:login-bans:write
               - super:admin
+          # Attack ban rules — see plan/attack-ban-rules/plan.md.
+          - path: /security/attack-bans/settings
+            method: GET
+            executor: AttackBansGetSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:attack-bans:read
+              - super:admin
+          - path: /security/attack-bans/settings
+            method: PUT
+            executor: AttackBansPutSettingsHandler
+            security: authenticated
+            scopes:
+              - admin:security:attack-bans:write
+              - super:admin
           - path: /security/status
             method: GET
             executor: SecurityStatusHandler
@@ -643,6 +658,21 @@ routes:
           - path: /security/firewall/resync
             method: POST
             executor: FirewallResyncHandler
+            security: authenticated
+            scopes:
+              - admin:security:firewall:write
+              - super:admin
+          # Live OS-level rule list — see plan/firewall-live-rules/plan.md.
+          - path: /security/firewall/rules
+            method: GET
+            executor: FirewallRulesHandler
+            security: authenticated
+            scopes:
+              - admin:security:firewall:read
+              - super:admin
+          - path: /security/firewall/rules/{ip}
+            method: DELETE
+            executor: FirewallRuleRemoveHandler
             security: authenticated
             scopes:
               - admin:security:firewall:write

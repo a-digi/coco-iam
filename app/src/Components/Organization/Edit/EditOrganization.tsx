@@ -9,6 +9,9 @@ import { OrganizationPageHead } from '../Shared/OrganizationPageHead';
 import { Workspaces } from './Partials/Workspaces';
 import { UserRules } from './Partials/UserRules';
 import { ProfileFields } from './Partials/ProfileFields';
+import { OrgEmailSettings } from './Partials/Email/OrgEmailSettings';
+import { OrgEmailAccounts } from './Partials/Email/OrgEmailAccounts';
+import { OrgEmailTemplates } from './Partials/Email/OrgEmailTemplates';
 import { SideMenu, type SideMenuItem } from '../../../Shared/Components/SideMenu';
 import { AppScopes } from '../../../config/security/scopes';
 import { useBreadcrumbItems } from '../../../Layout/Breadcrumb/useBreadcrumb';
@@ -146,6 +149,30 @@ export const EditOrganization: React.FC = () => {
       id: 'workspaces',
       label: 'Workspaces',
       content: id ? <Workspaces organizationId={id} /> : null,
+    },
+    {
+      id: 'group-email',
+      label: 'Email',
+      // Falls back to the global mail engine wherever this org hasn't
+      // customized a given concern — see plan/org-app-email-settings/plan.md.
+      scopes: [AppScopes.OrganizationsRead, AppScopes.Organizations, AppScopes.SuperAdmin],
+      children: [
+        {
+          id: 'email-settings',
+          label: 'Settings',
+          content: id ? <OrgEmailSettings organizationId={id} /> : null,
+        },
+        {
+          id: 'email-accounts',
+          label: 'Accounts',
+          content: id ? <OrgEmailAccounts organizationId={id} /> : null,
+        },
+        {
+          id: 'email-templates',
+          label: 'Templates',
+          content: id ? <OrgEmailTemplates organizationId={id} /> : null,
+        },
+      ],
     },
     {
       id: 'group-users',

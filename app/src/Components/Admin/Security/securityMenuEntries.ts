@@ -66,4 +66,10 @@ export const DEFAULT_SECURITY_MENU: SecurityMenuEntry[] = [
         matchPrefixes: ['/admin/security/firewall'],
         scopes: [AppScopes.AdminSecurityFirewallRead, AppScopes.SuperAdmin],
     },
+    {
+        label: 'Attack ban rules',
+        href: '/admin/security/attack-bans',
+        matchPrefixes: ['/admin/security/attack-bans'],
+        scopes: [AppScopes.AdminSecurityAttackBansRead, AppScopes.SuperAdmin],
+    },
 ];

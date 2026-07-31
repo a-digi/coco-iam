@@ -30,7 +30,7 @@ import (
 	regfields_repo "github.com/a-digi/coco-iam/src/applications/registrationfields/repository"
 	"github.com/a-digi/coco-iam/src/general"
 	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	mailscopedsettings "github.com/a-digi/coco-iam/src/mail/scopedsettings"
 	profile_dbregistry "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
 	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
@@ -183,7 +183,7 @@ func (h *RegisterHandler) ServeHTTP(reqCtx request.RequestContext) {
 			url.PathEscape(orgSlug) + "/" +
 			url.PathEscape(wsSlug) + "/" +
 			url.PathEscape(appSlug)
-		sendNotificationEmail(ctx, existingEmail, existingUsername, loginURL)
+		sendNotificationEmail(ctx, info.OrganizationID, info.ID, existingEmail, existingUsername, loginURL)
 
 	} else {
 		var taken bool
@@ -225,6 +225,7 @@ func (h *RegisterHandler) ServeHTTP(reqCtx request.RequestContext) {
 				UserType: activation.UserTypeUser,
 				UserID:   newUserID,
 				OrgID:    info.OrganizationID,
+				AppID:    info.ID,
 				Username: username,
 				Email:    email,
 				Redirect: &activation.RedirectTarget{
@@ -380,16 +381,20 @@ func mergeAppUserProfile(db *sql.DB, appID, userID string, patch map[string]inte
 // sendNotificationEmail dispatches the app_registration_notification event
 // for an existing user who has just been mapped to an application. Failures
 // are logged by the caller; this function never blocks the request.
-func sendNotificationEmail(ctx interface{}, email, username, loginURL string) {
+func sendNotificationEmail(ctx interface{}, orgID, appID, email, username, loginURL string) {
 	mailSvc := resolveMailService(ctx)
-	mailCfg := resolveMailSettingsResolver(ctx)
+	mailCfg := resolveMailScopedResolver(ctx)
 	if mailSvc == nil || mailCfg == nil {
 		return
 	}
 
-	template := mailCfg.TemplateForEvent(activation.EventAppRegistrationNotification)
-	account := mailCfg.AccountForEvent(activation.EventAppRegistrationNotification)
+	event := activation.EventAppRegistrationNotification
+	template := mailCfg.TemplateForEvent(orgID, appID, event)
 	if template == "" {
+		return
+	}
+	account, resolvedOrgID, resolvedAppID := mailCfg.AccountForEvent(orgID, appID, event)
+	if account == "" {
 		return
 	}
 
@@ -398,16 +403,29 @@ func sendNotificationEmail(ctx interface{}, email, username, loginURL string) {
 		websiteTitle = gs.PageTitle()
 	}
 
-	_, _ = mailSvc.Enqueue(iam_mail.MailTask{
-		Template: template,
-		Account:  account,
-		To:       []iam_mail.Address{{Email: email, Name: username}},
-		Data: map[string]interface{}{
-			"Username":     username,
-			"LoginURL":     loginURL,
-			"WebsiteTitle": websiteTitle,
-		},
-	})
+	data := map[string]interface{}{
+		"Username":     username,
+		"LoginURL":     loginURL,
+		"WebsiteTitle": websiteTitle,
+	}
+	task := iam_mail.MailTask{
+		Account: account,
+		OrgID:   resolvedOrgID,
+		AppID:   resolvedAppID,
+		To:      []iam_mail.Address{{Email: email, Name: username}},
+	}
+	// Prefer this application's own active template of the same name,
+	// then this org's, over the global renderer — falls through
+	// untouched (task.Template + task.Data set) when neither tier has
+	// one of its own.
+	if subject, text, html, ok, rerr := mailCfg.RenderTemplate(orgID, appID, template, data); rerr == nil && ok {
+		task.Subject, task.TextBody, task.HTMLBody = subject, text, html
+	} else {
+		task.Template = template
+		task.Data = data
+	}
+
+	_, _ = mailSvc.Enqueue(task)
 }
 
 // loadRegistrationConfig reads allow_registration and registration_type from
@@ -558,16 +576,16 @@ func resolveMailService(ctx interface{}) iam_mail.MailService {
 	return svc
 }
 
-func resolveMailSettingsResolver(ctx interface{}) *mailsettings.Resolver {
+func resolveMailScopedResolver(ctx interface{}) *mailscopedsettings.ScopedResolver {
 	bag, ok := ctx.(bagGetter)
 	if !ok {
 		return nil
 	}
-	raw, ok := bag.Get(iam_mail.ContextBagKeySettingsResolver)
+	raw, ok := bag.Get(mailscopedsettings.ContextBagKey)
 	if !ok {
 		return nil
 	}
-	r, _ := raw.(*mailsettings.Resolver)
+	r, _ := raw.(*mailscopedsettings.ScopedResolver)
 	return r
 }
 

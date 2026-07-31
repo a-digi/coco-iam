@@ -12,7 +12,7 @@ import (
 	bcryptx "github.com/a-digi/coco-iam/src/auth/crypto/bcrypt"
 	"github.com/a-digi/coco-iam/src/general"
 	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	"github.com/a-digi/coco-iam/src/mail/scopedsettings"
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/userrules"
@@ -33,7 +33,7 @@ type Service struct {
 	adminStore  *AdminStore
 	orgStore    *OrgStore
 	mail        iam_mail.MailService
-	mailConfig  *mailsettings.Resolver
+	mailConfig  *scopedsettings.ScopedResolver
 	settings    *SettingsReader
 	rules       *userrules.Store
 	log         logger.Logger
@@ -48,7 +48,7 @@ func NewService(
 	adminStore *AdminStore,
 	orgStore *OrgStore,
 	mail iam_mail.MailService,
-	mailConfig *mailsettings.Resolver,
+	mailConfig *scopedsettings.ScopedResolver,
 	settings *SettingsReader,
 	rules *userrules.Store,
 	log logger.Logger,
@@ -244,6 +244,21 @@ func (s *Service) generalStoreFor(ref userRef) *general.Store {
 	return general.NewStoreFromDB(s.db)
 }
 
+// resolvedOrgIDFor returns the org id for a UserTypeUser recovery send
+// (resolved by scanning for ref.UserID, same lookup generalStoreFor
+// already does), or "" for admin sends or a failed lookup — which the
+// mail resolver treats identically to "no org override — use global".
+func (s *Service) resolvedOrgIDFor(ref userRef) string {
+	if ref.UserType != UserTypeUser || s.orgRegistry == nil {
+		return ""
+	}
+	_, orgID, err := orgrouter.OrgDBFor(s.orgRegistry, ref.UserID)
+	if err != nil {
+		return ""
+	}
+	return orgID
+}
+
 // loadUsableRow looks up a token hash across both stores.
 // Returns the row and the per-org DB (nil for admin rows).
 func (s *Service) loadUsableRow(token string) (*Row, *sql.DB, error) {
@@ -420,11 +435,13 @@ func (s *Service) rulesFor(userType UserType, userID string) userrules.RuleSet {
 // sendRecoveryEmail resolves the template + account bound to
 // `password_recovery` and enqueues the mail task.
 func (s *Service) sendRecoveryEmail(ctx context.Context, ref userRef, link string) error {
-	template := s.mailConfig.TemplateForEvent(EventPasswordRecovery)
+	orgID := s.resolvedOrgIDFor(ref)
+
+	template := s.mailConfig.TemplateForEvent(orgID, "", EventPasswordRecovery)
 	if template == "" {
 		return fmt.Errorf("no template bound to event %q — configure it in Admin Settings → Email", EventPasswordRecovery)
 	}
-	account := s.mailConfig.AccountForEvent(EventPasswordRecovery)
+	account, resolvedOrgID, _ := s.mailConfig.AccountForEvent(orgID, "", EventPasswordRecovery)
 	if account == "" {
 		return fmt.Errorf("no account bound to event %q — configure it in Admin Settings → Email", EventPasswordRecovery)
 	}
@@ -435,18 +452,32 @@ func (s *Service) sendRecoveryEmail(ctx context.Context, ref userRef, link strin
 		websiteTitle = extractHost(gs.BaseURL())
 	}
 
-	_, err := s.mail.Enqueue(iam_mail.MailTask{
-		Template: template,
-		Account:  account,
-		To:       []iam_mail.Address{{Email: ref.Email, Name: ref.Username}},
-		Data: map[string]interface{}{
-			"WebsiteTitle": websiteTitle,
-			"PageTitle":    websiteTitle,
-			"Username":     ref.Username,
-			"ResetLink":    link,
-			"ExpiresIn":    s.settings.TTLHumanReadable(),
-		},
-	})
+	data := map[string]interface{}{
+		"WebsiteTitle": websiteTitle,
+		"PageTitle":    websiteTitle,
+		"Username":     ref.Username,
+		"ResetLink":    link,
+		"ExpiresIn":    s.settings.TTLHumanReadable(),
+	}
+
+	task := iam_mail.MailTask{
+		Account: account,
+		OrgID:   resolvedOrgID,
+		To:      []iam_mail.Address{{Email: ref.Email, Name: ref.Username}},
+	}
+	// Prefer this org's own active template of the same name over the
+	// global renderer — falls through untouched when the org has none.
+	if subject, text, html, ok, rerr := s.mailConfig.RenderTemplate(orgID, "", template, data); rerr == nil && ok {
+		task.Subject, task.TextBody, task.HTMLBody = subject, text, html
+	} else {
+		if rerr != nil {
+			s.log.Warning("recovery: org template render for %q failed, falling back to global: %v", template, rerr)
+		}
+		task.Template = template
+		task.Data = data
+	}
+
+	_, err := s.mail.Enqueue(task)
 	_ = ctx
 	return err
 }

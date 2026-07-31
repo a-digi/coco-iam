@@ -1,10 +1,10 @@
 // Package template renders mail templates.
 //
 // Lookup order on every Render call:
-//   1. If a Repository is configured, look up `name` in mail.db.mail_templates
-//      where is_active = TRUE.
-//   2. Otherwise fall back to the embedded FS pair under
-//      `config/mail/templates/<name>.{html,txt}`.
+//  1. If a Repository is configured, look up `name` in mail.db.mail_templates
+//     where is_active = TRUE.
+//  2. Otherwise fall back to the embedded FS pair under
+//     `config/mail/templates/<name>.{html,txt}`.
 //
 // DB rows carry their own Subject column; file templates keep the legacy
 // `Subject: <text>` first-line convention (still honoured).
@@ -29,9 +29,9 @@ type Renderer struct {
 	fs   fs.FS
 	repo *Repository
 
-	mu       sync.RWMutex
+	mu        sync.RWMutex
 	fileCache map[string]*cachedTemplate
-	dbCache  map[string]*cachedDBTemplate
+	dbCache   map[string]*cachedDBTemplate
 }
 
 type cachedTemplate struct {
@@ -115,6 +115,41 @@ func (r *Renderer) Render(name string, data map[string]interface{}) (string, str
 	// Subject lines are templated just like bodies — otherwise tokens
 	// like `{{ .WebsiteTitle }}` in `Subject: Reset your {{ .WebsiteTitle }} password`
 	// leak through literally in the user's inbox.
+	return renderSubject(name, subject, data), textBuf.String(), htmlBuf.String(), nil
+}
+
+// RenderStrings compiles and executes a subject/text/html triple as
+// templates against data, without any DB or embedded-FS lookup — a
+// pure function callers with their own already-fetched template row
+// (e.g. an organization- or application-scoped one) can use directly.
+// Extracted from parseDBRow/renderFromDB's own compile+execute steps so
+// there is exactly one place that knows how a mail template's raw
+// fields become rendered output. Subject may be empty (falls back to
+// whichever body's own leading "Subject: " line was present, if any —
+// none in this path, since raw callers pass an already-split subject).
+func RenderStrings(name, subject, textBody, htmlBody string, data map[string]interface{}) (string, string, string, error) {
+	if textBody == "" && htmlBody == "" {
+		return "", "", "", fmt.Errorf("mail: template %q has empty body", name)
+	}
+	var textBuf, htmlBuf bytes.Buffer
+	if textBody != "" {
+		tpl, err := texttemplate.New(name + ".txt").Parse(textBody)
+		if err != nil {
+			return "", "", "", fmt.Errorf("mail: parse text %q: %w", name, err)
+		}
+		if err := tpl.Execute(&textBuf, data); err != nil {
+			return "", "", "", fmt.Errorf("mail: render text %q: %w", name, err)
+		}
+	}
+	if htmlBody != "" {
+		tpl, err := htmltemplate.New(name + ".html").Parse(htmlBody)
+		if err != nil {
+			return "", "", "", fmt.Errorf("mail: parse html %q: %w", name, err)
+		}
+		if err := tpl.Execute(&htmlBuf, data); err != nil {
+			return "", "", "", fmt.Errorf("mail: render html %q: %w", name, err)
+		}
+	}
 	return renderSubject(name, subject, data), textBuf.String(), htmlBuf.String(), nil
 }
 

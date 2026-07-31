@@ -7,7 +7,7 @@ import (
 
 	"github.com/a-digi/coco-iam/src/general"
 	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	"github.com/a-digi/coco-iam/src/mail/scopedsettings"
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-logger/logger"
@@ -18,7 +18,7 @@ import (
 type Service struct {
 	db          *sql.DB
 	orgRegistry *dbregistry.OrgUserDBRegistry
-	mailConfig  *mailsettings.Resolver
+	mailConfig  *scopedsettings.ScopedResolver
 	mail        iam_mail.MailService
 	log         logger.Logger
 }
@@ -28,7 +28,7 @@ type Service struct {
 func NewService(
 	db *sql.DB,
 	orgRegistry *dbregistry.OrgUserDBRegistry,
-	mailConfig *mailsettings.Resolver,
+	mailConfig *scopedsettings.ScopedResolver,
 	mail iam_mail.MailService,
 	log logger.Logger,
 ) *Service {
@@ -54,20 +54,32 @@ func (s *Service) OnRemoved(_ context.Context, _, username, email, orgID string)
 }
 
 func (s *Service) send(event, username, email, orgID string) {
-	tmpl := s.mailConfig.TemplateForEvent(event)
-	account := s.mailConfig.AccountForEvent(event)
+	tmpl := s.mailConfig.TemplateForEvent(orgID, "", event)
+	account, resolvedOrgID, _ := s.mailConfig.AccountForEvent(orgID, "", event)
 	websiteTitle := s.pageTitle(orgID)
 
 	task := iam_mail.MailTask{
 		Account: account,
+		OrgID:   resolvedOrgID,
 		To:      []iam_mail.Address{{Email: email, Name: username}},
 	}
 
 	if tmpl != "" {
-		task.Template = tmpl
-		task.Data = map[string]interface{}{
+		data := map[string]interface{}{
 			"Username":     username,
 			"WebsiteTitle": websiteTitle,
+		}
+		// Prefer this org's own active template of the same name over
+		// the global renderer — falls through untouched (task.Template
+		// set, exactly as before) when the org has none of its own.
+		if subject, text, html, ok, err := s.mailConfig.RenderTemplate(orgID, "", tmpl, data); err == nil && ok {
+			task.Subject, task.TextBody, task.HTMLBody = subject, text, html
+		} else {
+			if err != nil {
+				s.log.Warning("org user notify: org template render for %q failed, falling back to global: %v", tmpl, err)
+			}
+			task.Template = tmpl
+			task.Data = data
 		}
 	} else {
 		switch event {

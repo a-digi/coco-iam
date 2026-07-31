@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
 	"github.com/a-digi/coco-iam/src/auth/crypto/bcrypt"
 	"github.com/a-digi/coco-iam/src/general"
+	iam_mail "github.com/a-digi/coco-iam/src/mail"
+	"github.com/a-digi/coco-iam/src/mail/scopedsettings"
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/userrules"
@@ -29,7 +29,7 @@ type Service struct {
 	adminStore  *AdminStore
 	orgStore    *OrgStore
 	mail        iam_mail.MailService
-	mailConfig  *mailsettings.Resolver
+	mailConfig  *scopedsettings.ScopedResolver
 	settings    *SettingsReader
 	rules       *userrules.Store
 	log         logger.Logger
@@ -45,7 +45,7 @@ func NewService(
 	adminStore *AdminStore,
 	orgStore *OrgStore,
 	mail iam_mail.MailService,
-	mailConfig *mailsettings.Resolver,
+	mailConfig *scopedsettings.ScopedResolver,
 	settings *SettingsReader,
 	rules *userrules.Store,
 	log logger.Logger,
@@ -369,7 +369,7 @@ func (s *Service) Resend(ctx context.Context, userType UserType, userID string) 
 			elapsed := time.Since(latest.CreatedAt)
 			if cooldown := s.settings.ResendCooldown(); elapsed < cooldown {
 				return StartResult{}, fmt.Errorf(
-					"%w (wait %s)", ErrCooldown, (cooldown-elapsed).Round(time.Second),
+					"%w (wait %s)", ErrCooldown, (cooldown - elapsed).Round(time.Second),
 				)
 			}
 			if latest.RedirectOrgSlug != "" && latest.RedirectWorkspaceSlug != "" && latest.RedirectClientID != "" {
@@ -393,7 +393,7 @@ func (s *Service) Resend(ctx context.Context, userType UserType, userID string) 
 			elapsed := time.Since(latest.CreatedAt)
 			if cooldown := s.settings.ResendCooldown(); elapsed < cooldown {
 				return StartResult{}, fmt.Errorf(
-					"%w (wait %s)", ErrCooldown, (cooldown-elapsed).Round(time.Second),
+					"%w (wait %s)", ErrCooldown, (cooldown - elapsed).Round(time.Second),
 				)
 			}
 			if latest.RedirectOrgSlug != "" && latest.RedirectWorkspaceSlug != "" && latest.RedirectClientID != "" {
@@ -640,6 +640,28 @@ func (s *Service) generalStoreFor(userID string, userType UserType) *general.Sto
 	return general.NewStoreFromDB(s.db)
 }
 
+// resolvedOrgIDFor returns the org id for a UserTypeUser send — args.OrgID
+// when the caller already supplied it, otherwise resolved by scanning
+// for userID (same lookup generalStoreFor already does). Returns "" for
+// admin sends (no org concept) or when resolution fails, which the mail
+// resolver treats identically to "no org override — use global".
+func (s *Service) resolvedOrgIDFor(args StartArgs) string {
+	if args.UserType != UserTypeUser {
+		return ""
+	}
+	if args.OrgID != "" {
+		return args.OrgID
+	}
+	if s.orgRegistry == nil {
+		return ""
+	}
+	_, orgID, err := orgrouter.OrgDBFor(s.orgRegistry, args.UserID)
+	if err != nil {
+		return ""
+	}
+	return orgID
+}
+
 func (s *Service) openOrgDBForUser(userID string) (*sql.DB, error) {
 	return s.openOrgDBForUserWithHint(userID, "")
 }
@@ -663,11 +685,13 @@ func (s *Service) sendInvite(ctx context.Context, args StartArgs, link, tempPass
 	if args.UserType == UserTypeAdmin {
 		event = EventAdminInvite
 	}
-	template := s.mailConfig.TemplateForEvent(event)
+	orgID := s.resolvedOrgIDFor(args)
+
+	template := s.mailConfig.TemplateForEvent(orgID, args.AppID, event)
 	if template == "" {
 		return fmt.Errorf("no template bound to event %q — configure it in Admin Settings → Email", event)
 	}
-	account := s.mailConfig.AccountForEvent(event)
+	account, resolvedOrgID, resolvedAppID := s.mailConfig.AccountForEvent(orgID, args.AppID, event)
 	if account == "" {
 		return fmt.Errorf("no account bound to event %q — configure it in Admin Settings → Email", event)
 	}
@@ -685,20 +709,37 @@ func (s *Service) sendInvite(ctx context.Context, args StartArgs, link, tempPass
 		}
 	}
 
-	_, err := s.mail.Enqueue(iam_mail.MailTask{
-		Template: template,
-		Account:  account,
-		To:       []iam_mail.Address{{Email: args.Email, Name: args.Username}},
-		Data: map[string]interface{}{
-			"WebsiteTitle":   websiteTitle,
-			"PageTitle":      websiteTitle,
-			"Username":       args.Username,
-			"ActivationLink": link,
-			"TempPassword":   tempPassword,
-			"ExpiresIn":      s.settings.TTLHumanReadable(),
-			"ResetLink":      link,
-		},
-	})
+	data := map[string]interface{}{
+		"WebsiteTitle":   websiteTitle,
+		"PageTitle":      websiteTitle,
+		"Username":       args.Username,
+		"ActivationLink": link,
+		"TempPassword":   tempPassword,
+		"ExpiresIn":      s.settings.TTLHumanReadable(),
+		"ResetLink":      link,
+	}
+
+	task := iam_mail.MailTask{
+		Account: account,
+		OrgID:   resolvedOrgID,
+		AppID:   resolvedAppID,
+		To:      []iam_mail.Address{{Email: args.Email, Name: args.Username}},
+	}
+	// Prefer this application's own active template of the same name,
+	// then this org's, over the global renderer — falls through
+	// untouched (task.Template + task.Data set, exactly as before)
+	// when neither tier has one of its own.
+	if subject, text, html, ok, rerr := s.mailConfig.RenderTemplate(orgID, args.AppID, template, data); rerr == nil && ok {
+		task.Subject, task.TextBody, task.HTMLBody = subject, text, html
+	} else {
+		if rerr != nil {
+			s.log.Warning("activation: template render for %q failed, falling back to global: %v", template, rerr)
+		}
+		task.Template = template
+		task.Data = data
+	}
+
+	_, err := s.mail.Enqueue(task)
 	_ = ctx
 	return err
 }

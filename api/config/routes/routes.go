@@ -44,6 +44,7 @@ import (
 	app_loginlog "github.com/a-digi/coco-iam/src/applications/loginlog/handler"
 	app_loginpage "github.com/a-digi/coco-iam/src/applications/loginpage"
 	app_loginpage_handler "github.com/a-digi/coco-iam/src/applications/loginpage/handler"
+	app_mail_handler "github.com/a-digi/coco-iam/src/applications/mail/handler"
 	app_media_handler "github.com/a-digi/coco-iam/src/applications/media/handler"
 	oauthproviders_admin "github.com/a-digi/coco-iam/src/applications/oauthproviders/admin"
 	oauth_authstate "github.com/a-digi/coco-iam/src/applications/oauthproviders/authstate"
@@ -67,11 +68,13 @@ import (
 	oauthserver "github.com/a-digi/coco-iam/src/oauthserver"
 	oauth_dbregistry "github.com/a-digi/coco-iam/src/oauthserver/dbregistry"
 	oauth_sqlstore "github.com/a-digi/coco-iam/src/oauthserver/sqlstore"
+	org_mail_handler "github.com/a-digi/coco-iam/src/organizations/mail/handler"
 	profile_dbregistry_main "github.com/a-digi/coco-iam/src/organizations/profile/dbregistry"
 	profile_handler "github.com/a-digi/coco-iam/src/organizations/profile/handler"
 	organization_users_admin "github.com/a-digi/coco-iam/src/organizations/users/admin"
 	users_dbregistry "github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
+	attackbans_handler "github.com/a-digi/coco-iam/src/security/attackbans/handler"
 	"github.com/a-digi/coco-iam/src/security/geoip"
 	geoip_handler "github.com/a-digi/coco-iam/src/security/geoip/handler"
 	"github.com/a-digi/coco-iam/src/security/ipguard"
@@ -893,6 +896,8 @@ func Init(ctx serverdi.Context) {
 		"IPAllowlistDeleteHandler":         &admin_security.IPAllowlistDeleteHandler{},
 		"SecurityStatusHandler":            &admin_security.SecurityStatusHandler{},
 		"FirewallResyncHandler":            &admin_security.FirewallResyncHandler{},
+		"FirewallRulesHandler":             &admin_security.FirewallRulesHandler{},
+		"FirewallRuleRemoveHandler":        &admin_security.FirewallRuleRemoveHandler{},
 		"AttackListHandler":                &admin_security_attacks.AttackListHandler{},
 		"AttackDetailHandler":              &admin_security_attacks.AttackDetailHandler{},
 		"AttackFetchGeoIPHandler":          &admin_security_attacks.FetchGeoIPHandler{},
@@ -908,6 +913,9 @@ func Init(ctx serverdi.Context) {
 		// Failed-login ban-rule settings — see plan/login-ban-rules/plan.md.
 		"LoginBansGetSettingsHandler": &loginbans_handler.GetSettingsHandler{},
 		"LoginBansPutSettingsHandler": &loginbans_handler.PutSettingsHandler{},
+
+		"AttackBansGetSettingsHandler": &attackbans_handler.GetSettingsHandler{},
+		"AttackBansPutSettingsHandler": &attackbans_handler.PutSettingsHandler{},
 		// Admin GeoIP settings + process control — see
 		// plan/geoip-enrichment/plan.md.
 		"GeoIPGetSettingsHandler":              &geoip_handler.GetSettingsHandler{},
@@ -1119,6 +1127,36 @@ func Init(ctx serverdi.Context) {
 		"PublicGeneralSettingsHandler":      &general_admin.PublicGeneralSettingsHandler{},
 		"OrgGeneralSettingsGetHandler":      &general_admin.OrgGeneralSettingsGetHandler{},
 		"OrgGeneralSettingsUpdateHandler":   &general_admin.OrgGeneralSettingsUpdateHandler{},
+
+		"OrgMailSettingsGetHandler":      &org_mail_handler.OrgMailSettingsGetHandler{},
+		"OrgMailSettingsUpdateHandler":   &org_mail_handler.OrgMailSettingsUpdateHandler{},
+		"OrgMailAccountsListHandler":     &org_mail_handler.OrgMailAccountsListHandler{},
+		"OrgMailAccountsCreateHandler":   &org_mail_handler.OrgMailAccountsCreateHandler{},
+		"OrgMailAccountsGetHandler":      &org_mail_handler.OrgMailAccountsGetHandler{},
+		"OrgMailAccountsUpdateHandler":   &org_mail_handler.OrgMailAccountsUpdateHandler{},
+		"OrgMailAccountsDeleteHandler":   &org_mail_handler.OrgMailAccountsDeleteHandler{},
+		"OrgMailAccountsActivateHandler": &org_mail_handler.OrgMailAccountsActivateHandler{},
+		"OrgMailAccountsTestHandler":     &org_mail_handler.OrgMailAccountsTestHandler{},
+		"OrgMailTemplatesListHandler":    &org_mail_handler.OrgMailTemplatesListHandler{},
+		"OrgMailTemplatesCreateHandler":  &org_mail_handler.OrgMailTemplatesCreateHandler{},
+		"OrgMailTemplatesGetHandler":     &org_mail_handler.OrgMailTemplatesGetHandler{},
+		"OrgMailTemplatesUpdateHandler":  &org_mail_handler.OrgMailTemplatesUpdateHandler{},
+		"OrgMailTemplatesDeleteHandler":  &org_mail_handler.OrgMailTemplatesDeleteHandler{},
+
+		"AppMailSettingsGetHandler":      &app_mail_handler.AppMailSettingsGetHandler{},
+		"AppMailSettingsUpdateHandler":   &app_mail_handler.AppMailSettingsUpdateHandler{},
+		"AppMailAccountsListHandler":     &app_mail_handler.AppMailAccountsListHandler{},
+		"AppMailAccountsCreateHandler":   &app_mail_handler.AppMailAccountsCreateHandler{},
+		"AppMailAccountsGetHandler":      &app_mail_handler.AppMailAccountsGetHandler{},
+		"AppMailAccountsUpdateHandler":   &app_mail_handler.AppMailAccountsUpdateHandler{},
+		"AppMailAccountsDeleteHandler":   &app_mail_handler.AppMailAccountsDeleteHandler{},
+		"AppMailAccountsActivateHandler": &app_mail_handler.AppMailAccountsActivateHandler{},
+		"AppMailAccountsTestHandler":     &app_mail_handler.AppMailAccountsTestHandler{},
+		"AppMailTemplatesListHandler":    &app_mail_handler.AppMailTemplatesListHandler{},
+		"AppMailTemplatesCreateHandler":  &app_mail_handler.AppMailTemplatesCreateHandler{},
+		"AppMailTemplatesGetHandler":     &app_mail_handler.AppMailTemplatesGetHandler{},
+		"AppMailTemplatesUpdateHandler":  &app_mail_handler.AppMailTemplatesUpdateHandler{},
+		"AppMailTemplatesDeleteHandler":  &app_mail_handler.AppMailTemplatesDeleteHandler{},
 		// coco-observe — system observability (push public/HMAC, query+agents admin-scoped).
 		"ObservePushHandler":          observePush,
 		"ObserveQueryHandler":         observeQuery,

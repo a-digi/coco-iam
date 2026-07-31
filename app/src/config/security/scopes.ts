@@ -135,6 +135,13 @@ export const AppScopes = {
     ApplicationsAnalyticsRecentGrantsRead: 'applications:analytics:recent_grants:read',
     ApplicationsAnalyticsPendingRecoveriesRead: 'applications:analytics:pending_recoveries:read',
 
+    // Application email senders/templates/event bindings. Falls back to
+    // the organization's, then the global, mail settings when unset —
+    // see plan/org-app-email-settings/plan.md.
+    ApplicationsMail: 'applications:mail',
+    ApplicationsMailRead: 'applications:mail:read',
+    ApplicationsMailWrite: 'applications:mail:write',
+
     // Admin Queue
     AdminQueue: 'admin:queue',
     AdminQueueRead: 'admin:queue:read',
@@ -219,6 +226,10 @@ export const AppScopes = {
     // OS-level firewall enforcement status + manual resync — see plan/firewall-page/plan.md.
     AdminSecurityFirewallRead: 'admin:security:firewall:read',
     AdminSecurityFirewallWrite: 'admin:security:firewall:write',
+
+    // Automatic IP-ban rules for scan/probe traffic — see plan/attack-ban-rules/plan.md.
+    AdminSecurityAttackBansRead: 'admin:security:attack-bans:read',
+    AdminSecurityAttackBansWrite: 'admin:security:attack-bans:write',
 } as const;
 
 export type AppScope = typeof AppScopes[keyof typeof AppScopes];
