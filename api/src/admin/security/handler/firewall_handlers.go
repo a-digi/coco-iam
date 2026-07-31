@@ -16,7 +16,7 @@ import (
 type FirewallResyncHandler struct{}
 
 // @Summary     Resync active IP bans into the OS-level firewall
-// @Description Re-applies every currently-active (non-expired) ip_bans row through the same
+// @Description Re-applies every currently-active (non-expired) security_ip_bans row through the same
 // @Description Ban() path a fresh ban already uses — useful after a host reboot or manual firewall
 // @Description flush. Already-loaded IPs are safely re-applied, not duplicated at the DB level.
 // @Tags        security
@@ -130,7 +130,7 @@ type FirewallRuleRemoveHandler struct{}
 // @Description /admin/security/ip-bans, that ban row is deleted too: removing an IP from this page
 // @Description means fully unbanning it, not leaving a rule that would just reappear on the next
 // @Description resync. Requires both admin:security:firewall:write (route-level) and
-// @Description admin:security:ipbans:write (checked here), since this can delete an ip_bans row —
+// @Description admin:security:ipbans:write (checked here), since this can delete a security_ip_bans row —
 // @Description mirrors IPBanAccountsHandler's pattern of an additional in-handler scope check beyond
 // @Description the route's own gate.
 // @Tags        security
@@ -150,7 +150,7 @@ func (h *FirewallRuleRemoveHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 
-	// This action can cascade-delete an ip_bans row, so it requires
+	// This action can cascade-delete a security_ip_bans row, so it requires
 	// admin:security:ipbans:write too — not just this route's own
 	// admin:security:firewall:write gate. The route-config's scopes
 	// list is OR-only (any one scope satisfies it), so an AND

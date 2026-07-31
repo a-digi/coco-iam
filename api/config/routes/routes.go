@@ -1191,7 +1191,7 @@ func Init(ctx serverdi.Context) {
 
 	// geoip enrichment — see plan/geoip-enrichment/plan.md. geoipCfg's
 	// static (config.json) values are merged with whatever's been
-	// saved via the admin settings UI (main DB, geoip_settings) — the
+	// saved via the admin settings UI (main DB, security_geoip_settings) — the
 	// DB values win when present, config.json is the fallback for a
 	// fresh install nobody has configured yet.
 	geoipCfg, err := geoip.LoadConfig(authCfgBytes)

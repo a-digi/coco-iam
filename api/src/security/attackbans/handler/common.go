@@ -11,8 +11,9 @@ import (
 )
 
 // resolveMainDB returns the main database's *sql.DB — the same one
-// attack_ban_rules, login_ban_rules, geoip_settings, and ipguard's
-// ban/allowlist repos all live in.
+// security_attack_ban_rules, security_login_ban_rules,
+// security_geoip_settings, and ipguard's ban/allowlist repos all live
+// in.
 func resolveMainDB(reqCtx request.RequestContext) (*sql.DB, bool) {
 	w := reqCtx.GetWriter()
 	bag, ok := reqCtx.GetDI().(*di.ContextBag)

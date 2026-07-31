@@ -1,8 +1,8 @@
 package entity
 
 // FirewallResyncResponse reports the outcome of re-applying every
-// currently-active (non-expired) ip_bans row through the same Ban()
-// path a fresh ban already uses — useful after a host reboot resets
+// currently-active (non-expired) security_ip_bans row through the
+// same Ban() path a fresh ban already uses — useful after a host reboot resets
 // pf's runtime state, or an admin manually flushed the OS firewall.
 // See plan/firewall-page/plan.md.
 type FirewallResyncResponse struct {
@@ -30,8 +30,8 @@ type FirewallRuleEntry struct {
 
 // FirewallRulesResponse lists the IPs currently blocked at the OS
 // firewall level, read live from the backend in use — informational
-// only; ip_bans (via /admin/security/ip-bans) stays the source of
-// truth for what *should* be banned. See plan/firewall-live-rules/plan.md.
+// only; security_ip_bans (via /admin/security/ip-bans) stays the
+// source of truth for what *should* be banned. See plan/firewall-live-rules/plan.md.
 type FirewallRulesResponse struct {
 	Backend string              `json:"backend" example:"iptables"`
 	Rules   []FirewallRuleEntry `json:"rules"`
@@ -46,8 +46,8 @@ type FirewallRulesSuccess struct {
 
 // FirewallRuleRemoveResponse reports the outcome of manually removing
 // every OS-level rule for one IP. AlsoUnbanned is true when the IP was
-// still actively banned in ip_bans, in which case that ban row was
-// deleted too — "remove from the Firewall page" means fully unban, see
+// still actively banned in security_ip_bans, in which case that ban
+// row was deleted too — "remove from the Firewall page" means fully unban, see
 // IPGuardSecurityLayer.RemoveAllFirewallRules' doc comment for why.
 type FirewallRuleRemoveResponse struct {
 	Removed      int  `json:"removed" example:"3"`
