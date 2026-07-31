@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/a-digi/coco-iam/config/di"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	"github.com/a-digi/coco-iam/src/mail/accounts"
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	iam_mail "github.com/a-digi/coco-iam/src/notification"
+	accounts "github.com/a-digi/coco-notification/mailer"
+	mailsettings "github.com/a-digi/coco-notification/settings"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
@@ -72,7 +72,7 @@ func (h *AdminMailSettingsUpdateHandler) ServeHTTP(reqCtx request.RequestContext
 
 	if req.Events != nil {
 		known := map[string]bool{}
-		for _, evt := range mailsettings.EventCatalog {
+		for _, evt := range iam_mail.EventCatalog {
 			known[evt.Key] = true
 		}
 		updates := map[string]string{}
@@ -147,7 +147,7 @@ func (h *AdminMailSettingsUpdateHandler) ServeHTTP(reqCtx request.RequestContext
 	if resolver == nil {
 		return
 	}
-	snap := resolver.Snapshot()
+	snap := buildMailSettingsSnapshot(resolver)
 	if snap.ActiveAccount != nil {
 		redacted := snap.ActiveAccount.Redacted()
 		snap.ActiveAccount = &redacted
@@ -178,4 +178,3 @@ func resolveAccountsStore(reqCtx request.RequestContext) *accounts.Store {
 	}
 	return s
 }
-

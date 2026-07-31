@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/a-digi/coco-iam/config/di"
+	iam_mail "github.com/a-digi/coco-iam/src/notification"
 	"github.com/a-digi/coco-lift/resource/uri"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	"github.com/a-digi/coco-iam/src/mail/store"
+	"github.com/a-digi/coco-notification/store"
 	"github.com/a-digi/coco-queue"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
@@ -42,7 +42,7 @@ func (h *AdminMailRetryHandler) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(w, http.StatusInternalServerError, "DI context has unexpected type")
 		return
 	}
-	rawStore, ok := bag.Get(iam_mail.ContextBagKeyMailStore)
+	rawStore, ok := bag.Get(iam_mail.ContextBagKeyStore)
 	if !ok {
 		response.ErrorResponse(w, http.StatusInternalServerError, "mail store not available")
 		return

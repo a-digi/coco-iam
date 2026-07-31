@@ -12,7 +12,7 @@ import (
 	"github.com/a-digi/coco-iam/src/applications/mail/entity"
 	appmail_persistent "github.com/a-digi/coco-iam/src/applications/mail/repository/persistent"
 	appmail_query "github.com/a-digi/coco-iam/src/applications/mail/repository/query"
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	mailsettings "github.com/a-digi/coco-iam/src/notification"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )

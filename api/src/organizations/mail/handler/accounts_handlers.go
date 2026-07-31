@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailsmtp "github.com/a-digi/coco-iam/src/mail/smtp"
 	"github.com/a-digi/coco-iam/src/organizations/mail/entity"
 	orgmail_persistent "github.com/a-digi/coco-iam/src/organizations/mail/repository/persistent"
 	orgmail_query "github.com/a-digi/coco-iam/src/organizations/mail/repository/query"
+	iam_mail "github.com/a-digi/coco-notification"
+	mailsmtp "github.com/a-digi/coco-notification/mailer"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )

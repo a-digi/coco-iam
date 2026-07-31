@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/a-digi/coco-iam/config/di"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailaccounts "github.com/a-digi/coco-iam/src/mail/accounts"
+	iam_mail "github.com/a-digi/coco-iam/src/notification"
+	mailaccounts "github.com/a-digi/coco-notification/mailer"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )

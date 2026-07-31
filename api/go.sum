@@ -8,8 +8,6 @@ github.com/a-digi/coco-logger v0.1.0 h1:LAlMe69T4CFfOqSx6cprlORKp7GHK49nLVhts0Nm
 github.com/a-digi/coco-logger v0.1.0/go.mod h1:7YbTbDE4QPtypZMQOevUSeKNHK7fjehq+OEAlhs/e+w=
 github.com/a-digi/coco-oauth v0.1.0 h1:2bG8rGjPePZYiSVZ33bkuP1gSAsLmFYebEzjgpoqVOs=
 github.com/a-digi/coco-oauth v0.1.0/go.mod h1:WFX+gyGfC5yyceADNpN5hvlibFYcitZuTGw3yVng+ug=
-github.com/a-digi/coco-observe v0.1.2 h1:Vfxr95D80cyUnMdqvKTlVHG2O9kujowLzave3sJ6nPc=
-github.com/a-digi/coco-observe v0.1.2/go.mod h1:HBjx/yPGPxrhhode1g44Mg6lidWJWhu8539YxqFrUg4=
 github.com/a-digi/coco-orm v1.0.6 h1:WPxDPt5ckWwIhSUHDZqDBqZA+Q6mSEGJRTHMrSvrz44=
 github.com/a-digi/coco-orm v1.0.6/go.mod h1:PC45QsEwzySD4Z6EfwjcfyhxAOc+SnsOKXfqBeFezYc=
 github.com/a-digi/coco-queue v0.0.1 h1:g15rQL3m6VvvEj2XE2T0ClsHQOipYhtLYsgqEeXIX38=

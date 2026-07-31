@@ -11,12 +11,12 @@ import (
 	bcryptx "github.com/a-digi/coco-iam/src/auth/crypto/bcrypt"
 	"github.com/a-digi/coco-iam/src/auth/recovery"
 	"github.com/a-digi/coco-iam/src/general"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	"github.com/a-digi/coco-iam/src/mail/scopedsettings"
+	iam_notification "github.com/a-digi/coco-iam/src/notification"
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/userrules"
 	"github.com/a-digi/coco-logger/logger"
+	coconotification "github.com/a-digi/coco-notification"
 )
 
 // Service coordinates the per-application password-recovery flow. It
@@ -30,8 +30,8 @@ type Service struct {
 	orgRegistry   *dbregistry.OrgUserDBRegistry
 	store         *Store             // our template store
 	recoveryStore *recovery.OrgStore // shared per-org token store
-	mail          iam_mail.MailService
-	mailConfig    *scopedsettings.ScopedResolver
+	mail          coconotification.Service
+	mailConfig    *iam_notification.ScopedResolver
 	settings      *recovery.SettingsReader
 	rules         *userrules.Store
 	log           logger.Logger
@@ -42,8 +42,8 @@ func NewService(
 	orgRegistry *dbregistry.OrgUserDBRegistry,
 	store *Store,
 	recoveryStore *recovery.OrgStore,
-	mail iam_mail.MailService,
-	mailConfig *scopedsettings.ScopedResolver,
+	mail coconotification.Service,
+	mailConfig *iam_notification.ScopedResolver,
 	settings *recovery.SettingsReader,
 	rules *userrules.Store,
 	log logger.Logger,
@@ -399,11 +399,9 @@ func (s *Service) sendMail(_ context.Context, ref appUserRef, link, orgID, appID
 		"ResetLink": link,
 		"ExpiresIn": s.settings.TTLHumanReadable(),
 	}
-	task := iam_mail.MailTask{
-		Account: account,
-		OrgID:   resolvedOrgID,
-		AppID:   resolvedAppID,
-		To:      []iam_mail.Address{{Email: ref.Email, Name: ref.Username}},
+	task := coconotification.Task{
+		Ref: coconotification.SenderRef{Name: account, Scope: iam_notification.Scope(resolvedOrgID, resolvedAppID)},
+		To:  []coconotification.Address{{Email: ref.Email, Name: ref.Username}},
 	}
 	// Prefer this application's own active template of the same name,
 	// then this org's, over the global renderer — falls through

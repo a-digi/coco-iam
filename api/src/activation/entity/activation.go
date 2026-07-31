@@ -3,8 +3,8 @@
 package activation_entity
 
 import (
-	oauth_model "github.com/a-digi/coco-oauth/oauth/model"
 	"github.com/a-digi/coco-iam/src/userrules"
+	oauth_model "github.com/a-digi/coco-oauth/oauth/model"
 )
 
 // ActivateRequest is the body for POST /activation/activate and POST /activation/a/activate.
@@ -22,13 +22,13 @@ type ActivateResponse struct {
 
 // ActivateSuccess is the swag-friendly success envelope for activate endpoints.
 type ActivateSuccess struct {
-	Success bool            `json:"success" example:"true"`
+	Success bool             `json:"success" example:"true"`
 	Message ActivateResponse `json:"message"`
 }
 
 // VerifySuccess is the swag-friendly success envelope for verify endpoints.
 type VerifySuccess struct {
-	Success bool          `json:"success" example:"true"`
+	Success bool           `json:"success" example:"true"`
 	Message VerifyResponse `json:"message"`
 }
 

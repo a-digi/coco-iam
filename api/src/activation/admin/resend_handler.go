@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-iam/src/activation"
+	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )

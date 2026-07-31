@@ -28,14 +28,7 @@ import (
 	"github.com/a-digi/coco-iam/src/auth/recovery"
 	"github.com/a-digi/coco-iam/src/datamigration"
 	"github.com/a-digi/coco-iam/src/general"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailaccounts "github.com/a-digi/coco-iam/src/mail/accounts"
-	mailconsumer "github.com/a-digi/coco-iam/src/mail/consumer"
-	mailscopedsettings "github.com/a-digi/coco-iam/src/mail/scopedsettings"
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
-	mailsmtp "github.com/a-digi/coco-iam/src/mail/smtp"
-	mailstore "github.com/a-digi/coco-iam/src/mail/store"
-	mailtemplate "github.com/a-digi/coco-iam/src/mail/template"
+	iam_notification "github.com/a-digi/coco-iam/src/notification"
 	oauth_archiver "github.com/a-digi/coco-iam/src/oauthserver/archiver"
 	oauth_dbregistry "github.com/a-digi/coco-iam/src/oauthserver/dbregistry"
 	organization_deleted "github.com/a-digi/coco-iam/src/organizations/deleted"
@@ -50,6 +43,12 @@ import (
 	"github.com/a-digi/coco-iam/src/security/scanwatch"
 	"github.com/a-digi/coco-iam/src/userrules"
 	"github.com/a-digi/coco-logger/logger"
+	coconotification "github.com/a-digi/coco-notification"
+	notconsumer "github.com/a-digi/coco-notification/consumer"
+	"github.com/a-digi/coco-notification/mailer"
+	notsettings "github.com/a-digi/coco-notification/settings"
+	notstore "github.com/a-digi/coco-notification/store"
+	nottemplate "github.com/a-digi/coco-notification/template"
 	"github.com/a-digi/coco-queue"
 	queue_dbregistry "github.com/a-digi/coco-queue/dbregistry"
 	"github.com/a-digi/coco-server/server"
@@ -434,64 +433,82 @@ func main() {
 			}
 		}
 
-		// Mail engine — SMTP is the only implementation for now. Swapping
-		// provider = a new package under src/mail/<provider>/ and one line
-		// change here that builds a different Mailer.
+		// Notification engine (coco-notification library) — SMTP via
+		// mailer.Mailer is the only Sender wired today. Swapping/adding a
+		// channel means constructing another Sender and routing to it via
+		// notification.ScopedResolver.ResolveSender. See
+		// plan/coco-notification-extraction/plan.md.
 		mailDB, err := dbmanager.NewDatabaseManager("mail.db", "./data/db", nil)
 		if err != nil {
 			log.Error("failed to open mail.db: %v", err)
 			os.Exit(1)
 		}
-		if err := mailstore.Install(mailDB); err != nil {
-			log.Error("failed to install mail schema: %v", err)
+		if err := notstore.Install(mailDB); err != nil {
+			log.Error("failed to install notification schema: %v", err)
 			os.Exit(1)
 		}
+		if err := nottemplate.Install(mailDB); err != nil {
+			log.Error("failed to install notification template schema: %v", err)
+			os.Exit(1)
+		}
+		if err := notsettings.Install(mailDB); err != nil {
+			log.Error("failed to install notification settings schema: %v", err)
+			os.Exit(1)
+		}
+		if err := mailer.Install(mailDB); err != nil {
+			log.Error("failed to install mailer schema: %v", err)
+			os.Exit(1)
+		}
+		// One-shot: copy any rows still sitting in this app's old,
+		// pre-extraction mail_smtp_accounts / mail_templates / mail_settings
+		// tables into the tables above. No-op on every boot afterward, and
+		// a no-op entirely on a database that never had the old tables.
+		if err := iam_notification.MigrateLegacyMailTablesIfNeeded(mailDB, log); err != nil {
+			log.Warning("notification migration: legacy mail tables could not be migrated: %v", err)
+		}
 
-		mailCfg := mailsmtp.ConfigFromEnv()
-		mailer := mailsmtp.New(mailCfg, log)
-		templateRepo := mailtemplate.NewRepository(mailDB)
-		mailRenderer, err := mailtemplate.New(config.ConfigFS, mailtemplate.WithRepository(templateRepo))
+		mailCfg := mailer.ConfigFromEnv()
+		smtpSender := mailer.New(mailCfg, log)
+		templateRepo := nottemplate.NewRepository(mailDB)
+		mailRenderer, err := nottemplate.New(config.ConfigFS, nottemplate.WithRepository(templateRepo))
 		if err != nil {
-			log.Error("failed to initialise mail templates: %v", err)
+			log.Error("failed to initialise notification templates: %v", err)
 			os.Exit(1)
 		}
-		mailStoreInstance := mailstore.New(mailDB, log)
+		mailStoreInstance := notstore.New(mailDB, log)
 		if err := mailStoreInstance.ResetSending(); err != nil {
-			log.Warning("mail: reset stale 'sending' rows failed: %v", err)
+			log.Warning("notification: reset stale 'sending' rows failed: %v", err)
 		}
 
-		// Mail settings + named SMTP accounts. The resolver reads the active
+		// Settings + named SMTP accounts. The resolver reads the active
 		// account from mail.db (env fallback when none exists); wiring it as
-		// a ConfigProvider on the SMTPMailer means admin edits take effect
-		// on the next send with no restart.
-		mailSettingsStore := mailsettings.NewStore(mailDB)
-		mailAccountsStore := mailaccounts.NewStore(mailDB)
-		if err := mailsettings.MigrateLegacySMTPIfNeeded(mailSettingsStore, mailAccountsStore, mailCfg, log); err != nil {
-			log.Warning("mail migration: legacy SMTP settings could not be migrated: %v", err)
-		}
-		mailSettingsResolver := mailsettings.NewResolver(mailSettingsStore, mailAccountsStore, mailCfg, log)
-		mailer.SetConfigProvider(func() mailsmtp.Config { return mailSettingsResolver.Config() })
+		// a ConfigProvider on the Mailer means admin edits take effect on
+		// the next send with no restart.
+		mailSettingsStore := notsettings.NewStore(mailDB)
+		mailAccountsStore := mailer.NewStore(mailDB)
+		mailSettingsResolver := notsettings.NewResolver(mailSettingsStore, mailAccountsStore, mailCfg, log)
+		smtpSender.SetConfigProvider(func() mailer.Config { return mailSettingsResolver.Config() })
 
-		// Org-scoped mail resolution — wraps the resolver above with an
-		// organization tier (app tier lands in a later step). Global
-		// behavior is unchanged for every existing call site until it's
-		// explicitly upgraded to pass an org id. See
-		// plan/org-app-email-settings/plan.md step 1.
-		mailScopedResolver := mailscopedsettings.NewScopedResolver(mailSettingsResolver, orgUserDBRegistry, log)
-		ctx.Set(mailscopedsettings.ContextBagKey, mailScopedResolver)
+		// Org/app-scoped mail resolution — wraps the resolver above with
+		// organization and application tiers. Global behavior is unchanged
+		// for every existing call site until it's explicitly upgraded to
+		// pass an org/app id. See plan/org-app-email-settings/plan.md and
+		// plan/coco-notification-extraction/plan.md.
+		mailScopedResolver := iam_notification.NewScopedResolver(mailSettingsResolver, mailAccountsStore, orgUserDBRegistry, log)
+		ctx.Set(iam_notification.ContextBagKey, mailScopedResolver)
 
-		mailService := iam_mail.NewMailService(queueMgr, mailStoreInstance, mailRenderer, mailCfg.From)
+		mailService := coconotification.NewService(queueMgr, mailStoreInstance, mailRenderer, mailCfg.From)
 
-		orchestratorCfg := mailconsumer.OrchestratorConfigFromEnv()
-		orchestrator := mailconsumer.NewOrchestrator(queueMgr, mailStoreInstance, orchestratorCfg, log)
+		orchestratorCfg := notconsumer.OrchestratorConfigFromEnv()
+		orchestrator := notconsumer.NewOrchestrator(queueMgr, mailStoreInstance, orchestratorCfg, log)
 
-		ctx.Set(iam_mail.ContextBagKeyMailer, iam_mail.Mailer(mailer))
-		ctx.Set(iam_mail.ContextBagKeyMailService, mailService)
-		ctx.Set(iam_mail.ContextBagKeyMailStore, mailStoreInstance)
-		ctx.Set(iam_mail.ContextBagKeyTemplateRepository, templateRepo)
-		ctx.Set(iam_mail.ContextBagKeySettingsStore, mailSettingsStore)
-		ctx.Set(iam_mail.ContextBagKeySettingsResolver, mailSettingsResolver)
-		ctx.Set(iam_mail.ContextBagKeyAccountsStore, mailAccountsStore)
+		ctx.Set(iam_notification.ContextBagKeySender, coconotification.Sender(smtpSender))
+		ctx.Set(iam_notification.ContextBagKeyService, mailService)
+		ctx.Set(iam_notification.ContextBagKeyStore, mailStoreInstance)
+		ctx.Set(iam_notification.ContextBagKeyTemplateRepository, templateRepo)
+		ctx.Set(iam_notification.ContextBagKeySettingsStore, mailSettingsStore)
+		ctx.Set(iam_notification.ContextBagKeySettingsResolver, mailSettingsResolver)
+		ctx.Set(iam_notification.ContextBagKeyAccountsStore, mailAccountsStore)
 
 		// Activation service — admin_activations lives in users.db; per-org
 		// user_activations live in each org's users.db. Base URL and branding
@@ -650,17 +667,17 @@ func main() {
 		}
 		ctx.Set(admin_avatar.ContextBagKeyStore, adminAvatarStore)
 
-		ctx.Set(mailconsumer.ContextBagKeyOrchestrator, orchestrator)
+		ctx.Set(iam_notification.ContextBagKeyOrchestrator, orchestrator)
 
-		if err := mailconsumer.Register(
-			queueMgr, mailStoreInstance, mailer, mailAccountsStore, orgUserDBRegistry,
-			mailconsumer.Config{
+		if err := notconsumer.Register(
+			queueMgr, mailStoreInstance, coconotification.Sender(smtpSender), mailScopedResolver,
+			notconsumer.Config{
 				MaxAttempts:    5,
 				InitialWorkers: orchestratorCfg.Min,
 			},
 			log,
 		); err != nil {
-			log.Error("failed to register mail-outbound consumer: %v", err)
+			log.Error("failed to register notification-outbound consumer: %v", err)
 			os.Exit(1)
 		}
 
@@ -689,7 +706,7 @@ func main() {
 		// Mail orchestrator + retention share the queue context so they shut
 		// down cleanly alongside the workers.
 		orchestrator.Start(queueCtx)
-		mailconsumer.StartRetention(queueCtx, mailStoreInstance, log)
+		notconsumer.StartRetention(queueCtx, mailStoreInstance, log)
 
 		// OAuth archiver — sweeps per-org oauth.db every 10 minutes,
 		// moving expired and consumed token rows into dated archive

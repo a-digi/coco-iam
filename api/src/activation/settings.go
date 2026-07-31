@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	notsettings "github.com/a-digi/coco-notification/settings"
 )
 
 // Activation-scoped keys in mail_settings. BaseURL and PageTitle now
@@ -24,11 +24,11 @@ const (
 // SettingsReader looks up activation-scoped knobs from mail_settings.
 // BaseURL and PageTitle are resolved per-org at call time by the Service.
 type SettingsReader struct {
-	store *mailsettings.Store
+	store *notsettings.Store
 }
 
-// NewSettingsReader binds a reader to the mail settings store.
-func NewSettingsReader(store *mailsettings.Store) *SettingsReader {
+// NewSettingsReader binds a reader to the notification settings store.
+func NewSettingsReader(store *notsettings.Store) *SettingsReader {
 	return &SettingsReader{store: store}
 }
 

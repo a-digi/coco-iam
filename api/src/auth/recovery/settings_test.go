@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	notsettings "github.com/a-digi/coco-notification/settings"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func freshMailStore(t *testing.T) *mailsettings.Store {
+func freshMailStore(t *testing.T) *notsettings.Store {
 	t.Helper()
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
@@ -17,7 +17,7 @@ func freshMailStore(t *testing.T) *mailsettings.Store {
 	}
 	t.Cleanup(func() { _ = db.Close() })
 	_, err = db.Exec(`
-		CREATE TABLE mail_settings (
+		CREATE TABLE notification_settings (
 			key        TEXT PRIMARY KEY,
 			value      TEXT NOT NULL DEFAULT '',
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -26,10 +26,10 @@ func freshMailStore(t *testing.T) *mailsettings.Store {
 	if err != nil {
 		t.Fatalf("create schema: %v", err)
 	}
-	return mailsettings.NewStoreFromDB(db)
+	return notsettings.NewStoreFromDB(db)
 }
 
-func freshReader(t *testing.T) (*SettingsReader, *mailsettings.Store) {
+func freshReader(t *testing.T) (*SettingsReader, *notsettings.Store) {
 	t.Helper()
 	ms := freshMailStore(t)
 	return NewSettingsReader(ms), ms

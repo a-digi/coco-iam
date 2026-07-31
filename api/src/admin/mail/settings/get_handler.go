@@ -25,7 +25,7 @@ func (h *AdminMailSettingsGetHandler) ServeHTTP(reqCtx request.RequestContext) {
 	if resolver == nil {
 		return
 	}
-	snap := resolver.Snapshot()
+	snap := buildMailSettingsSnapshot(resolver)
 	if snap.ActiveAccount != nil {
 		redacted := snap.ActiveAccount.Redacted()
 		snap.ActiveAccount = &redacted

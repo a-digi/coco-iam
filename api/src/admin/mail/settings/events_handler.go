@@ -3,7 +3,7 @@ package settings
 import (
 	"net/http"
 
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	iam_notification "github.com/a-digi/coco-iam/src/notification"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
@@ -23,5 +23,5 @@ type AdminMailSettingsEventsHandler struct{}
 // @Router      /admin/mail/settings/events [get]
 func (h *AdminMailSettingsEventsHandler) ServeHTTP(reqCtx request.RequestContext) {
 	w := reqCtx.GetWriter()
-	response.SuccessResponse(w, http.StatusOK, mailsettings.EventCatalog)
+	response.SuccessResponse(w, http.StatusOK, iam_notification.EventCatalog)
 }

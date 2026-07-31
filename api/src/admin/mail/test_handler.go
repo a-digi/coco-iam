@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/a-digi/coco-iam/config/di"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
+	iam_notification "github.com/a-digi/coco-iam/src/notification"
+	coconotification "github.com/a-digi/coco-notification"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
@@ -63,20 +64,20 @@ func (h *AdminMailTestHandler) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(w, http.StatusInternalServerError, "DI context has unexpected type")
 		return
 	}
-	raw, ok := bag.Get(iam_mail.ContextBagKeyMailService)
+	raw, ok := bag.Get(iam_notification.ContextBagKeyService)
 	if !ok {
 		response.ErrorResponse(w, http.StatusInternalServerError, "mail service not available")
 		return
 	}
-	svc, ok := raw.(iam_mail.MailService)
+	svc, ok := raw.(coconotification.Service)
 	if !ok {
 		response.ErrorResponse(w, http.StatusInternalServerError, "mail service has unexpected type")
 		return
 	}
 
-	task := iam_mail.MailTask{
+	task := coconotification.Task{
 		Template: "test",
-		To:       []iam_mail.Address{{Email: req.To}},
+		To:       []coconotification.Address{{Email: req.To}},
 		Data: map[string]interface{}{
 			"Name": req.Name,
 			"Time": time.Now().UTC().Format(time.RFC3339),

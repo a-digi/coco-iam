@@ -6,11 +6,11 @@ import (
 	"fmt"
 
 	"github.com/a-digi/coco-iam/src/general"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	"github.com/a-digi/coco-iam/src/mail/scopedsettings"
+	iam_notification "github.com/a-digi/coco-iam/src/notification"
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-logger/logger"
+	coconotification "github.com/a-digi/coco-notification"
 )
 
 // Service sends lifecycle notification emails to organisation users.
@@ -18,8 +18,8 @@ import (
 type Service struct {
 	db          *sql.DB
 	orgRegistry *dbregistry.OrgUserDBRegistry
-	mailConfig  *scopedsettings.ScopedResolver
-	mail        iam_mail.MailService
+	mailConfig  *iam_notification.ScopedResolver
+	mail        coconotification.Service
 	log         logger.Logger
 }
 
@@ -28,8 +28,8 @@ type Service struct {
 func NewService(
 	db *sql.DB,
 	orgRegistry *dbregistry.OrgUserDBRegistry,
-	mailConfig *scopedsettings.ScopedResolver,
-	mail iam_mail.MailService,
+	mailConfig *iam_notification.ScopedResolver,
+	mail coconotification.Service,
 	log logger.Logger,
 ) *Service {
 	return &Service{
@@ -58,10 +58,9 @@ func (s *Service) send(event, username, email, orgID string) {
 	account, resolvedOrgID, _ := s.mailConfig.AccountForEvent(orgID, "", event)
 	websiteTitle := s.pageTitle(orgID)
 
-	task := iam_mail.MailTask{
-		Account: account,
-		OrgID:   resolvedOrgID,
-		To:      []iam_mail.Address{{Email: email, Name: username}},
+	task := coconotification.Task{
+		Ref: coconotification.SenderRef{Name: account, Scope: iam_notification.Scope(resolvedOrgID, "")},
+		To:  []coconotification.Address{{Email: email, Name: username}},
 	}
 
 	if tmpl != "" {

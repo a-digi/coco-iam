@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/a-digi/coco-iam/src/mail/template"
+	template "github.com/a-digi/coco-notification/template"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )

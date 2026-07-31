@@ -4,7 +4,8 @@ import (
 	"net/http"
 
 	"github.com/a-digi/coco-iam/config/di"
-	"github.com/a-digi/coco-iam/src/mail/consumer"
+	iam_notification "github.com/a-digi/coco-iam/src/notification"
+	"github.com/a-digi/coco-notification/consumer"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
@@ -29,7 +30,7 @@ func (h *AdminMailStatusHandler) ServeHTTP(reqCtx request.RequestContext) {
 		response.ErrorResponse(w, http.StatusInternalServerError, "DI context has unexpected type")
 		return
 	}
-	raw, ok := bag.Get(consumer.ContextBagKeyOrchestrator)
+	raw, ok := bag.Get(iam_notification.ContextBagKeyOrchestrator)
 	if !ok {
 		response.ErrorResponse(w, http.StatusInternalServerError, "mail orchestrator not available")
 		return

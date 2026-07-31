@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	mailsettings "github.com/a-digi/coco-iam/src/notification"
 	"github.com/a-digi/coco-iam/src/organizations/mail/entity"
 	orgmail_persistent "github.com/a-digi/coco-iam/src/organizations/mail/repository/persistent"
 	orgmail_query "github.com/a-digi/coco-iam/src/organizations/mail/repository/query"

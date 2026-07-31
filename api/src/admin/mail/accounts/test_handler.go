@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/a-digi/coco-lift/resource/uri"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailaccounts "github.com/a-digi/coco-iam/src/mail/accounts"
-	mailsmtp "github.com/a-digi/coco-iam/src/mail/smtp"
+	iam_mail "github.com/a-digi/coco-notification"
+	mailaccounts "github.com/a-digi/coco-notification/mailer"
+	mailsmtp "github.com/a-digi/coco-notification/mailer"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
@@ -129,4 +129,3 @@ func buildTestBody(name string) (subject, text, html string) {
 		`</body></html>`
 	return
 }
-

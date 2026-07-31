@@ -11,8 +11,8 @@ import (
 	"github.com/a-digi/coco-iam/src/applications/mail/entity"
 	appmail_persistent "github.com/a-digi/coco-iam/src/applications/mail/repository/persistent"
 	appmail_query "github.com/a-digi/coco-iam/src/applications/mail/repository/query"
-	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailsmtp "github.com/a-digi/coco-iam/src/mail/smtp"
+	iam_mail "github.com/a-digi/coco-notification"
+	mailsmtp "github.com/a-digi/coco-notification/mailer"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )
