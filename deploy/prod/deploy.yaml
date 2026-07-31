@@ -125,7 +125,7 @@ caddy:
     block_id: coco-iam-frontend
     block: |
       coco-iam.t-digi.com {
-          root * /app/coco-iam-front
-          file_server
-          try_files {path} /index.html
+              root * /app/coco-iam-front
+              file_server
+              try_files {path} /index.html
       }
