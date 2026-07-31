@@ -147,6 +147,240 @@ definitions:
         example: true
         type: boolean
     type: object
+  entity.AppActivationSettings:
+    properties:
+      resend_cooldown_seconds:
+        example: 300
+        type: integer
+      ttl_hours:
+        example: 24
+        type: integer
+    type: object
+  entity.AppEventBinding:
+    properties:
+      account:
+        example: ""
+        type: string
+      event:
+        example: user_invite
+        type: string
+      template:
+        example: ""
+        type: string
+    type: object
+  entity.AppMailAccountCreateRequest:
+    properties:
+      from_email:
+        example: support@acme-app.example
+        type: string
+      from_name:
+        example: Acme App Support
+        type: string
+      host:
+        example: smtp.example.com
+        type: string
+      is_active:
+        example: false
+        type: boolean
+      name:
+        example: app-transactional
+        type: string
+      password:
+        example: hunter2
+        type: string
+      port:
+        example: 587
+        type: integer
+      use_tls:
+        example: true
+        type: boolean
+      username:
+        example: smtp-user
+        type: string
+    type: object
+  entity.AppMailAccountListSuccess:
+    properties:
+      message:
+        items:
+          $ref: '#/definitions/entity.AppMailAccountResponse'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.AppMailAccountResponse:
+    properties:
+      created_at:
+        example: "2026-07-30T10:00:00Z"
+        type: string
+      from_email:
+        example: support@acme-app.example
+        type: string
+      from_name:
+        example: Acme App Support
+        type: string
+      host:
+        example: smtp.example.com
+        type: string
+      id:
+        example: b3202323-6270-448c-8001-6b803aca8053
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      name:
+        example: app-transactional
+        type: string
+      port:
+        example: 587
+        type: integer
+      updated_at:
+        example: "2026-07-30T10:00:00Z"
+        type: string
+      use_tls:
+        example: true
+        type: boolean
+      username:
+        example: smtp-user
+        type: string
+    type: object
+  entity.AppMailAccountSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.AppMailAccountResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.AppMailAccountUpdateRequest:
+    properties:
+      from_email:
+        type: string
+      from_name:
+        type: string
+      host:
+        type: string
+      password:
+        type: string
+      port:
+        type: integer
+      use_tls:
+        type: boolean
+      username:
+        type: string
+    type: object
+  entity.AppMailSettingsResponse:
+    properties:
+      activation:
+        $ref: '#/definitions/entity.AppActivationSettings'
+      active_account:
+        $ref: '#/definitions/entity.AppMailAccountResponse'
+      events:
+        items:
+          $ref: '#/definitions/entity.AppEventBinding'
+        type: array
+    type: object
+  entity.AppMailSettingsSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.AppMailSettingsResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.AppMailSettingsUpdateRequest:
+    properties:
+      activation:
+        $ref: '#/definitions/entity.AppActivationSettings'
+      events:
+        items:
+          $ref: '#/definitions/entity.AppEventBinding'
+        type: array
+    type: object
+  entity.AppMailTemplateCreateRequest:
+    properties:
+      description:
+        type: string
+      html_body:
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      name:
+        example: user_invite
+        type: string
+      subject:
+        type: string
+      text_body:
+        type: string
+    type: object
+  entity.AppMailTemplateListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/entity.AppMailTemplateResponse'
+        type: array
+      total:
+        example: 3
+        type: integer
+    type: object
+  entity.AppMailTemplateListSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.AppMailTemplateListResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.AppMailTemplateResponse:
+    properties:
+      created_at:
+        example: "2026-07-30T10:00:00Z"
+        type: string
+      description:
+        example: Sent when a new app user is invited.
+        type: string
+      html_body:
+        type: string
+      id:
+        example: b3202323-6270-448c-8001-6b803aca8053
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      name:
+        example: user_invite
+        type: string
+      subject:
+        example: Welcome to {{.AppName}}
+        type: string
+      text_body:
+        type: string
+      updated_at:
+        example: "2026-07-30T10:00:00Z"
+        type: string
+    type: object
+  entity.AppMailTemplateSuccess:
+    properties:
+      message:
+        $ref: '#/definitions/entity.AppMailTemplateResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  entity.AppMailTemplateUpdateRequest:
+    properties:
+      description:
+        type: string
+      html_body:
+        type: string
+      is_active:
+        type: boolean
+      subject:
+        type: string
+      text_body:
+        type: string
+    type: object
   entity.Application:
     properties:
       allow_password_login:
@@ -6822,6 +7056,692 @@ paths:
       summary: List login attempts within one application login-log archive
       tags:
       - applications
+  /applications/{id}/mail/accounts:
+    get:
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AppMailAccountListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List an application's SMTP accounts
+      tags:
+      - app-mail
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AppMailAccountCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.AppMailAccountSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Create an application SMTP account
+      tags:
+      - app-mail
+  /applications/{id}/mail/accounts/{accountId}:
+    delete:
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Delete an application SMTP account
+      tags:
+      - app-mail
+    get:
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AppMailAccountSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get an application SMTP account
+      tags:
+      - app-mail
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      - description: Patch
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AppMailAccountUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AppMailAccountSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update an application SMTP account
+      tags:
+      - app-mail
+  /applications/{id}/mail/accounts/{accountId}/activate:
+    post:
+      description: |-
+        Makes this the application's active account; every other application account
+        is demoted. An application with no active account falls back to the
+        organization's, then the global, active account at send time.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AppMailAccountSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Activate an application SMTP account
+      tags:
+      - app-mail
+  /applications/{id}/mail/accounts/{accountId}/test:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Send a test email using an application SMTP account
+      tags:
+      - app-mail
+  /applications/{id}/mail/settings:
+    get:
+      description: |-
+        Returns exactly what this application has customized — active account, event
+        bindings, and activation overrides. Empty/nil fields fall back to the
+        organization's, then the global, mail engine settings at send time.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AppMailSettingsSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get an application's mail settings
+      tags:
+      - app-mail
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Event bindings require template + account as a pair — both set (bound to
+        this application's own account/template) or both empty (clears the
+        application override, falls back to the organization's, then the global,
+        binding). A bound account must exist among this application's own accounts.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Patch
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AppMailSettingsUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AppMailSettingsSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update an application's mail settings
+      tags:
+      - app-mail
+  /applications/{id}/mail/templates:
+    get:
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Filter by name substring
+        in: query
+        name: name
+        type: string
+      - description: Page size (default 50, max 500)
+        in: query
+        name: limit
+        type: integer
+      - description: Page offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AppMailTemplateListSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: List an application's email templates
+      tags:
+      - app-mail
+    post:
+      consumes:
+      - application/json
+      description: |-
+        The name should match one of the system event keys (see the global
+        /admin/mail/settings/events catalog) for it to be bindable to an event
+        via PATCH /applications/{id}/mail/settings.
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Template
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AppMailTemplateCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.AppMailTemplateSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Create an application email template
+      tags:
+      - app-mail
+  /applications/{id}/mail/templates/{templateId}:
+    delete:
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Template ID
+        in: path
+        name: templateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Delete an application email template
+      tags:
+      - app-mail
+    get:
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Template ID
+        in: path
+        name: templateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AppMailTemplateSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Get an application email template
+      tags:
+      - app-mail
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Template ID
+        in: path
+        name: templateId
+        required: true
+        type: string
+      - description: Patch
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AppMailTemplateUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AppMailTemplateSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorBody'
+      security:
+      - BearerAuth: []
+      summary: Update an application email template
+      tags:
+      - app-mail
   /applications/applications:
     get:
       consumes:
