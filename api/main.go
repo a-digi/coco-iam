@@ -37,10 +37,14 @@ import (
 	org_user_notify "github.com/a-digi/coco-iam/src/organizations/users/notify"
 	orgpwnotify "github.com/a-digi/coco-iam/src/organizations/users/passwordnotify"
 	"github.com/a-digi/coco-iam/src/orgrouter"
+	iam_security "github.com/a-digi/coco-iam/src/security"
 	"github.com/a-digi/coco-iam/src/security/dbarchive"
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
-	"github.com/a-digi/coco-iam/src/security/ipguard"
-	"github.com/a-digi/coco-iam/src/security/scanwatch"
+	"github.com/a-digi/coco-sec/attackbans"
+	"github.com/a-digi/coco-sec/geoip"
+	"github.com/a-digi/coco-sec/ipguard"
+	"github.com/a-digi/coco-sec/loginbans"
+	"github.com/a-digi/coco-sec/scanwatch"
 	"github.com/a-digi/coco-iam/src/userrules"
 	"github.com/a-digi/coco-logger/logger"
 	coconotification "github.com/a-digi/coco-notification"
@@ -117,6 +121,30 @@ func main() {
 			os.Exit(1)
 		}
 
+		// coco-sec-owned tables against the main database — see
+		// plan/coco-sec-extraction/plan.md. Each Install is idempotent
+		// (CREATE TABLE IF NOT EXISTS), safe to call on every boot.
+		if err := ipguard.Install(manager); err != nil {
+			log.Error("ipguard: install failed: %v", err)
+			os.Exit(1)
+		}
+		if err := attackbans.Install(manager); err != nil {
+			log.Error("attackbans: install failed: %v", err)
+			os.Exit(1)
+		}
+		if err := loginbans.Install(manager); err != nil {
+			log.Error("loginbans: install failed: %v", err)
+			os.Exit(1)
+		}
+		if err := geoip.InstallSettings(manager); err != nil {
+			log.Error("geoip: install settings failed: %v", err)
+			os.Exit(1)
+		}
+		if err := iam_security.MigrateLegacySecurityTablesIfNeeded(manager, log); err != nil {
+			log.Error("security: legacy table migration failed: %v", err)
+			os.Exit(1)
+		}
+
 		err = dbInstall.EnsureHasSuperadmin(manager)
 		if err != nil {
 			fmt.Printf("Superadmin creation: %v\n", err)
@@ -141,6 +169,10 @@ func main() {
 		}
 		if err := ipAttacksDBManager.SyncMigrations(); err != nil {
 			log.Error("ip-attacks migrations failed: %v", err)
+			os.Exit(1)
+		}
+		if err := ipguard.InstallAttacks(ipAttacksDBManager); err != nil {
+			log.Error("ipguard: install attacks schema failed: %v", err)
 			os.Exit(1)
 		}
 

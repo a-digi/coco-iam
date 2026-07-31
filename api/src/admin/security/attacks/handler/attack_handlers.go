@@ -17,7 +17,8 @@ import (
 
 	"github.com/a-digi/coco-iam/config/di"
 	attacks_entity "github.com/a-digi/coco-iam/src/admin/security/attacks/entity"
-	attacks_query "github.com/a-digi/coco-iam/src/admin/security/attacks/repository/query"
+	cocosecentity "github.com/a-digi/coco-sec/ipguard/entity"
+	attacks_query "github.com/a-digi/coco-sec/ipguard/repository/query"
 	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
@@ -70,7 +71,7 @@ func (h *AttackListHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 	if attacks == nil {
-		attacks = []attacks_entity.Attack{}
+		attacks = []cocosecentity.Attack{}
 	}
 	total, err := query.CountAttacks(filter)
 	if err != nil {
@@ -117,7 +118,7 @@ func (h *AttackDetailHandler) ServeHTTP(reqCtx request.RequestContext) {
 
 	attack, err := query.FindAttack(value)
 	if err != nil {
-		if errors.Is(err, attacks_query.ErrNotFound) {
+		if errors.Is(err, attacks_query.ErrAttackNotFound) {
 			response.ErrorResponse(w, http.StatusNotFound, "attack episode not found")
 			return
 		}
@@ -131,7 +132,7 @@ func (h *AttackDetailHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 	if targets == nil {
-		targets = []attacks_entity.AttackTarget{}
+		targets = []cocosecentity.AttackTarget{}
 	}
 
 	response.SuccessResponse(w, http.StatusOK, attacks_entity.AttackDetailResponse{

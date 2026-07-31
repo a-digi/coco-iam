@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	security_entity "github.com/a-digi/coco-iam/src/admin/security/entity"
+	cocosecentity "github.com/a-digi/coco-sec/ipguard/entity"
 	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
@@ -33,7 +34,7 @@ func (h *IPAllowlistListHandler) ServeHTTP(reqCtx request.RequestContext) {
 		return
 	}
 	if entries == nil {
-		entries = []security_entity.IPAllowlistEntry{}
+		entries = []cocosecentity.IPAllowlistEntry{}
 	}
 	response.SuccessResponse(w, http.StatusOK, entries)
 }
@@ -93,7 +94,7 @@ func (h *IPAllowlistCreateHandler) ServeHTTP(reqCtx request.RequestContext) {
 			return
 		}
 	}
-	response.SuccessResponse(w, http.StatusCreated, security_entity.IPAllowlistEntry{IP: req.IP, Note: req.Note, CreatedBy: createdBy})
+	response.SuccessResponse(w, http.StatusCreated, cocosecentity.IPAllowlistEntry{IP: req.IP, Note: req.Note, CreatedBy: createdBy})
 }
 
 // IPAllowlistDeleteHandler serves DELETE

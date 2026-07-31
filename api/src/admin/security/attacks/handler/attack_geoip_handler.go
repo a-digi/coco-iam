@@ -7,9 +7,9 @@ import (
 
 	"github.com/a-digi/coco-iam/config/di"
 	attacks_entity "github.com/a-digi/coco-iam/src/admin/security/attacks/entity"
-	attacks_persistent "github.com/a-digi/coco-iam/src/admin/security/attacks/repository/persistent"
-	attacks_query "github.com/a-digi/coco-iam/src/admin/security/attacks/repository/query"
-	"github.com/a-digi/coco-iam/src/security/geoip"
+	attacks_persistent "github.com/a-digi/coco-sec/ipguard/repository/persistent"
+	attacks_query "github.com/a-digi/coco-sec/ipguard/repository/query"
+	"github.com/a-digi/coco-sec/geoip"
 	"github.com/a-digi/coco-lift/resource/uri"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
@@ -53,7 +53,7 @@ func (h *FetchGeoIPHandler) ServeHTTP(reqCtx request.RequestContext) {
 	}
 	attack, err := query.FindAttack(value)
 	if err != nil {
-		if errors.Is(err, attacks_query.ErrNotFound) {
+		if errors.Is(err, attacks_query.ErrAttackNotFound) {
 			response.ErrorResponse(w, http.StatusNotFound, "attack episode not found")
 			return
 		}

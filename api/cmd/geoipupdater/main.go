@@ -27,8 +27,8 @@ import (
 	"github.com/a-digi/coco-server/server"
 
 	"github.com/a-digi/coco-iam/config"
-	"github.com/a-digi/coco-iam/src/security/geoip"
-	"github.com/a-digi/coco-iam/src/security/geoip/updater"
+	"github.com/a-digi/coco-sec/geoip"
+	"github.com/a-digi/coco-sec/geoip/updater"
 )
 
 // mainDBPath matches the fixed path main.go itself constructs the

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/a-digi/coco-iam/config/di"
-	"github.com/a-digi/coco-iam/src/security/loginbans"
+	"github.com/a-digi/coco-sec/loginbans"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )

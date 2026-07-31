@@ -7,7 +7,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
-	"github.com/a-digi/coco-iam/src/security/geoip"
+	"github.com/a-digi/coco-sec/geoip"
 )
 
 // stubLookup is a fake geoip.Lookup keyed by exact IP string — avoids

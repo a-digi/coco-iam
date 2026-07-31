@@ -18,7 +18,7 @@ import (
 
 	"github.com/a-digi/coco-iam/config/di"
 	jwt_token "github.com/a-digi/coco-iam/src/auth/security/jwt"
-	"github.com/a-digi/coco-iam/src/security/ipguard"
+	"github.com/a-digi/coco-sec/ipguard"
 	"github.com/a-digi/coco-oauth/oauth"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"

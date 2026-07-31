@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/a-digi/coco-iam/config/di"
-	"github.com/a-digi/coco-iam/src/security/geoip"
+	"github.com/a-digi/coco-sec/geoip"
 	"github.com/a-digi/coco-server/server/request"
 	"github.com/a-digi/coco-server/server/response"
 )

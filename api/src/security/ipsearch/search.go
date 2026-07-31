@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/a-digi/coco-iam/src/security/dbhandle"
-	"github.com/a-digi/coco-iam/src/security/geoip"
+	"github.com/a-digi/coco-sec/geoip"
 )
 
 // DefaultLimit and MaxLimit bound how many autocomplete suggestions a

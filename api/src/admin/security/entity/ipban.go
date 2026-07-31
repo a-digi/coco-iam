@@ -1,18 +1,16 @@
 // Package entity holds the request/response types for the admin IP
 // ban/allowlist management API. See plan/ip-abuse-protection/plan.md.
+//
+// IPBan/IPAllowlistEntry themselves now live in
+// github.com/a-digi/coco-sec/ipguard/entity (see
+// plan/coco-sec-extraction/plan.md) — this package keeps only the
+// request bodies and swag-facing success envelopes, referencing the
+// library's types directly for their Message fields.
 package entity
 
-// IPBan is a currently-active (or not-yet-pruned expired) rate-limit
-// ban on an IP address.
-type IPBan struct {
-	IP        string `json:"ip" example:"203.0.113.7"`
-	Tier      string `json:"tier" example:"sensitive"`
-	Reason    string `json:"reason" example:"sensitive rate limit exceeded"`
-	BannedAt  string `json:"banned_at" example:"2026-07-26T10:00:00Z"`
-	ExpiresAt string `json:"expires_at" example:"2026-07-26T11:00:00Z"`
-	HitCount  int    `json:"hit_count" example:"3"`
-	CreatedBy string `json:"created_by,omitempty" example:"6b12ba0b-6b36-4a94-bce4-6ba3615b1f85"`
-}
+import (
+	cocosecentity "github.com/a-digi/coco-sec/ipguard/entity"
+)
 
 // IPBanRequest is the body for manually banning an IP.
 type IPBanRequest struct {
@@ -69,13 +67,13 @@ type IPBanAccountsResponse struct {
 // Swag-friendly success envelopes.
 
 type IPBanListSuccess struct {
-	Success bool    `json:"success" example:"true"`
-	Message []IPBan `json:"message"`
+	Success bool                   `json:"success" example:"true"`
+	Message []cocosecentity.IPBan `json:"message"`
 }
 
 type IPBanSuccess struct {
-	Success bool  `json:"success" example:"true"`
-	Message IPBan `json:"message"`
+	Success bool                 `json:"success" example:"true"`
+	Message cocosecentity.IPBan `json:"message"`
 }
 
 type IPBanAccountsSuccess struct {

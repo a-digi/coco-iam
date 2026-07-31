@@ -11,6 +11,7 @@ require (
 	github.com/a-digi/coco-observe v0.1.3
 	github.com/a-digi/coco-orm v1.0.6
 	github.com/a-digi/coco-queue v0.0.1
+	github.com/a-digi/coco-sec v0.0.0-00010101000000-000000000000
 	github.com/a-digi/coco-server v0.1.11
 	github.com/disintegration/imaging v1.6.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -51,3 +52,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/a-digi/coco-sec => ../plugins/coco-sec
