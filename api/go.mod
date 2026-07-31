@@ -6,7 +6,7 @@ require (
 	github.com/a-digi/coco-filer v0.1.0
 	github.com/a-digi/coco-lift v0.0.2
 	github.com/a-digi/coco-logger v0.1.0
-	github.com/a-digi/coco-notification v0.0.0-00010101000000-000000000000
+	github.com/a-digi/coco-notification v0.0.1
 	github.com/a-digi/coco-oauth v0.1.0
 	github.com/a-digi/coco-observe v0.1.3
 	github.com/a-digi/coco-orm v1.0.6
@@ -51,5 +51,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/a-digi/coco-notification => ../plugins/coco-notification
