@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	appmail_query "github.com/a-digi/coco-iam/src/applications/mail/repository/query"
 	iam_mail "github.com/a-digi/coco-iam/src/mail"
 	"github.com/a-digi/coco-iam/src/mail/accounts"
 	mailsmtp "github.com/a-digi/coco-iam/src/mail/smtp"
@@ -137,12 +138,16 @@ func handler(
 // bound to that account's stored credentials — so event-driven sends
 // use the bound account regardless of which one is globally active.
 //
-// OrgID decides WHERE Account is looked up: empty means the GLOBAL
-// mail_smtp_accounts table (existing behavior, unchanged); non-empty
-// means that organization's own accounts table — a completely separate
-// namespace, never cross-checked against the global one, so a
-// same-named global account can never be mistaken for an org's account
-// or vice versa.
+// AppID/OrgID decide WHERE Account is looked up, and are mutually
+// exclusive (ScopedResolver.AccountForEvent resolves to exactly one
+// tier, or neither): AppID non-empty means that application's own
+// accounts table (application_id-scoped, inside its owning org's
+// users.db — applications have no database of their own); OrgID
+// non-empty means that organization's own accounts table; both empty
+// means the GLOBAL mail_smtp_accounts table (existing behavior,
+// unchanged). All three are completely separate namespaces, never
+// cross-checked against each other, so a same-named account at one
+// tier can never be mistaken for another tier's account.
 func selectMailer(
 	task iam_mail.MailTask,
 	defaultMailer iam_mail.Mailer,
@@ -152,6 +157,24 @@ func selectMailer(
 ) (iam_mail.Mailer, error) {
 	if task.Account == "" {
 		return defaultMailer, nil
+	}
+
+	if task.AppID != "" {
+		if orgReg == nil {
+			return nil, fmt.Errorf("mail consumer: task references app %q account %q but no org registry is configured", task.AppID, task.Account)
+		}
+		appDB, _, err := orgrouter.OrgDBForApp(orgReg, task.AppID)
+		if err != nil {
+			return nil, fmt.Errorf("mail consumer: app %q lookup failed: %w", task.AppID, err)
+		}
+		acc, err := appmail_query.NewAppMailAccountsQueryRepo(appDB, task.AppID).GetByName(task.Account)
+		if err != nil {
+			return nil, fmt.Errorf("mail consumer: app %q account %q lookup failed: %w", task.AppID, task.Account, err)
+		}
+		return mailsmtp.New(mailsmtp.Config{
+			Host: acc.Host, Port: acc.Port, Username: acc.Username, Password: acc.Password, UseTLS: acc.UseTLS,
+			From: iam_mail.Address{Name: acc.FromName, Email: acc.FromEmail},
+		}, log), nil
 	}
 
 	if task.OrgID != "" {

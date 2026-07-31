@@ -44,6 +44,7 @@ import (
 	app_loginlog "github.com/a-digi/coco-iam/src/applications/loginlog/handler"
 	app_loginpage "github.com/a-digi/coco-iam/src/applications/loginpage"
 	app_loginpage_handler "github.com/a-digi/coco-iam/src/applications/loginpage/handler"
+	app_mail_handler "github.com/a-digi/coco-iam/src/applications/mail/handler"
 	app_media_handler "github.com/a-digi/coco-iam/src/applications/media/handler"
 	oauthproviders_admin "github.com/a-digi/coco-iam/src/applications/oauthproviders/admin"
 	oauth_authstate "github.com/a-digi/coco-iam/src/applications/oauthproviders/authstate"
@@ -1141,6 +1142,21 @@ func Init(ctx serverdi.Context) {
 		"OrgMailTemplatesGetHandler":     &org_mail_handler.OrgMailTemplatesGetHandler{},
 		"OrgMailTemplatesUpdateHandler":  &org_mail_handler.OrgMailTemplatesUpdateHandler{},
 		"OrgMailTemplatesDeleteHandler":  &org_mail_handler.OrgMailTemplatesDeleteHandler{},
+
+		"AppMailSettingsGetHandler":      &app_mail_handler.AppMailSettingsGetHandler{},
+		"AppMailSettingsUpdateHandler":   &app_mail_handler.AppMailSettingsUpdateHandler{},
+		"AppMailAccountsListHandler":     &app_mail_handler.AppMailAccountsListHandler{},
+		"AppMailAccountsCreateHandler":   &app_mail_handler.AppMailAccountsCreateHandler{},
+		"AppMailAccountsGetHandler":      &app_mail_handler.AppMailAccountsGetHandler{},
+		"AppMailAccountsUpdateHandler":   &app_mail_handler.AppMailAccountsUpdateHandler{},
+		"AppMailAccountsDeleteHandler":   &app_mail_handler.AppMailAccountsDeleteHandler{},
+		"AppMailAccountsActivateHandler": &app_mail_handler.AppMailAccountsActivateHandler{},
+		"AppMailAccountsTestHandler":     &app_mail_handler.AppMailAccountsTestHandler{},
+		"AppMailTemplatesListHandler":    &app_mail_handler.AppMailTemplatesListHandler{},
+		"AppMailTemplatesCreateHandler":  &app_mail_handler.AppMailTemplatesCreateHandler{},
+		"AppMailTemplatesGetHandler":     &app_mail_handler.AppMailTemplatesGetHandler{},
+		"AppMailTemplatesUpdateHandler":  &app_mail_handler.AppMailTemplatesUpdateHandler{},
+		"AppMailTemplatesDeleteHandler":  &app_mail_handler.AppMailTemplatesDeleteHandler{},
 		// coco-observe — system observability (push public/HMAC, query+agents admin-scoped).
 		"ObservePushHandler":          observePush,
 		"ObserveQueryHandler":         observeQuery,

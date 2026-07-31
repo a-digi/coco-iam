@@ -55,7 +55,7 @@ func (s *Service) OnRemoved(_ context.Context, _, username, email, orgID string)
 
 func (s *Service) send(event, username, email, orgID string) {
 	tmpl := s.mailConfig.TemplateForEvent(orgID, "", event)
-	account, resolvedOrgID := s.mailConfig.AccountForEvent(orgID, "", event)
+	account, resolvedOrgID, _ := s.mailConfig.AccountForEvent(orgID, "", event)
 	websiteTitle := s.pageTitle(orgID)
 
 	task := iam_mail.MailTask{

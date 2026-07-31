@@ -48,6 +48,15 @@ type Message struct {
 // reports which tier actually satisfied the binding. Never carries raw
 // credentials itself — only an id, resolved fresh from a database at
 // consume time, same as the existing Account-by-name mechanism.
+//
+// AppID is the application-tier analog of OrgID: non-empty tells the
+// consumer that Account names an APPLICATION-scoped account, looked up
+// in its owning org's users.db (applications have no database of their
+// own) scoped by application_id — see
+// api/src/applications/mail/repository/query. OrgID and AppID are
+// mutually exclusive — ScopedResolver.AccountForEvent resolves to
+// exactly one tier, or neither (the global table), never both. See
+// plan/org-app-email-settings/plan.md step 5.
 type MailTask struct {
 	MailID   string                 `json:"mail_id,omitempty"`
 	Template string                 `json:"template,omitempty"`
@@ -61,4 +70,5 @@ type MailTask struct {
 	HTMLBody string                 `json:"html_body,omitempty"`
 	Account  string                 `json:"account,omitempty"`
 	OrgID    string                 `json:"org_id,omitempty"`
+	AppID    string                 `json:"app_id,omitempty"`
 }

@@ -441,7 +441,7 @@ func (s *Service) sendRecoveryEmail(ctx context.Context, ref userRef, link strin
 	if template == "" {
 		return fmt.Errorf("no template bound to event %q — configure it in Admin Settings → Email", EventPasswordRecovery)
 	}
-	account, resolvedOrgID := s.mailConfig.AccountForEvent(orgID, "", EventPasswordRecovery)
+	account, resolvedOrgID, _ := s.mailConfig.AccountForEvent(orgID, "", EventPasswordRecovery)
 	if account == "" {
 		return fmt.Errorf("no account bound to event %q — configure it in Admin Settings → Email", EventPasswordRecovery)
 	}

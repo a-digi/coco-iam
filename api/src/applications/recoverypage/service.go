@@ -12,7 +12,7 @@ import (
 	"github.com/a-digi/coco-iam/src/auth/recovery"
 	"github.com/a-digi/coco-iam/src/general"
 	iam_mail "github.com/a-digi/coco-iam/src/mail"
-	mailsettings "github.com/a-digi/coco-iam/src/mail/settings"
+	"github.com/a-digi/coco-iam/src/mail/scopedsettings"
 	"github.com/a-digi/coco-iam/src/organizations/users/dbregistry"
 	"github.com/a-digi/coco-iam/src/orgrouter"
 	"github.com/a-digi/coco-iam/src/userrules"
@@ -28,10 +28,10 @@ import (
 type Service struct {
 	db            *sql.DB // main DB — applications, workspaces, organizations
 	orgRegistry   *dbregistry.OrgUserDBRegistry
-	store         *Store              // our template store
-	recoveryStore *recovery.OrgStore  // shared per-org token store
+	store         *Store             // our template store
+	recoveryStore *recovery.OrgStore // shared per-org token store
 	mail          iam_mail.MailService
-	mailConfig    *mailsettings.Resolver
+	mailConfig    *scopedsettings.ScopedResolver
 	settings      *recovery.SettingsReader
 	rules         *userrules.Store
 	log           logger.Logger
@@ -43,7 +43,7 @@ func NewService(
 	store *Store,
 	recoveryStore *recovery.OrgStore,
 	mail iam_mail.MailService,
-	mailConfig *mailsettings.Resolver,
+	mailConfig *scopedsettings.ScopedResolver,
 	settings *recovery.SettingsReader,
 	rules *userrules.Store,
 	log logger.Logger,
@@ -237,15 +237,16 @@ func (s *Service) StartRecovery(ctx context.Context, orgSlug, wsSlug, clientID, 
 		info.OrganizationSlug, info.WorkspaceSlug, info.ClientID,
 		token, email)
 
-	if err := s.sendMail(ctx, ref, link); err != nil {
+	if err := s.sendMail(ctx, ref, link, info.OrganizationID, info.ID); err != nil {
 		s.log.Error("app-recovery: failed to enqueue email for %s: %v", ref.UserID, err)
 	}
 }
 
 // CompleteRecovery handles the POST /recover/reset flow. Returns:
-//   nil              → password was reset
-//   ErrRecoveryFailed → generic auth failure (token, email, ACL, …)
-//   other error      → rule violation, surfaced verbatim
+//
+//	nil              → password was reset
+//	ErrRecoveryFailed → generic auth failure (token, email, ACL, …)
+//	other error      → rule violation, surfaced verbatim
 func (s *Service) CompleteRecovery(orgSlug, wsSlug, clientID, token, email, newPassword string) error {
 	if strings.TrimSpace(newPassword) == "" {
 		return errors.New("recovery: new password cannot be empty")
@@ -382,26 +383,42 @@ func (s *Service) baseURLForOrg(orgID string) string {
 	return general.NewStoreFromDB(orgDB).BaseURL()
 }
 
-func (s *Service) sendMail(_ context.Context, ref appUserRef, link string) error {
-	template := s.mailConfig.TemplateForEvent(recovery.EventPasswordRecovery)
+func (s *Service) sendMail(_ context.Context, ref appUserRef, link, orgID, appID string) error {
+	event := recovery.EventPasswordRecovery
+	template := s.mailConfig.TemplateForEvent(orgID, appID, event)
 	if template == "" {
-		return fmt.Errorf("no template bound to event %q — configure it in Admin Settings → Email",
-			recovery.EventPasswordRecovery)
+		return fmt.Errorf("no template bound to event %q — configure it in Admin Settings → Email", event)
 	}
-	account := s.mailConfig.AccountForEvent(recovery.EventPasswordRecovery)
+	account, resolvedOrgID, resolvedAppID := s.mailConfig.AccountForEvent(orgID, appID, event)
 	if account == "" {
-		return fmt.Errorf("no account bound to event %q — configure it in Admin Settings → Email",
-			recovery.EventPasswordRecovery)
+		return fmt.Errorf("no account bound to event %q — configure it in Admin Settings → Email", event)
 	}
-	_, err := s.mail.Enqueue(iam_mail.MailTask{
-		Template: template,
-		Account:  account,
-		To:       []iam_mail.Address{{Email: ref.Email, Name: ref.Username}},
-		Data: map[string]interface{}{
-			"Username":  ref.Username,
-			"ResetLink": link,
-			"ExpiresIn": s.settings.TTLHumanReadable(),
-		},
-	})
+
+	data := map[string]interface{}{
+		"Username":  ref.Username,
+		"ResetLink": link,
+		"ExpiresIn": s.settings.TTLHumanReadable(),
+	}
+	task := iam_mail.MailTask{
+		Account: account,
+		OrgID:   resolvedOrgID,
+		AppID:   resolvedAppID,
+		To:      []iam_mail.Address{{Email: ref.Email, Name: ref.Username}},
+	}
+	// Prefer this application's own active template of the same name,
+	// then this org's, over the global renderer — falls through
+	// untouched (task.Template + task.Data set) when neither tier has
+	// one of its own.
+	if subject, text, html, ok, rerr := s.mailConfig.RenderTemplate(orgID, appID, template, data); rerr == nil && ok {
+		task.Subject, task.TextBody, task.HTMLBody = subject, text, html
+	} else {
+		if rerr != nil {
+			s.log.Warning("app-recovery: template render for %q failed, falling back to global: %v", template, rerr)
+		}
+		task.Template = template
+		task.Data = data
+	}
+
+	_, err := s.mail.Enqueue(task)
 	return err
 }

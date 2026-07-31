@@ -135,6 +135,13 @@ export const AppScopes = {
     ApplicationsAnalyticsRecentGrantsRead: 'applications:analytics:recent_grants:read',
     ApplicationsAnalyticsPendingRecoveriesRead: 'applications:analytics:pending_recoveries:read',
 
+    // Application email senders/templates/event bindings. Falls back to
+    // the organization's, then the global, mail settings when unset —
+    // see plan/org-app-email-settings/plan.md.
+    ApplicationsMail: 'applications:mail',
+    ApplicationsMailRead: 'applications:mail:read',
+    ApplicationsMailWrite: 'applications:mail:write',
+
     // Admin Queue
     AdminQueue: 'admin:queue',
     AdminQueueRead: 'admin:queue:read',

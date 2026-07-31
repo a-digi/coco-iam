@@ -174,6 +174,20 @@
                         "description": "Allows viewing application end-user login attempts (success and failure) and their archives."
                     }
                 ]
+            },
+            {
+                "id": "applications:mail",
+                "description": "Allows managing an application's own email senders, templates, and event bindings. Falls back to the organization's, then the global, mail settings when unset.",
+                "scopes": [
+                    {
+                        "id": "applications:mail:read",
+                        "description": "Allows reading an application's email accounts, templates, and event bindings."
+                    },
+                    {
+                        "id": "applications:mail:write",
+                        "description": "Allows creating, modifying, or deleting an application's email accounts, templates, and event bindings."
+                    }
+                ]
             }
         ]
     }

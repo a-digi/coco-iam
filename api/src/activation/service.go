@@ -687,11 +687,11 @@ func (s *Service) sendInvite(ctx context.Context, args StartArgs, link, tempPass
 	}
 	orgID := s.resolvedOrgIDFor(args)
 
-	template := s.mailConfig.TemplateForEvent(orgID, "", event)
+	template := s.mailConfig.TemplateForEvent(orgID, args.AppID, event)
 	if template == "" {
 		return fmt.Errorf("no template bound to event %q — configure it in Admin Settings → Email", event)
 	}
-	account, resolvedOrgID := s.mailConfig.AccountForEvent(orgID, "", event)
+	account, resolvedOrgID, resolvedAppID := s.mailConfig.AccountForEvent(orgID, args.AppID, event)
 	if account == "" {
 		return fmt.Errorf("no account bound to event %q — configure it in Admin Settings → Email", event)
 	}
@@ -722,16 +722,18 @@ func (s *Service) sendInvite(ctx context.Context, args StartArgs, link, tempPass
 	task := iam_mail.MailTask{
 		Account: account,
 		OrgID:   resolvedOrgID,
+		AppID:   resolvedAppID,
 		To:      []iam_mail.Address{{Email: args.Email, Name: args.Username}},
 	}
-	// Prefer this org's own active template of the same name over the
-	// global renderer — falls through untouched (task.Template +
-	// task.Data set, exactly as before) when the org has none of its own.
-	if subject, text, html, ok, rerr := s.mailConfig.RenderTemplate(orgID, "", template, data); rerr == nil && ok {
+	// Prefer this application's own active template of the same name,
+	// then this org's, over the global renderer — falls through
+	// untouched (task.Template + task.Data set, exactly as before)
+	// when neither tier has one of its own.
+	if subject, text, html, ok, rerr := s.mailConfig.RenderTemplate(orgID, args.AppID, template, data); rerr == nil && ok {
 		task.Subject, task.TextBody, task.HTMLBody = subject, text, html
 	} else {
 		if rerr != nil {
-			s.log.Warning("activation: org template render for %q failed, falling back to global: %v", template, rerr)
+			s.log.Warning("activation: template render for %q failed, falling back to global: %v", template, rerr)
 		}
 		task.Template = template
 		task.Data = data

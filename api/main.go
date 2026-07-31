@@ -582,7 +582,7 @@ func main() {
 			app_recoverypage.NewStore(manager),
 			orgRecoveryStore,
 			mailService,
-			mailSettingsResolver,
+			mailScopedResolver,
 			recoverySettings,
 			userRulesStore,
 			log,

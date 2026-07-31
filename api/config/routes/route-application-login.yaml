@@ -326,6 +326,135 @@ routes:
               - applications:analytics:read
               - applications:analytics
               - super:admin
+          # App-scoped mail settings/accounts/templates — see
+          # plan/org-app-email-settings/plan.md step 4. Falls back to
+          # the organization's, then the global, mail engine when unset.
+          - path: /{res:applications}/{id}/mail/settings
+            method: GET
+            executor: AppMailSettingsGetHandler
+            security: authenticated
+            scopes:
+              - applications:mail:read
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/settings
+            method: PATCH
+            executor: AppMailSettingsUpdateHandler
+            security: authenticated
+            scopes:
+              - applications:mail:write
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/accounts
+            method: GET
+            executor: AppMailAccountsListHandler
+            security: authenticated
+            scopes:
+              - applications:mail:read
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/accounts
+            method: POST
+            executor: AppMailAccountsCreateHandler
+            security: authenticated
+            scopes:
+              - applications:mail:write
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/accounts/{accountId}
+            method: GET
+            executor: AppMailAccountsGetHandler
+            security: authenticated
+            scopes:
+              - applications:mail:read
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/accounts/{accountId}
+            method: PATCH
+            executor: AppMailAccountsUpdateHandler
+            security: authenticated
+            scopes:
+              - applications:mail:write
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/accounts/{accountId}
+            method: DELETE
+            executor: AppMailAccountsDeleteHandler
+            security: authenticated
+            scopes:
+              - applications:mail:write
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/accounts/{accountId}/activate
+            method: POST
+            executor: AppMailAccountsActivateHandler
+            security: authenticated
+            scopes:
+              - applications:mail:write
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/accounts/{accountId}/test
+            method: POST
+            executor: AppMailAccountsTestHandler
+            security: authenticated
+            scopes:
+              - applications:mail:write
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/templates
+            method: GET
+            executor: AppMailTemplatesListHandler
+            security: authenticated
+            scopes:
+              - applications:mail:read
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/templates
+            method: POST
+            executor: AppMailTemplatesCreateHandler
+            security: authenticated
+            scopes:
+              - applications:mail:write
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/templates/{templateId}
+            method: GET
+            executor: AppMailTemplatesGetHandler
+            security: authenticated
+            scopes:
+              - applications:mail:read
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/templates/{templateId}
+            method: PATCH
+            executor: AppMailTemplatesUpdateHandler
+            security: authenticated
+            scopes:
+              - applications:mail:write
+              - applications:mail
+              - applications
+              - super:admin
+          - path: /{res:applications}/{id}/mail/templates/{templateId}
+            method: DELETE
+            executor: AppMailTemplatesDeleteHandler
+            security: authenticated
+            scopes:
+              - applications:mail:write
+              - applications:mail
+              - applications
+              - super:admin
 
   # Public — rendered login page + authenticate + asset serving.
   # Login-template JSON config + auth endpoints — still under /api/v1/

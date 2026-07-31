@@ -53,6 +53,13 @@ type StartArgs struct {
 	// OrgID is the organization UUID for UserTypeUser. When supplied,
 	// the service skips the user_org_index lookup. Ignored for admins.
 	OrgID string
+	// AppID, when supplied, is the application UUID this invite is for
+	// (application self-registration) — lets the mail resolver consult
+	// that application's own template/account/activation overrides
+	// before falling back to OrgID's, then the global ones. Empty for
+	// admin invites, org-admin-created org users, and any resend flow
+	// that cannot cheaply re-derive it (see activation.Service.Resend).
+	AppID string
 	// Redirect, when set, stamps the activation row with a post-
 	// activation login target. Optional — callers can leave it nil to
 	// preserve the default "land on /login" behaviour.
@@ -63,8 +70,8 @@ type StartArgs struct {
 // (useful in dev without a mail server) or surface a copy-paste link.
 type StartResult struct {
 	ActivationID string
-	Token        string    // plaintext — only usable in the API response of admin flows
-	TempPassword string    // plaintext — communicated to the creator
+	Token        string // plaintext — only usable in the API response of admin flows
+	TempPassword string // plaintext — communicated to the creator
 	ExpiresAt    time.Time
 }
 

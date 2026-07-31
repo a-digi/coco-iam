@@ -16,6 +16,9 @@ import { RegistrationFields } from './Partials/RegistrationFields';
 import { Authentication } from './Partials/Authentication';
 import { OAuthClients } from './Partials/OAuthClients';
 import { Media } from './Partials/Media';
+import { AppEmailSettings } from './Partials/Email/AppEmailSettings';
+import { AppEmailAccounts } from './Partials/Email/AppEmailAccounts';
+import { AppEmailTemplates } from './Partials/Email/AppEmailTemplates';
 import { ApplicationLogo } from './Partials/ApplicationLogo';
 import { DetailPanel } from './Partials/Detail/DetailPanel';
 import { SideMenu, type SideMenuItem } from '../../../Shared/Components/SideMenu';
@@ -206,6 +209,19 @@ export const EditApplication: React.FC = () => {
       scopes: analyticsScopes,
     },
     { id: 'edit', label: 'Edit', content: editForm },
+    {
+      id: 'group-email',
+      label: 'Email',
+      // Falls back to the organization's, then the global, mail engine
+      // wherever this application hasn't customized a given concern —
+      // see plan/org-app-email-settings/plan.md.
+      scopes: [AppScopes.ApplicationsMailRead, AppScopes.ApplicationsMail, AppScopes.Applications, AppScopes.SuperAdmin],
+      children: [
+        { id: 'email-settings', label: 'Settings', content: <AppEmailSettings applicationId={appId} /> },
+        { id: 'email-accounts', label: 'Accounts', content: <AppEmailAccounts applicationId={appId} /> },
+        { id: 'email-templates', label: 'Templates', content: <AppEmailTemplates applicationId={appId} /> },
+      ],
+    },
     {
       id: 'group-authentication',
       label: 'Authentication',
