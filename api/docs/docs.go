@@ -13838,46 +13838,36 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "ban_count": {
-                    "type": "integer",
-                    "example": 3
+                    "type": "integer"
                 },
                 "ended_at": {
-                    "type": "string",
-                    "example": "2026-07-26T10:30:00Z"
+                    "type": "string"
                 },
                 "geoip_info": {
-                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later (geoip.db keeps no history of its own).\nPopulated on both the list and the detail fetch. Empty if geoip\nwas disabled, IP was loopback/private, or nothing matched.",
-                    "type": "string",
-                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
+                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later. Populated on both the list and the detail\nfetch. Empty if geoip was disabled, IP was loopback/private, or\nnothing matched.",
+                    "type": "string"
                 },
                 "hit_count": {
-                    "type": "integer",
-                    "example": 143
+                    "type": "integer"
                 },
                 "id": {
-                    "type": "string",
-                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                    "type": "string"
                 },
                 "ip": {
-                    "type": "string",
-                    "example": "203.0.113.7"
+                    "type": "string"
                 },
                 "last_seen_at": {
-                    "type": "string",
-                    "example": "2026-07-26T10:04:12Z"
+                    "type": "string"
                 },
                 "origin_hint": {
                     "description": "OriginHint is a JSON snapshot of client-identifying request\nheaders, captured only when IP resolved to a loopback/private\naddress — populated on the detail fetch only, never on the list.",
-                    "type": "string",
-                    "example": "{\"x_forwarded_for\":\"203.0.113.7\",\"host\":\"coco-iam.example.com\"}"
+                    "type": "string"
                 },
                 "started_at": {
-                    "type": "string",
-                    "example": "2026-07-26T10:00:00Z"
+                    "type": "string"
                 },
                 "tier": {
-                    "type": "string",
-                    "example": "sensitive"
+                    "type": "string"
                 }
             }
         },
@@ -13885,42 +13875,33 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "ban_count": {
-                    "type": "integer",
-                    "example": 3
+                    "type": "integer"
                 },
                 "ended_at": {
-                    "type": "string",
-                    "example": "2026-07-26T10:30:00Z"
+                    "type": "string"
                 },
                 "geoip_info": {
-                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later (geoip.db keeps no history of its own).\nPopulated on both the list and the detail fetch. Empty if geoip\nwas disabled, IP was loopback/private, or nothing matched.",
-                    "type": "string",
-                    "example": "{\"country_code\":\"DE\",\"country\":\"Germany\",\"asn\":3320,\"as_org\":\"Deutsche Telekom AG\"}"
+                    "description": "GeoIPInfo is a JSON snapshot of the country/ASN/ISP resolved for\nIP at the moment this episode opened — frozen then, never\nre-derived later. Populated on both the list and the detail\nfetch. Empty if geoip was disabled, IP was loopback/private, or\nnothing matched.",
+                    "type": "string"
                 },
                 "hit_count": {
-                    "type": "integer",
-                    "example": 143
+                    "type": "integer"
                 },
                 "id": {
-                    "type": "string",
-                    "example": "b1f6c9e2-1234-4a5b-8c9d-abcdef012345"
+                    "type": "string"
                 },
                 "ip": {
-                    "type": "string",
-                    "example": "203.0.113.7"
+                    "type": "string"
                 },
                 "last_seen_at": {
-                    "type": "string",
-                    "example": "2026-07-26T10:04:12Z"
+                    "type": "string"
                 },
                 "origin_hint": {
                     "description": "OriginHint is a JSON snapshot of client-identifying request\nheaders, captured only when IP resolved to a loopback/private\naddress — populated on the detail fetch only, never on the list.",
-                    "type": "string",
-                    "example": "{\"x_forwarded_for\":\"203.0.113.7\",\"host\":\"coco-iam.example.com\"}"
+                    "type": "string"
                 },
                 "started_at": {
-                    "type": "string",
-                    "example": "2026-07-26T10:00:00Z"
+                    "type": "string"
                 },
                 "targets": {
                     "type": "array",
@@ -13929,8 +13910,7 @@ const docTemplate = `{
                     }
                 },
                 "tier": {
-                    "type": "string",
-                    "example": "sensitive"
+                    "type": "string"
                 }
             }
         },
@@ -13986,20 +13966,16 @@ const docTemplate = `{
             "properties": {
                 "body_sample": {
                     "description": "BodySample is the first-observed request body for this target,\nredacted and size-capped — nil if none was captured (a GET/HEAD\nhit, or a content type this app doesn't capture).",
-                    "type": "string",
-                    "example": "{\"email\":\"admin@x.com\",\"password\":\"[REDACTED]\"}"
+                    "type": "string"
                 },
                 "hit_count": {
-                    "type": "integer",
-                    "example": 89
+                    "type": "integer"
                 },
                 "method": {
-                    "type": "string",
-                    "example": "POST"
+                    "type": "string"
                 },
                 "path": {
-                    "type": "string",
-                    "example": "/admin/oauth/authenticate"
+                    "type": "string"
                 }
             }
         },
@@ -14275,20 +14251,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string",
-                    "example": "2026-07-26T10:00:00Z"
+                    "type": "string"
                 },
                 "created_by": {
-                    "type": "string",
-                    "example": "6b12ba0b-6b36-4a94-bce4-6ba3615b1f85"
+                    "type": "string"
                 },
                 "ip": {
-                    "type": "string",
-                    "example": "203.0.113.7"
+                    "type": "string"
                 },
                 "note": {
-                    "type": "string",
-                    "example": "office egress"
+                    "type": "string"
                 }
             }
         },
@@ -14336,32 +14308,25 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "banned_at": {
-                    "type": "string",
-                    "example": "2026-07-26T10:00:00Z"
+                    "type": "string"
                 },
                 "created_by": {
-                    "type": "string",
-                    "example": "6b12ba0b-6b36-4a94-bce4-6ba3615b1f85"
+                    "type": "string"
                 },
                 "expires_at": {
-                    "type": "string",
-                    "example": "2026-07-26T11:00:00Z"
+                    "type": "string"
                 },
                 "hit_count": {
-                    "type": "integer",
-                    "example": 3
+                    "type": "integer"
                 },
                 "ip": {
-                    "type": "string",
-                    "example": "203.0.113.7"
+                    "type": "string"
                 },
                 "reason": {
-                    "type": "string",
-                    "example": "sensitive rate limit exceeded"
+                    "type": "string"
                 },
                 "tier": {
-                    "type": "string",
-                    "example": "sensitive"
+                    "type": "string"
                 }
             }
         },
